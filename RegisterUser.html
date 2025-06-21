@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FurMaps - Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .absolute {
+      position: absolute;
+    }
+
+    .heading {
+      font-family: 'Fredoka One', sans-serif;
+      font-weight: 400;
+      color: #FAE6C3;
+    }
+
+    .section-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: black;
+    }
+
+    .section-link {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: black;
+    }
+
+    .form-label {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-style: italic;
+      font-weight: 600;
+      color: #36454F;
+    }
+
+    .form-input {
+      background: white;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      width: 344px;
+      height: 37px;
+      border: none;
+      padding-left: 40px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      color: #36454F;
+      outline: none;
+      z-index: 2;
+    }
+
+    .register-btn {
+      position: absolute;
+      top: 262px;
+      left: 965px;
+      width: 331px;
+      height: 102px;
+      background-color: #1B2B49;
+      color: #FAE6C3;
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 26px;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 4px rgba(0,0,0,0.25);
+      cursor: pointer;
+      transition: transform 0.1s ease-in-out, background-color 0.3s;
+      z-index: 10;
+    }
+
+    .register-btn:hover {
+      background-color: #2e4066;
+    }
+
+    .register-btn:active {
+      transform: scale(0.95);
+    }
+
+    .divider {
+      height: 0;
+      outline: 1px solid #A48D66;
+      outline-offset: -0.5px;
+      transform: rotate(90deg);
+      transform-origin: top left;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="Register" style="width: 1440px; height: 1065px; position: relative; background: #FAE6C3; overflow: hidden">
+
+    <!-- Top Navigation -->
+    <div class="absolute" style="top: 0; left: 0; width: 1440px; height: 67px; background: #1B2B49;"></div>
+    <div class="absolute heading" style="top: 8px; left: 80px; font-size: 40px;">FurMaps</div>
+    <div class="absolute" style="top: 2px; left: 9px;">
+      <img src="images/gps.png" width="63" height="63">
+    </div>
+
+    <!-- Register Box -->
+    <div class="absolute" style="top: 65px; left: -24px; width: 1482px; height: 597px; background: white; border-radius: 23px;"></div>
+    <div class="absolute" style="top: 128px; left: 80px; width: 1263px; height: 282px; background: #FAE6C3; border-radius: 23px;"></div>
+    <div class="absolute" style="top: 75px; left: 503px; width: 489px; height: 71px;">
+      <span style="color: #A84710; font-size: 40px; font-family: Fredoka One;">Welcome to FurMaps</span>
+    </div>
+
+    <!-- Form Labels -->
+    <div class="absolute form-label" style="top: 145px; left: 125px; font-size: 20px; font-weight: 800;">Register</div>
+    <div class="absolute form-label" style="top: 198px; left: 138px;">Full Name</div>
+    <div class="absolute form-label" style="top: 275px; left: 138px;">Email</div>
+    <div class="absolute form-label" style="top: 199px; left: 551px;">Password</div>
+    <div class="absolute form-label" style="top: 276px; left: 553px;">Confirm Password</div>
+
+    <!-- Form Fields -->
+    <input type="text" placeholder="Enter full name" class="absolute form-input" style="top: 223px; left: 138px;">
+    <input type="email" placeholder="Enter email" class="absolute form-input" style="top: 300px; left: 138px;">
+    <input type="password" placeholder="Enter password" class="absolute form-input" style="top: 222px; left: 551px; height: 38px;">
+    <input type="password" placeholder="Confirm password" class="absolute form-input" style="top: 299px; left: 551px; height: 39px;">
+
+    <!-- Form Icons -->
+    <img class="absolute" src="images/user.png" style="top: 225px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+    <img class="absolute" src="images/email.png" style="top: 302px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+    <img class="absolute" src="images/pass.png" style="top: 227px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+    <img class="absolute" src="images/confirm-pass.png" style="top: 307px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+
+    <!-- Register Button -->
+    <button class="register-btn" onclick="handleRegisterClick()">Register</button>
+
+    <!-- Right-side Form Info -->
+    <div class="absolute form-label" style="top: 419px; left: 939px; font-size: 16px; font-weight: 600;">Already have a FurMaps account?</div>
+    <div class="absolute heading" style="top: 418px; left: 1236px; font-size: 20px; color: #4588C7; cursor:pointer;">Sign In</div>
+
+    <!-- Decorative Lines -->
+    <div class="absolute divider" style="top: 195px; left: 517px; width: 169px;"></div>
+    <div class="absolute divider" style="top: 187px; left: 934px; width: 169px;"></div>
+
+    <!-- Logo & Image -->
+    <img class="absolute" src="images/paw-logo.png" style="top: 163px; left: 1095px; width: 91px; height: 91px; z-index: 2;">
+    <img class="absolute" src="images/cat-dog-cat.png" style="top: 269px; left: 105px; width: 1184px; height: 527px; z-index: 1;">
+
+    <!-- Footer Section -->
+    <div class="absolute" style="top: 662px; left: 0; width: 1440px; height: 457px; background: #E2F1FF;"></div>
+
+    <!-- Footer Content -->
+    <div class="absolute heading" style="top: 733px; left: 134px; font-size: 26px; color: black;">FurMaps</div>
+    <div class="absolute section-link" style="top: 791px; left: 134px;">About us</div>
+    <div class="absolute section-link" style="top: 839px; left: 134px;">Help Center</div>
+    <div class="absolute section-link" style="top: 893px; left: 134px;">Terms of Use</div>
+    <div class="absolute section-link" style="top: 944px; left: 134px;">Privacy Policy</div>
+
+    <div class="absolute section-title" style="top: 784px; left: 401px;">Pet Lover</div>
+    <div class="absolute section-link" style="top: 842px; left: 401px;">Be a Pet Sitter</div>
+    <div class="absolute section-link" style="top: 893px; left: 401px;">Be a Dog Walker</div>
+
+    <div class="absolute section-title" style="top: 718px; left: 662px;">Pet Services</div>
+    <div class="absolute section-link" style="top: 776px; left: 666px;">Pet Boarding</div>
+    <div class="absolute section-link" style="top: 819px; left: 666px;">Pet Sitting</div>
+    <div class="absolute section-link" style="top: 863px; left: 666px;">Pet Daycare</div>
+    <div class="absolute section-link" style="top: 906px; left: 666px;">Dog Walking</div>
+    <div class="absolute section-link" style="top: 946px; left: 666px;">Pet Grooming</div>
+
+    <div class="absolute section-title" style="top: 718px; left: 1045px;">CONTACT US</div>
+    <div class="absolute section-link" style="top: 773px; left: 1128px;">Email us</div>
+    <img class="absolute" src="images/blck-email.png" style="top: 765px; left: 1045px; width: 59px; height: 52px;">
+  </div>
+
+  <script>
+    function handleRegisterClick() {
+      alert('Registration submitted!');
+    }
+  </script>
+
+</body>
+</html>
