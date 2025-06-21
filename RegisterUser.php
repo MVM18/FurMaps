@@ -118,19 +118,38 @@
     <div class="absolute form-label" style="top: 276px; left: 553px;">Confirm Password</div>
 
     <!-- Form Fields -->
-    <input type="text" placeholder="Enter full name" class="absolute form-input" style="top: 223px; left: 138px;">
+    <!--<input type="text" placeholder="Enter full name" class="absolute form-input" style="top: 223px; left: 138px;">
     <input type="email" placeholder="Enter email" class="absolute form-input" style="top: 300px; left: 138px;">
     <input type="password" placeholder="Enter password" class="absolute form-input" style="top: 222px; left: 551px; height: 38px;">
-    <input type="password" placeholder="Confirm password" class="absolute form-input" style="top: 299px; left: 551px; height: 39px;">
+    <input type="password" placeholder="Confirm password" class="absolute form-input" style="top: 299px; left: 551px; height: 39px;">-->
 
     <!-- Form Icons -->
-    <img class="absolute" src="images/user.png" style="top: 225px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+    <!--<img class="absolute" src="images/user.png" style="top: 225px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
     <img class="absolute" src="images/email.png" style="top: 302px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
     <img class="absolute" src="images/pass.png" style="top: 227px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
-    <img class="absolute" src="images/confirm-pass.png" style="top: 307px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+    <img class="absolute" src="images/confirm-pass.png" style="top: 307px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">-->
 
     <!-- Register Button -->
-    <button class="register-btn" onclick="handleRegisterClick()">Register</button>
+    <!--<button class="register-btn" onclick="handleRegisterClick()">Register</button>>-->
+
+    <form method="POST" action="register_process.php">
+  <!-- Inputs -->
+  <input type="text" name="fullname" placeholder="Enter full name" class="absolute form-input" style="top: 223px; left: 138px;">
+  <img class="absolute" src="images/user.png" style="top: 225px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+
+  <input type="email" name="email" placeholder="Enter email" class="absolute form-input" style="top: 300px; left: 138px;">
+  <img class="absolute" src="images/email.png" style="top: 302px; left: 144px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+
+  <input type="password" name="password" placeholder="Enter password" class="absolute form-input" style="top: 222px; left: 551px; height: 38px;">
+  <img class="absolute" src="images/pass.png" style="top: 227px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+
+  <input type="password" name="confirm_password" placeholder="Confirm password" class="absolute form-input" style="top: 299px; left: 551px; height: 39px;">
+  <img class="absolute" src="images/confirm-pass.png" style="top: 307px; left: 562px; width: 30px; height: 30px; opacity: 0.25; z-index: 3;">
+
+  <!-- Submit Button -->
+  <button class="register-btn" type="submit" name="register">Register</button>
+</form>
+
 
     <!-- Right-side Form Info -->
     <div class="absolute form-label" style="top: 419px; left: 939px; font-size: 16px; font-weight: 600;">Already have a FurMaps account?</div>
