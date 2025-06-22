@@ -181,6 +181,31 @@ header .logo {
   background-color: #b87859;
 }
 
+.login-btn {
+  background-color: #FAE6C3;
+  color: #1B2B49;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  border: 2px solid #1B2B49;
+  border-radius: 8px;
+  padding: 6px 16px;
+  margin-right: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  background-color: #1B2B49;
+  color: #FAE6C3;
+}
+
+.top-right-icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Images */
 .cat-dog {
   position: absolute;

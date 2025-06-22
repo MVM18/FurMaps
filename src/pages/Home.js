@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Home.css';
-import Welcome from './Welcome'; // Make sure this points to your Welcome.js file
+import Welcome from './Welcome';
 
 const Home = () => {
   const faqRef = useRef();
   const [showModal, setShowModal] = useState(false);
+  const [redirectTo, setRedirectTo] = useState('RegisterUser');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -26,12 +27,24 @@ const Home = () => {
   }, []);
 
   const handleGetStarted = () => {
+    setRedirectTo('RegisterUser');
     setShowModal(true);
   };
 
+  const handleLoginClick = () => {
+    setRedirectTo('LoginUser');
+    setShowModal(true);
+  };
+
+  const Buttons = () => (
+    <div className="button-wrapper">
+      <button className="btn" onClick={handleGetStarted}>Get Started</button>
+      <a href="#about" className="btn about-btn">About Us</a>
+    </div>
+  );
+
   return (
     <>
-      {/* Landing Page Section */}
       <div className="homepage">
         {/* Background Shapes */}
         <div className="rectangle6"></div>
@@ -55,16 +68,14 @@ const Home = () => {
             <span className="logo-text">FurMaps</span>
           </div>
           <div className="top-right-icons">
+            <button className="login-btn" onClick={handleLoginClick}>Login</button>
             <img className="image1" src="/images/language.png" alt="Language Icon" />
             <img className="arrow" src="/images/arrow.png" alt="Arrow Icon" />
           </div>
         </header>
 
         {/* Buttons */}
-        <div className="button-wrapper">
-          <button className="btn" onClick={handleGetStarted}>Get Started</button>
-          <a href="#about" className="btn about-btn">About Us</a>
-        </div>
+        <Buttons />
       </div>
 
       {/* FAQ Section */}
@@ -73,32 +84,42 @@ const Home = () => {
 
         <div className="faq-item">
           <h3>&gt; Why do pet owners book through FurMaps instead of pet hotels or freelance sitters?</h3>
-          <p>FurMaps offers a cage-free, home-based environment provided by trusted pet lovers in your area...</p>
+          <p>
+            FurMaps offers a cage-free, home-based environment provided by trusted pet lovers in your area. Unlike pet hotels or freelance sitters, all our service providers are verified and reviewed for safety and quality.
+          </p>
         </div>
 
         <div className="faq-item">
           <h3>&gt; What is FurMaps?</h3>
-          <p>FurMap is a web-based platform that connects pet owners with reliable pet service providers...</p>
+          <p>
+            FurMap is a web-based platform that connects pet owners with reliable pet service providers in their area. Whether you need a sitter, walker, or groomer, FurMaps helps ensure your pet gets the care it deserves.
+          </p>
         </div>
 
         <div className="faq-item">
           <h3>&gt; What is the Dog Walk Monitoring feature?</h3>
-          <p>Our Dog Walk Monitoring feature allows you to track your dog’s walk in real time through a map view...</p>
+          <p>
+            Our Dog Walk Monitoring feature allows you to track your dog’s walk in real time through a map view. You can see where your dog has walked, how long the walk lasted, and even get photo updates from your walker.
+          </p>
         </div>
 
         <div className="faq-item">
           <h3>&gt; Why is paying through FurMap safer than paying directly?</h3>
-          <p>Paying through FurMap protects your booking. Your payment is held securely and only released to the service provider once the job is completed...</p>
+          <p>
+            Paying through FurMap protects your booking. Your payment is held securely and only released to the service provider once the job is completed. This ensures accountability and guarantees service quality.
+          </p>
         </div>
 
         <div className="faq-item">
           <h3>&gt; Can I become a pet sitter, groomer, or pet transport driver with FurMap?</h3>
-          <p>Yes! FurMap welcomes passionate and responsible pet lovers to join our growing network...</p>
+          <p>
+            Yes! FurMap welcomes passionate and responsible pet lovers to join our growing network. Simply apply through our platform, complete the verification process, and start accepting bookings in your area.
+          </p>
         </div>
       </section>
 
-      {/* Welcome Popup Modal */}
-      {showModal && <Welcome closeModal={() => setShowModal(false)} />}
+      {/* Modal */}
+      {showModal && <Welcome closeModal={() => setShowModal(false)} redirectTo={redirectTo} />}
     </>
   );
 };

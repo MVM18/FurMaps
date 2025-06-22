@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './Welcome.module.css';
 
-const Welcome = ({ closeModal }) => {
+const Welcome = ({ closeModal, redirectTo }) => {
   const [fade, setFade] = useState('fade-in');
 
   const handleClose = () => {
@@ -16,7 +16,7 @@ const Welcome = ({ closeModal }) => {
   }, []);
 
   const handlePetOwnerClick = () => {
-    alert('Pet Owner clicked');
+    window.location.href = `/${redirectTo}`; // dynamic redirection
   };
 
   const handleServiceProviderClick = () => {
@@ -48,11 +48,17 @@ const Welcome = ({ closeModal }) => {
           <h2>Use FurMaps as</h2>
 
           <div className={styles.buttonGroup}>
-            <button className={`${styles.btn} ${styles.petOwner}`} onClick={handlePetOwnerClick}>
+            <button
+              className={`${styles.btn} ${styles.petOwner}`}
+              onClick={handlePetOwnerClick}
+            >
               Pet Owner
             </button>
             <div className={styles.orText}>or</div>
-            <button className={`${styles.btn} ${styles.serviceProvider}`} onClick={handleServiceProviderClick}>
+            <button
+              className={`${styles.btn} ${styles.serviceProvider}`}
+              onClick={handleServiceProviderClick}
+            >
               Service Provider
             </button>
           </div>
