@@ -1,8 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './RegisterUser.css'; 
 import { Link } from 'react-router-dom';
 
+
 const RegisterUser = () => {
+
+ const [formData, setFormData] = useState({
+  fullname: '',
+  email: '',
+  password: '',
+  confirm_password: ''
+});
+
+const handleChange = (e) => {
+  setFormData({ ...formData, [e.target.name]: e.target.value });
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (formData.password !== formData.confirm_password) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost/furmaps/backend/register.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        fullname: formData.fullname,
+        email: formData.email,
+        password: formData.password
+      })
+    });
+
+    const result = await response.json();
+    alert(result.message);
+  } catch (error) {
+    alert("Error connecting to the server");
+    console.error(error);
+  }
+};
   return (
     <div className="Register">
 
@@ -28,21 +69,53 @@ const RegisterUser = () => {
       <div className="absolute form-label" style={{ top: '276px', left: '553px' }}>Confirm Password</div>
 
       {/* Form */}
-      <form method="POST" action="#">
-        <input type="text" name="fullname" placeholder="Enter full name" className="form-input" style={{ top: '223px', left: '138px' }} />
-        <img className="absolute" src="/images/user.png" style={{ top: '225px', left: '144px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="user" />
+     <form onSubmit={handleSubmit}>
+  <input
+    type="text"
+    name="fullname"
+    value={formData.fullname}
+    onChange={handleChange}
+    placeholder="Enter full name"
+    className="form-input"
+    style={{ top: '223px', left: '138px' }}
+  />
+  <img className="absolute" src="/images/user.png" style={{ top: '225px', left: '144px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="user" />
 
-        <input type="email" name="email" placeholder="Enter email" className="form-input" style={{ top: '300px', left: '138px' }} />
-        <img className="absolute" src="/images/email.png" style={{ top: '302px', left: '144px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="email" />
+  <input
+    type="email"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    placeholder="Enter email"
+    className="form-input"
+    style={{ top: '300px', left: '138px' }}
+  />
+  <img className="absolute" src="/images/email.png" style={{ top: '302px', left: '144px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="email" />
 
-        <input type="password" name="password" placeholder="Enter password" className="form-input" style={{ top: '222px', left: '551px', height: '38px' }} />
-        <img className="absolute" src="/images/pass.png" style={{ top: '227px', left: '562px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="password" />
+  <input
+    type="password"
+    name="password"
+    value={formData.password}
+    onChange={handleChange}
+    placeholder="Enter password"
+    className="form-input"
+    style={{ top: '222px', left: '551px', height: '38px' }}
+  />
+  <img className="absolute" src="/images/pass.png" style={{ top: '227px', left: '562px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="password" />
 
-        <input type="password" name="confirm_password" placeholder="Confirm password" className="form-input" style={{ top: '299px', left: '551px', height: '39px' }} />
-        <img className="absolute" src="/images/confirm-pass.png" style={{ top: '307px', left: '562px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="confirm" />
+  <input
+    type="password"
+    name="confirm_password"
+    value={formData.confirm_password}
+    onChange={handleChange}
+    placeholder="Confirm password"
+    className="form-input"
+    style={{ top: '299px', left: '551px', height: '39px' }}
+  />
+  <img className="absolute" src="/images/confirm-pass.png" style={{ top: '307px', left: '562px', width: '30px', height: '30px', opacity: 0.25, zIndex: 3 }} alt="confirm" />
 
-        <button className="register-btn" type="submit">Register</button>
-      </form>
+  <button className="register-btn" type="submit">Register</button>
+</form>
 
       {/* Info & Footer */}
       <div className="absolute form-label" style={{ top: '419px', left: '939px', fontSize: '16px', fontWeight: '600' }}>Already have a FurMaps account?</div>
