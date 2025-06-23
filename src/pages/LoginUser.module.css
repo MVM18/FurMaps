@@ -1,0 +1,171 @@
+/* LoginUser.module.css */
+
+.loginWrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fae6c3;
+  font-family: Poppins;
+}
+
+
+/* Top Bar */
+.navbar {
+  background-color: #003939;
+  color: #fae6c3;
+  display: flex;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+}
+
+.brand {
+  font-size: 2rem;
+  font-family: 'Fredoka One';
+}
+
+/* Form */
+.formContainer {
+  max-width: 500px;
+  width: 100%;
+  margin: 2rem auto;
+  background: #fff8ec;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.formContainer h1 {
+  font-family: 'Fredoka One';
+  font-size: 2rem;
+  color: #a84710;
+  text-align: center;
+}
+
+.formContainer h1 span {
+  color: #a84710;
+}
+
+.subHeader {
+  text-align: center;
+  color: #36454f;
+  margin-bottom: 2rem;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.inputGroup img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  opacity: 0.7;
+}
+
+.inputGroup input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.loginButton {
+  width: 100%;
+  background-color: #1b2b49;
+  color: #fae6c3;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.loginButton:hover {
+  background-color: #2c3e64;
+}
+
+.register {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.register span {
+  color: #36454f;
+  display: block;
+}
+
+.register a {
+  color: #4588c7;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 2rem;
+  background: #e2f1ff;
+  margin-top: auto;
+}
+
+.footerColumn {
+  min-width: 180px;
+  margin: 1rem 0;
+}
+
+.footerColumn h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
+  color: #1b2b49;
+}
+
+.footerColumn a {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #36454f;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.footerColumn a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .formContainer {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .brand {
+    font-size: 1.5rem;
+  }
+
+  .loginButton {
+    padding: 0.8rem;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

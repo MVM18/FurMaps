@@ -1,0 +1,218 @@
+/* General Reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+.registerWrapper {
+  background: #FAE6C3;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  background: #1B2B49;
+  color: #FAE6C3;
+  padding: 1rem;
+  border-radius: 12px;
+  max-width: 1280px;
+}
+
+.header img {
+  width: 50px;
+  height: 50px;
+}
+
+.header h1 {
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 2rem;
+}
+
+/* Container with background image */
+.registerContainer {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin-top: 2rem;
+}
+
+.decorativeImage {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  padding-bottom: 20px;
+}
+
+/* Form Section */
+.registerSection {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  z-index: 1;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.registerIntro h2 {
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 2rem;
+  color: #A84710;
+  margin-bottom: 0.5rem;
+}
+
+.registerIntro p {
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.formGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.formGroup img {
+  position: absolute;
+  left: 10px;
+  width: 25px;
+  height: 25px;
+  opacity: 0.5;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 40px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+/* Button */
+.submitBtn {
+  background-color: #1B2B49;
+  color: #FAE6C3;
+  font-family: 'Fredoka One', sans-serif;
+  font-size: 1.2rem;
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.1s ease-in-out;
+}
+
+.submitBtn:hover {
+  background-color: #2e4066;
+}
+
+.submitBtn:active {
+  transform: scale(0.98);
+}
+
+/* Redirect */
+.loginRedirect {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.loginRedirect a {
+  font-weight: bold;
+  color: #4588C7;
+  text-decoration: none;
+  position: relative;
+}
+
+.loginRedirect a::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #2e4066;
+  transition: width 0.3s ease;
+}
+
+.loginRedirect a:hover::after {
+  width: 100%;
+}
+
+/* Footer */
+.footer {
+  margin-top: 4rem;
+  width: 100%;
+  background: #E2F1FF;
+  border-radius: 12px;
+  padding: 2rem;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  max-width: 1280px;
+}
+
+.footer h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.footer p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contactItem img {
+  width: 30px;
+  height: 30px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .registerIntro h2 {
+    font-size: 1.5rem;
+  }
+
+  .submitBtn {
+    font-size: 1rem;
+  }
+}
+
+
+

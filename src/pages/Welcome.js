@@ -16,8 +16,9 @@ const Welcome = ({ closeModal, redirectTo }) => {
   }, []);
 
   const handlePetOwnerClick = () => {
-    window.location.href = `/${redirectTo}`; // dynamic redirection
-  };
+  window.location.href = `/${redirectTo}`;
+};
+
 
   const handleServiceProviderClick = () => {
     alert('Service Provider clicked');
