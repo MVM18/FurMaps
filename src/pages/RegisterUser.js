@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import styles from './RegisterUser.module.css';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const RegisterUser = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const userRole = queryParams.get("role") || "owner";
+
   const [formData, setFormData] = useState({
     fullname: '',
     email: '',
     password: '',
-    confirm_password: ''
+    confirm_password: '',
+    role: userRole
   });
 
   const handleChange = (e) => {
@@ -30,7 +35,8 @@ const RegisterUser = () => {
         body: JSON.stringify({
           fullname: formData.fullname,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
+          role: formData.role
         })
       });
 
@@ -41,7 +47,6 @@ const RegisterUser = () => {
       console.error(error);
     }
   };
-
   return (
     <div className={styles.registerWrapper}>
       {/* Top Header */}
