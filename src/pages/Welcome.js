@@ -16,12 +16,13 @@ const Welcome = ({ closeModal, redirectTo }) => {
   }, []);
 
   const handlePetOwnerClick = () => {
-  window.location.href = `/${redirectTo}`;
+  window.location.href = `/${redirectTo}?role=owner`;
 };
 
 
   const handleServiceProviderClick = () => {
     alert('Service Provider clicked');
+     //window.location.href = `/${redirectTo}?role=provider`;
   };
 
   return (

@@ -1,10 +1,13 @@
-<?php 
+<?php
 
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+  exit(0); // Preflight request
+}
 
 require_once __DIR__ . '/db.php';
 
@@ -15,24 +18,43 @@ if (!$data) {
   exit();
 }
 
-$fullName = $conn->real_escape_string($data->fullname ?? '');
-$email = $conn->real_escape_string($data->email ?? '');
-$password = password_hash($data->password ?? '', PASSWORD_BCRYPT);
-$role = 'pet_owner';
+$fullName = trim($data->fullname ?? '');
+$email = trim($data->email ?? '');
+$password = $data->password ?? '';
+$role = isset($data->role) ? trim($data->role) : 'owner';
 
-$checkEmail = $conn->query("SELECT * FROM users WHERE email = '$email'");
-if ($checkEmail->num_rows > 0) {
-  echo json_encode(["success" => false, "message" => "Email already registered"]);
+if (!$fullName || !$email || !$password) {
+  echo json_encode(["success" => false, "message" => "All fields are required"]);
   exit();
 }
 
-$sql = "INSERT INTO users (full_name, email, password, role) VALUES ('$fullName', '$email', '$password', '$role')";
+// Check if email already exists
+$checkStmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+$checkStmt->bind_param("s", $email);
+$checkStmt->execute();
+$checkStmt->store_result();
 
-if ($conn->query($sql) === TRUE) {
+if ($checkStmt->num_rows > 0) {
+  echo json_encode(["success" => false, "message" => "Email already registered"]);
+  $checkStmt->close();
+  $conn->close();
+  exit();
+}
+$checkStmt->close();
+
+// Hash password
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+// Insert new user
+$stmt = $conn->prepare("INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("ssss", $fullName, $email, $hashedPassword, $role);
+
+if ($stmt->execute()) {
   echo json_encode(["success" => true, "message" => "User registered successfully"]);
 } else {
-  echo json_encode(["success" => false, "message" => "Error: " . $conn->error]);
+  echo json_encode(["success" => false, "message" => "Error: " . $stmt->error]);
 }
 
+$stmt->close();
 $conn->close();
 ?>

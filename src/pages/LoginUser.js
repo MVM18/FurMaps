@@ -1,15 +1,46 @@
 // LoginUser.js
 import React, { useState } from "react";
 import styles from "./LoginUser.module.css";
+import { Link } from "react-router-dom";
 
 const LoginUser = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    console.log("Email:", email);
-    console.log("Password:", password);
-  };
+  const handleLogin = async () => {
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+         console.log("Sending login data:", { email, password });
+  try {
+    const response = await fetch("http://localhost/furmaps/backend/login.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+       body: JSON.stringify({
+    email: email.trim(),
+    password: password,
+  }),
+    });
+
+    const result = await response.json();
+     console.log("Server response:", result);
+    if (result.status === "success") {
+      alert("Welcome back, " + result.user.name);
+
+      // Optional: store in localStorage or navigate to dashboard
+      localStorage.setItem("user", JSON.stringify(result.user));
+      // window.location.href = "/dashboard"; // If you have a dashboard route
+    } else {
+      alert(result.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Failed to connect to the server.");
+  }
+};
 
   return (
     
@@ -68,35 +99,39 @@ const LoginUser = () => {
 
           <div className={styles.register}>
             <span>Don’t have an account yet?</span>
-            <a href="#">Register Here</a>
+           <Link to="/RegisterUser">Register Here</Link>
           </div>
         </div>
 
         {/* Footer */}
-        <div className={styles.footer}>
-          <div className={styles.footerColumn}>
-            <h3>FurMaps</h3>
-            <a href="#">About us</a>
-            <a href="#">Help Center</a>
-            <a href="#">Terms of Use</a>
-            <a href="#">Privacy Policy</a>
-          </div>
-          <div className={styles.footerColumn}>
-            <h3>Pet Lover</h3>
-            <a href="#">Be a Pet Sitter</a>
-            <a href="#">Be a Dog Walker</a>
-          </div>
-          <div className={styles.footerColumn}>
-            <h3>Pet Services</h3>
-            <a href="#">Pet Boarding</a>
-            <a href="#">Pet Sitting</a>
-            <a href="#">Pet Daycare</a>
-            <a href="#">Pet Grooming</a>
-            <a href="#">Dog Walking</a>
-          </div>
-          <div className={styles.footerColumn}>
-            <h3>Contact Us</h3>
-            <a href="#">Email us</a>
+<div className={styles.footer}>
+  <div className={styles.footerColumn}>
+    <h3>FurMaps</h3>
+    {/* Use Link only if routes exist in your router */}
+    <Link to="/about">About us</Link>
+    <Link to="/help">Help Center</Link>
+    <Link to="/terms">Terms of Use</Link>
+    <Link to="/privacy">Privacy Policy</Link>
+  </div>
+
+  <div className={styles.footerColumn}>
+    <h3>Pet Lover</h3>
+    <Link to="/be-pet-sitter">Be a Pet Sitter</Link>
+    <Link to="/be-dog-walker">Be a Dog Walker</Link>
+  </div>
+
+  <div className={styles.footerColumn}>
+    <h3>Pet Services</h3>
+    <Link to="/boarding">Pet Boarding</Link>
+    <Link to="/sitting">Pet Sitting</Link>
+    <Link to="/daycare">Pet Daycare</Link>
+    <Link to="/grooming">Pet Grooming</Link>
+    <Link to="/walking">Dog Walking</Link>
+  </div>
+
+  <div className={styles.footerColumn}>
+    <h3>Contact Us</h3>
+    <Link to="/contact">Email us</Link>
           </div>
         </div>
       </div>
