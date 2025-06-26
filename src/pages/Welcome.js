@@ -1,3 +1,4 @@
+// Welcome.js
 import React, { useEffect, useState } from 'react';
 import styles from './Welcome.module.css';
 

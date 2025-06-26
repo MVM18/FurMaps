@@ -1,46 +1,30 @@
 // LoginUser.js
-import React, { useState } from "react";
-import styles from "./LoginUser.module.css";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import styles from './LoginUser.module.css';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginUser = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
-  if (!email || !password) {
-    alert("Please enter email and password");
-    return;
-  }
-         console.log("Sending login data:", { email, password });
-  try {
-    const response = await fetch("http://localhost/furmaps/backend/login.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-       body: JSON.stringify({
-    email: email.trim(),
-    password: password,
-  }),
-    });
+    if (!email || !password) return alert("Email and password required.");
 
-    const result = await response.json();
-     console.log("Server response:", result);
-    if (result.status === "success") {
-      alert("Welcome back, " + result.user.name);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      // Optional: store in localStorage or navigate to dashboard
-      localStorage.setItem("user", JSON.stringify(result.user));
-      // window.location.href = "/dashboard"; // If you have a dashboard route
-    } else {
-      alert(result.message);
+      if (error) throw error;
+
+      alert("Welcome back!");
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate('/dashboard'); // or redirect to any page
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
-  } catch (err) {
-    console.error(err);
-    alert("Failed to connect to the server.");
-  }
-};
+  };
 
   return (
     

@@ -1,6 +1,8 @@
+// RegisterUser.js
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import { useLocation, Link } from 'react-router-dom';
 import styles from './RegisterUser.module.css';
-import { Link, useLocation } from 'react-router-dom';
 
 const RegisterUser = () => {
   const location = useLocation();
@@ -8,7 +10,7 @@ const RegisterUser = () => {
   const userRole = queryParams.get("role") || "owner";
 
   const [formData, setFormData] = useState({
-    fullname: '',
+    full_name: '',
     email: '',
     password: '',
     confirm_password: '',
@@ -19,34 +21,67 @@ const RegisterUser = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirm_password) {
-      alert("Passwords do not match");
-      return;
-    }
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const response = await fetch("http://localhost/furmaps/backend/register.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          fullname: formData.fullname,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role
-        })
-      });
+  if (formData.password !== formData.confirm_password) {
+    alert("Passwords do not match");
+    return;
+  }
 
-      const result = await response.json();
-      alert(result.message);
-    } catch (error) {
-      alert("Error connecting to the server");
-      console.error(error);
-    }
-  };
+  // 1. Sign up with Supabase
+    const { data, error } = await supabase.auth.signUp({
+  email: formData.email,
+  password: formData.password,
+});
+
+if (error) {
+  alert(error.message);
+  return;
+}
+
+if (!data.session) {
+  alert("Please verify your email first before continuing.");
+  return;
+}
+
+const userId = data.user.id; // Safe now
+
+const { error: insertError } = await supabase.from("profiles").insert([
+  {
+    id: userId,
+    full_name: formData.full_name,
+    role: formData.role,
+  }
+]);
+
+if (insertError) {
+  alert("Failed to save user profile: " + insertError.message);
+} else {
+  alert("Registered successfully!");
+}
+
+};
+  // 2. Insert additional user info into 'profiles' table
+  /*const { user } = data;
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .insert([
+      {
+        user_id: user.id, // match your column name in 'profiles'
+        full_name: formData.full_name,
+        role: formData.role,
+      },
+    ]);
+  if (profileError) {
+    alert(profileError.message);
+  } else {
+    alert("Registered successfully!");
+    // You can also redirect here if needed
+    // window.location.href = "/LoginUser";
+  }
+};*/
+
   return (
     <div className={styles.registerWrapper}>
       {/* Top Header */}
@@ -63,15 +98,16 @@ const RegisterUser = () => {
             <p>Register your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className={styles.form}>
+         <form onSubmit={handleSubmit} className={styles.form}>
             <div className={styles.formGroup}>
               <img src="/images/user.png" alt="user icon" />
               <input
                 type="text"
-                name="fullname"
-                value={formData.fullname}
+                name="full_name"
+                value={formData.full_name}
                 onChange={handleChange}
                 placeholder="Full Name"
+                required
               />
             </div>
 
@@ -83,6 +119,7 @@ const RegisterUser = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
+                required
               />
             </div>
 
@@ -94,6 +131,7 @@ const RegisterUser = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Password"
+                required
               />
             </div>
 
@@ -105,6 +143,7 @@ const RegisterUser = () => {
                 value={formData.confirm_password}
                 onChange={handleChange}
                 placeholder="Confirm Password"
+                required
               />
             </div>
 
