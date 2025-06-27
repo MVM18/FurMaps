@@ -13,35 +13,84 @@ html, body {
 }
 
 .registerWrapper {
-  background: #FAE6C3;
   min-height: 100vh;
-  padding: 2rem 1rem;
+  width: 100vw;
+  background: linear-gradient(135deg, #fff8e1 0%, #fae6c3 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.homeBtn {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  z-index: 10;
+  background: #fff;
+  border: 2px solid #fae6c3;
+  box-shadow: 0 2px 8px rgba(44,156,255,0.08);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, border 0.2s;
+}
+.homeBtn:hover {
+  background: #fae6c3;
+  border: 2px solid #10b981;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.13);
+}
+
+.homeBtnIcon {
+  width: 28px;
+  height: 28px;
+  display: block;
 }
 
 /* Header */
 .header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 2rem 0 0.5rem 0;
   width: 100%;
-  background: #1B2B49;
-  color: #FAE6C3;
-  padding: 1rem;
-  border-radius: 12px;
-  max-width: 1280px;
 }
 
-.header img {
-  width: 50px;
-  height: 50px;
+.logoImg {
+  display: block;
+  margin: 0 auto 0.5rem auto;
+  width: 56px;
+  height: 56px;
 }
 
-.header h1 {
+.brandTitle {
+  text-align: center;
   font-family: 'Fredoka One', sans-serif;
-  font-size: 2rem;
+  font-size: 2.1rem;
+  color: #2d8cff;
+  margin: 0;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(44,156,255,0.10), 0 1px 0 #fff;
+  background: linear-gradient(90deg, #10b981 30%, #2d8cff 70%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  text-align: center;
+  color: #888;
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Container with background image */
@@ -62,12 +111,32 @@ html, body {
 
 /* Form Section */
 .registerSection {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 32px rgba(44, 156, 255, 0.10), 0 2px 12px rgba(16, 185, 129, 0.09);
+  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 400px;
+  margin: 2rem auto 0 auto;
+  width: 100%;
+  border: 1.5px solid #e3eaf2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   position: relative;
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  z-index: 1;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Top accent bar */
+.registerSection::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 7px;
+  background: linear-gradient(90deg, #10b981 0%, #2d8cff 100%);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  z-index: 2;
 }
 
 .registerIntro h2 {
@@ -86,83 +155,98 @@ html, body {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
+  gap: 1.1rem;
+  z-index: 3;
 }
 
 .formGroup {
-  position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.2rem;
+  z-index: 3;
 }
 
-.formGroup img {
-  position: absolute;
-  left: 10px;
-  width: 25px;
-  height: 25px;
-  opacity: 0.5;
+.formGroup label {
+  font-size: 1rem;
+  color: #222;
+  font-weight: 500;
+  margin-bottom: 0.1rem;
 }
 
-.formGroup input {
-  width: 100%;
-  padding: 0.75rem 0.75rem 0.75rem 40px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+.formGroup input,
+.formGroup select {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
   font-size: 1rem;
   font-family: 'Poppins', sans-serif;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+  background: #f8fafc;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(44,156,255,0.03);
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  border: 1.5px solid #2d8cff;
   outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 2px #2d8cff22;
+}
+
+.formGroup input::placeholder,
+.formGroup textarea::placeholder {
+  font-size: 1.08rem;
+  color: #b0b0b0;
+  opacity: 1;
+}
+
+.formGroup select {
+  font-size: 1.08rem;
 }
 
 /* Button */
-.submitBtn {
-  background-color: #1B2B49;
-  color: #FAE6C3;
+.createAccountBtn {
+  background: linear-gradient(90deg, #10b981, #2d8cff);
+  color: #fff;
   font-family: 'Fredoka One', sans-serif;
-  font-size: 1.2rem;
-  padding: 1rem;
+  font-size: 1.1rem;
+  padding: 0.9rem 0;
   border: none;
-  border-radius: 10px;
+  border-radius: 7px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.1s ease-in-out;
+  margin-top: 0.5rem;
+  margin-bottom: 0.2rem;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(44, 156, 255, 0.07);
+  z-index: 3;
 }
-
-.submitBtn:hover {
-  background-color: #2e4066;
+.createAccountBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
-
-.submitBtn:active {
-  transform: scale(0.98);
+.createAccountBtn:hover:not(:disabled) {
+  background: linear-gradient(90deg, #2d8cff, #10b981);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 16px rgba(44,156,255,0.13);
 }
 
 /* Redirect */
 .loginRedirect {
   text-align: center;
-  margin-top: 1rem;
-  font-size: 0.95rem;
+  margin-top: 1.1rem;
+  font-size: 0.98rem;
+  color: #888;
+  z-index: 3;
 }
-
 .loginRedirect a {
-  font-weight: bold;
-  color: #4588C7;
+  color: #2d8cff;
+  font-weight: 600;
   text-decoration: none;
-  position: relative;
+  margin-left: 0.2rem;
 }
-
-.loginRedirect a::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0%;
-  height: 2px;
-  background-color: #2e4066;
-  transition: width 0.3s ease;
-}
-
-.loginRedirect a:hover::after {
-  width: 100%;
+.loginRedirect a:hover {
+  text-decoration: underline;
 }
 
 /* Footer */
@@ -201,17 +285,126 @@ html, body {
 
 /* Mobile adjustments */
 @media (max-width: 600px) {
-  .header h1 {
-    font-size: 1.5rem;
+  .registerSection {
+    padding: 1.2rem 0.5rem;
+    max-width: 98vw;
   }
+  .rowGroup {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rowGroup .formGroup {
+    min-width: 100%;
+  }
+}
 
-  .registerIntro h2 {
-    font-size: 1.5rem;
-  }
+.inputError {
+  border: 1.5px solid #e74c3c !important;
+  background: #fff6f6;
+}
 
-  .submitBtn {
-    font-size: 1rem;
-  }
+.errorMsg {
+  color: #e74c3c;
+  font-size: 0.92rem;
+  margin-left: 2px;
+  margin-top: 2px;
+  display: block;
+  font-weight: 500;
+}
+
+.rowGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.rowGroup .formGroup {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 3px solid #FAE6C3;
+  border-top: 3px solid #1B2B49;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Hide petBannerBackground and footer for minimal look */
+.petBannerBackground, .footer {
+  display: none !important;
+}
+
+.requirementsBox {
+  background: #f4f8ff;
+  border: 1.5px solid #b6d4fe;
+  border-radius: 10px;
+  padding: 1.2rem 1rem 1rem 1rem;
+  margin: 1.2rem 0 0.5rem 0;
+  box-shadow: 0 2px 8px rgba(44,156,255,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.requirementsTitle {
+  color: #2563eb;
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.requirementsSubtitle {
+  color: #2563eb;
+  font-size: 0.98rem;
+  margin-bottom: 0.5rem;
+}
+.requirementsSection {
+  margin-bottom: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.uploadBox {
+  background: #eaf2ff;
+  border: 1.5px dashed #60a5fa;
+  border-radius: 7px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.98rem;
+  color: #2563eb;
+  margin-bottom: 0.2rem;
+}
+.uploadIcon {
+  font-size: 1.3rem;
+  color: #2563eb;
+}
+.fileInput {
+  margin-top: 0.2rem;
+  margin-bottom: 0.1rem;
+}
+.fileName {
+  font-size: 0.95rem;
+  color: #2563eb;
+  margin-top: 0.1rem;
+  margin-bottom: 0.1rem;
+}
+.requirementsNote {
+  background: #fffbe6;
+  color: #b45309;
+  font-size: 0.97rem;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.5rem;
+  border: 1px solid #fde68a;
 }
 
 

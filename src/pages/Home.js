@@ -1,199 +1,173 @@
 import styles from './Home.module.css';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import LoadingScreen from '../components/LoadingScreen';
 
 const Homepage = () => {
+  const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleGetStarted = () => {
+    setIsNavigating(true);
+    setTimeout(() => {
+      navigate('/RegisterUser?role=owner');
+    }, 1500);
+  };
+
+  const handleLogin = () => {
+    setIsNavigating(true);
+    setTimeout(() => {
+      navigate('/LoginUser');
+    }, 1000);
+  };
+
   return (
     <div className={styles.homepage}>
-      {/* Base layout divs */}
-      <div className={styles.homepageChild} />
-      <div className={styles.homepageItem} />
-      <div className={styles.homepageInner} />
-      <div className={styles.rectangleDiv} />
-      <div className={styles.homepageChild1} />
-      <div className={styles.homepageChild2} />
-      <div className={styles.homepageChild3} />
-      <div className={styles.homepageChild5} />
-      <div className={styles.homepageChild6} />
-      <div className={styles.homepageChild7} />
-      <div className={styles.homepageChild8} />
-      <div className={styles.homepageChild9} />
-      <div className={styles.homepageChild10} />
-      <div className={styles.homepageChild11} />
-      <div className={styles.homepageChild12} />
-      <div className={styles.homepageChild14} />
-      <img className={styles.groupIcon} alt="" src="images/cat-dog.png" />
-      <div className={styles.homepageChild15} />
-      <div className={styles.homepageChild16} />
-      <div className={styles.homepageChild17} />
-      <div className={styles.homepageChild18} />
-      <div className={styles.homepageChild19} />
-      <div className={styles.homepageChild20} />
-      <div className={styles.homepageChild21} />
-      <div className={styles.homepageChild22} />
-      <div className={styles.homepageChild23} />
-      <div className={styles.homepageChild24} />
-      <div className={styles.homepageChild25} />
-      <div className={styles.homepageChild26} />
-      <div className={styles.homepageChild27} />
-      <div className={styles.homepageChild28} />
-      <div className={styles.homepageChild29} />
-      <div className={styles.homepageChild30} />
+      {/* Loading Screen */}
+      {isNavigating && <LoadingScreen />}
+      
+      {/* Navigation Bar */}
+      <nav className={styles.navMenu}>
+        <div className={styles.brandLogo}>
+          
+        </div>
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+          <div className={styles.navItem}>About Us</div>
+          <div className={styles.navItem}>Services</div>
+          <div className={styles.navItem} onClick={handleLogin} style={{cursor:'pointer'}}>Log in</div>
+        </div>
+      </nav>
 
-      {/* Branding and navigation */}
-      <div className={styles.furmaps}>
-        <span>Fur</span>
-        <span className={styles.maps}>Maps</span>
-      </div>
-      <div className={styles.yourPetsComfort}>Your Pet’s Comfort, Just a Click Away</div>
-      <div className={styles.services}>Services</div>
-      <div className={styles.helpCenter}>Help Center</div>
-      <div className={styles.logIn}>Log in</div>
+      {/* Branding */}
+      <header className={styles.furmapsHeader}>
+        <div className={styles.furmaps}>
+          <span>Fur</span>
+          <span className={styles.maps}>Maps</span>
+        </div>
+        <div className={styles.yourPetsComfort}>Your Pet's Comfort, Just a Click Away</div>
+      </header>
 
-      <div className={styles.aboutUs}>About Us</div>
+      {/* Hero Section */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroContentWrapper}>
+          <div className={styles.heroTextBlock}>
+            <div className={styles.heroTitle}>Find Pet Services<br />Near You</div>
+            <div className={styles.heroSubtitle}>
+              Easily locate trusted pet sitters, groomers, and boarding near your area.
+            </div>
+            <button className={styles.getStartedBtn} onClick={handleGetStarted}>Get Started</button>
+          </div>
+          <div className={styles.heroImageWrapper}>
+            <img className={styles.heroImage} src="images/cat-dog.png" alt="Cat and Dog" />
+          </div>
+        </div>
+      </section>
 
-      {/* Footer section */}
-      <div className={styles.homepageChild31} />
-      <div className={styles.furmaps1}>
-        <p className={styles.findPetServices}>FurMaps</p>
-      </div>
-      <div className={styles.aboutUs1}>About us</div>
-      <b className={styles.contactUs}>CONTACT US</b>
-      <b className={styles.copyrightFurmaps2025}>
-        Copyright FurMaps 2025
-      </b>
-      <b className={styles.connectWithUs}>CONNECT WITH US</b>
-      <div className={styles.termsOfUse}>Terms of Use</div>
-      <div className={styles.privacyPolicy}>Privacy Policy</div>
-      <div className={styles.homepageChild33} />
-      <div className={styles.ellipseDiv} />
-      <img className={styles.imageIcon} alt="" src="images/gps.png" />
-      <div className={styles.easilyLocateTrusted}>
-        Easily locate trusted pet sitters, groomers, and boarding near your area.
-      </div>
-      <div className={styles.emailUs}>Email us</div>
-      <img className={styles.imageIcon1} alt="" src="images/blck-email.png" />
-      <img className={styles.imageIcon1} alt="" src="image.png" />
-      <div className={styles.homepageChild34} />
-      <img className={styles.imageIcon3} alt="" src="images/copyright.png" />
-      <img className={styles.imageIcon5} alt="" src="images/dog-hug.png" />
-      <img className={styles.imageIcon6} alt="" src="images/walk-dog.png" />
-      <img className={styles.imageIcon7} alt="" src="images/dog-cat.png" />
+      {/* Highlights Section */}
+      <section className={styles.highlightsSection}>
+        <div className={`${styles.highlightCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <img src="images/dog-hug.png" alt="Pet Parent" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Better for Pet Parents</b>
+          <div>Pets stay happy, comfortable, and well-cared for in a familiar and loving environment while you're away.</div>
+        </div>
+        <div className={`${styles.highlightCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
+          <img src="images/dog-cat.png" alt="Pets" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Better for Pets</b>
+          <div>Pet parents enjoy peace of mind knowing your pet is in trusted hands, receiving quality care even when you're not around.</div>
+        </div>
+        <div className={`${styles.highlightCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#8fd400'}} />
+          <img src="images/book.png" alt="Service Provider" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Better for Service Providers</b>
+          <div>Service providers can grow their business with flexible opportunities, reliable bookings, and a trusted platform that connects them with pet owners who need their care.</div>
+        </div>
+      </section>
 
-      {/* Highlights */}
-      <b className={styles.betterForPet}>Better for Pet Parents</b>
-      <div className={styles.petsStayHappy}>
-        Pets stay happy, comfortable, and well-cared for in a familiar and loving environment while you're away.
-      </div>
-      <div className={styles.petParentsEnjoy}>
-        Pet parents enjoy peace of mind knowing your pet is in trusted hands, receiving quality care even when you're not around.
-      </div>
-      <div className={styles.serviceProvidersCan}>
-        Service providers can grow their business with flexible opportunities, reliable bookings, and a trusted platform that connects them with pet owners who need their care.
-      </div>
-      <b className={styles.betterForPets}>Better for Pets</b>
-      <b className={styles.betterForService}>Better for Service Providers</b>
+      {/* CTA Buttons */}
+      <section className={styles.ctaSection}>
+        <button className={styles.browseServicesBtn}>Browse Services</button>
+        <button className={styles.beAServiceBtn}>Be a Service Provider</button>
+      </section>
 
-      {/* CTA */}
-      <div className={styles.findPetServicesContainer}>
-        <p className={styles.findPetServices}>Find Pet Services</p>
-        <p className={styles.findPetServices}>Near You</p>
-      </div>
-      <b className={styles.getStarted}>Get Started</b>
-      <div className={styles.homepageChild35} />
-      <div className={styles.homepageChild36} />
-      <div className={styles.homepageChild37} />
-      <b className={styles.browseServices}>Browse Services</b>
-      <b className={styles.beAService}>Be a Service Provider</b>
+      {/* Info/Features Section */}
+      <section className={styles.infoSection}>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
+          <b className={styles.cardTitle}>What pets do you have?</b>
+          <div className={styles.petsType}>
+            <img src="images/blck-dog.png" alt="Dog" className={styles.petIcon} />
+            <span>DOGS</span>
+            <img src="images/blck-cat.png" alt="Cat" className={styles.petIcon} />
+            <span>CATS</span>
+          </div>
+        </div>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <b className={styles.cardTitle}>How FurMaps work</b>
+          <ol>
+            <li>Enter your location and the type of service you need.</li>
+            <li>See trusted nearby providers. Book right away or plan ahead.</li>
+            <li>Rest easy while your pet gets quality care.</li>
+          </ol>
+        </div>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#8fd400'}} />
+          <img src="images/dog-hug.png" alt="Pet Sitters" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Connect with awesome pet sitters</b>
+          <div>Easily find verified, reviewed sitters who will give your pets the care, companionship, and attention they deserve while you're away.</div>
+        </div>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <img src="images/walk-dog.png" alt="Dog Walking" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Discover local dog walking services</b>
+          <div>Quickly connect with nearby dog walkers who'll give your pup the exercise, fresh air, and attention they need.</div>
+        </div>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
+          <img src="images/dogies.png" alt="Pet Hotels" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Book and locate trusted pet hotels</b>
+          <div>Find verified, well-reviewed hosts who'll welcome your pet into a cozy home, offering round-the-clock care, comfort, and attention while you're away.</div>
+        </div>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#8fd400'}} />
+          <img src="images/locate.png" alt="Daycare" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Find nearby pet daycare centers</b>
+          <div>Easily locate trusted pet daycare spots where your pet can stay active, social, and well-cared for throughout the day.</div>
+        </div>
+        <div className={`${styles.infoCard} ${styles.fadeIn}`}>
+          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <img src="images/cat-fur.png" alt="Groomers" className={styles.cardIcon} />
+          <b className={styles.cardTitle}>Explore pet pampering services</b>
+          <div>Easily locate trusted groomers who'll keep your pet looking fresh, clean, and feeling their best.</div>
+        </div>
+      </section>
 
-      {/* Lines and shapes */}
-      <img className={styles.lineIcon} alt="" src="images/line 9.svg" />
-      <img className={styles.homepageChild38} alt="" src="images/line 9.svg" />
-      <img className={styles.homepageChild39} alt="" src="images/line 9.svg" />
-      <img className={styles.homepageChild40} alt="" src="images/line 10.svg" />
-      <img className={styles.homepageChild41} alt="" src="images/line 10.svg" />
-      <img className={styles.homepageChild42} alt="" src="images/line 10.svg" />
-      <div className={styles.homepageChild43} />
-      <div className={styles.homepageChild44} />
-
-      {/* Info sections */}
-      <b className={styles.whatPetsDo}>What pets do you have?</b>
-      <b className={styles.howFurmapsWork}>How FurMaps work</b>
-      <b className={styles.connectWithAwesome}>Connect with awesome pet sitters</b>
-      <b className={styles.discoverLocalDog}>Discover local dog walking services</b>
-      <b className={styles.bookAndLocate}>Book and locate trusted pet hotels</b>
-      <b className={styles.findNearbyPet}>Find nearby pet daycare centers</b>
-      <b className={styles.explorePetPamperingContainer}>
-        <p className={styles.findPetServices}>Explore pet</p>
-        <p className={styles.findPetServices}>pampering services</p>
-      </b>
-      <b className={styles.findOutWhy}>Find out why FurMaps could be the best pet care choice for you and your pets.</b>
-      <b className={styles.easilyFindVerified}>
-        Easily find verified, reviewed sitters who will give your pets the care, companionship, and attention they deserve while you're away.
-      </b>
-      <b className={styles.quicklyConnectWith}>
-        Quickly connect with nearby dog walkers who’ll give your pup the exercise, fresh air, and attention they need.
-      </b>
-      <b className={styles.easilyLocateTrusted1}>
-        Easily locate trusted pet daycare spots where your pet can stay active, social, and well-cared for throughout the day.
-      </b>
-      <b className={styles.easilyLocateTrusted2}>
-        Easily locate trusted groomers who’ll keep your pet looking fresh, clean, and feeling their best.
-      </b>
-      <b className={styles.findVerifiedWellReviewed}>
-        Find verified, well-reviewed hosts who’ll welcome your pet into a cozy home, offering round-the-clock care, comfort, and attention while you’re away.
-      </b>
-
-      {/* Animals */}
-      <div className={styles.homepageChild45} />
-      <div className={styles.homepageChild46} />
-      <div className={styles.homepageChild47} />
-      <img className={styles.dog11} alt="" src="images/blck-dog.png" />
-      <img className={styles.animalShelter11} alt="" src="images/blck-cat.png" />
-      <div className={styles.dogs}>DOGS</div>
-      <div className={styles.cats}>CATS</div>
-      <div className={styles.getStarted1}>GET STARTED</div>
-
-      {/* Bottom features */}
-      <img className={styles.homepageChild48} alt="" src="images/line 15.svg" />
-      <img className={styles.homepageChild49} alt="" src="images/line 16.svg" />
-      <img className={styles.imageIcon8} alt="" src="images/cat-fur.png" />
-      <img className={styles.imageIcon9} alt="" src="images/dog-leash.png" />
-      <img className={styles.imageIcon10} alt="" src="images/dogies.png" />
-      <img className={styles.imageIcon11} alt="" src="images/bulldog.png" />
-      <img className={styles.imageIcon12} alt="" src="images/dog-human.png" />
-      <img className={styles.communication1Icon} alt="" src="images/fb.png" />
-      <img className={styles.communication1Icon} alt="" src="communication 2.png" />
-      <img className={styles.instagram1Icon} alt="" src="images/ig.png" />
-      <img className={styles.instagram1Icon} alt="" src="instagram 2.png" />
-      <div className={styles.beAService1}>Be a Service Provider!</div>
-      <div className={styles.servicesWeOffer}>Services we offer</div>
-      <b className={styles.petLover}>Pet Lover</b>
-      <b className={styles.petOwner}>Pet Owner</b>
-      <b className={styles.backToTop}>Back to top</b>
-      <img className={styles.backToTop2Icon} alt="" src="images/back-to-top.png" />
-      <div className={styles.homepageChild50} />
-      <div className={styles.homepageChild51} />
-      <div className={styles.homepageChild52} />
-      <div className={styles.enterYourLocation}>Enter your location and the type of service you need.</div>
-      <div className={styles.seeTrustedNearby}>See trusted nearby providers. Book right away or plan ahead.</div>
-      <div className={styles.restEasyWhile}>Rest easy while your pet gets quality care.</div>
-      <img className={styles.image6Icon} alt="" src="images/magnifying.png" />
-      <img className={styles.image8Icon} alt="" src="images/book.png" />
-      <div className={styles.homepageChild53} />
-      <div className={styles.homepageChild54} />
-      <div className={styles.homepageChild55} />
-      <div className={styles.homepageChild56} />
-      <div className={styles.search}>Search</div>
-      <div className={styles.locate}>Locate</div>
-      <div className={styles.book}>Book</div>
-      <div className={styles.homepageChild57} />
-      <div className={styles.homepageChild58} />
-      <div className={styles.homepageChild59} />
-      <div className={styles.homepageChild60} />
-      <div className={styles.homepageChild61} />
-      <div className={styles.homepageChild62} />
-      <div className={styles.homepageChild63} />
-      <div className={styles.homepageChild64} />
-      <img className={styles.image7Icon} alt="" src="images/locate.png" />
+      {/* Footer */}
+      <footer className={styles.footer}>
+        <div className={styles.footerBrand}>
+          <img src="/images/gps.png" alt="FurMaps Logo" className={styles.footerLogo} />
+          <span>FurMaps</span>
+        </div>
+        <div className={styles.footerLinks}>
+          <a href="#about">About us</a>
+          <a href="#terms">Terms of Use</a>
+          <a href="#privacy">Privacy Policy</a>
+        </div>
+        <div className={styles.footerContact}>
+          <b>Contact Us</b>
+          <div>Email us: <a href="mailto:support@furmaps.com">support@furmaps.com</a></div>
+          <div className={styles.footerSocials}>
+            <a href="#"><img src="images/fb.png" alt="Facebook" /></a>
+            <a href="#"><img src="images/ig.png" alt="Instagram" /></a>
+          </div>
+        </div>
+        <div className={styles.footerCopyright}>
+          <img src="images/copyright.png" alt="Copyright" />
+          <span>Copyright FurMaps 2025</span>
+        </div>
+      </footer>
     </div>
   );
 };

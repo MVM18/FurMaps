@@ -1,13 +1,26 @@
 // LoginUser.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import styles from './LoginUser.module.css';
 import { Link, useNavigate } from 'react-router-dom';
+import LoadingScreen from '../components/LoadingScreen';
+import Toast from '../components/Toast';
 
 const LoginUser = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    // Show loading screen for 1.5 seconds when component mounts
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) return alert("Email and password required.");
@@ -17,9 +30,11 @@ const LoginUser = () => {
 
       if (error) throw error;
 
-      alert("Welcome back!");
+      setShowToast(true);
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate('/dashboard'); // or redirect to any page
+      setTimeout(() => {
+        navigate('/HomepagePetOwner');
+      }, 1200);
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -40,11 +55,18 @@ const LoginUser = () => {
 >
 
 
+      {/* Loading Screen */}
+      {isLoading && <LoadingScreen />}
+
+      <Toast message="Welcome back!" show={showToast} onClose={() => setShowToast(false)} />
+
       {/* Overlay to improve readability */}
       <div className={styles.overlay}>
         {/* Top Bar */}
         <div className={styles.navbar}>
-          <img className={styles.logo} src="/images/gps.png" alt="Logo" />
+          <Link to="/">
+            <img className={styles.logo} src="/images/gps.png" alt="Logo" />
+          </Link>
           <div className={styles.brand}>FurMaps</div>
         </div>
 
@@ -82,7 +104,7 @@ const LoginUser = () => {
           </button>
 
           <div className={styles.register}>
-            <span>Don’t have an account yet?</span>
+            <span>Don't have an account yet?</span>
            <Link to="/RegisterUser">Register Here</Link>
           </div>
         </div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './Welcome.module.css';
 
-const Welcome = ({ closeModal, redirectTo }) => {
+const Welcome = ({ closeModal, onPetOwnerClick, mode = 'register' }) => {
   const [fade, setFade] = useState('fade-in');
 
   const handleClose = () => {
@@ -17,13 +17,12 @@ const Welcome = ({ closeModal, redirectTo }) => {
   }, []);
 
   const handlePetOwnerClick = () => {
-  window.location.href = `/${redirectTo}?role=owner`;
-};
-
+    onPetOwnerClick();
+  };
 
   const handleServiceProviderClick = () => {
     alert('Service Provider clicked');
-     //window.location.href = `/${redirectTo}?role=provider`;
+    // You can add navigation for service provider here
   };
 
   return (
@@ -55,7 +54,7 @@ const Welcome = ({ closeModal, redirectTo }) => {
               className={`${styles.btn} ${styles.petOwner}`}
               onClick={handlePetOwnerClick}
             >
-              Pet Owner
+              {mode === 'login' ? 'Pet Owner Login' : 'Pet Owner'}
             </button>
             <div className={styles.orText}>or</div>
             <button
