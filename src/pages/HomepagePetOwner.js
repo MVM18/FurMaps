@@ -2,323 +2,304 @@ import styles from './HomepagePetOwner.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
-
 const WPetOwnerDB = () => {
-  	const navigate = useNavigate();
-  	const [searchQuery, setSearchQuery] = useState('');
-  	const [locationQuery, setLocationQuery] = useState('');
-  	const [isSearchFocused, setIsSearchFocused] = useState(false);
-  	const [isLocationFocused, setIsLocationFocused] = useState(false);
+	const navigate = useNavigate();
+	const [activeTab, setActiveTab] = useState('search');
+	const [searchQuery, setSearchQuery] = useState('');
+	const [locationQuery, setLocationQuery] = useState('');
+	const [isSearchFocused, setIsSearchFocused] = useState(false);
+	const [isLocationFocused, setIsLocationFocused] = useState(false);
 
-  	const handleLogout = () => {
-    		localStorage.clear();
-    		// If using supabase, you can also sign out here
-    		// supabase.auth.signOut();
-    		navigate('/');
-  	};
+	// Sample data for pet owner dashboard
+	const stats = [
+		{ title: "Total Bookings", value: "15", icon: "bookings.svg", color: "#059669" },
+		{ title: "Favorite Providers", value: "8", icon: "star.svg", color: "#2563eb" },
+		{ title: "This Month", value: "₱2,450", icon: "pesos.svg", color: "#d97706" },
+		{ title: "Active Services", value: "3", icon: "user.svg", color: "#16a34a" }
+	];
 
-  	const handleMessages = () => {
-    		// Navigate to messages page or show messages modal
-    		alert('Messages feature coming soon!');
-  	};
+	const handleLogout = () => {
+		localStorage.clear();
+		// If using supabase, you can also sign out here
+		// supabase.auth.signOut();
+		navigate('/');
+	};
 
-  	const handleMyBookings = () => {
-    		// Navigate to bookings page
-    		alert('My Bookings feature coming soon!');
-  	};
+	const handleMessages = () => {
+		// Navigate to messages page or show messages modal
+		alert('Messages feature coming soon!');
+	};
 
-  	const handleProfile = () => {
-    		// Navigate to profile page
-    		alert('Profile feature coming soon!');
-  	};
+	const handleMyBookings = () => {
+		// Navigate to bookings page
+		alert('My Bookings feature coming soon!');
+	};
 
-  	const handleFilters = () => {
-    		// Show filters modal or panel
-    		alert('Filters feature coming soon!');
-  	};
+	const handleProfile = () => {
+		// Navigate to profile page
+		alert('Profile feature coming soon!');
+	};
 
-  	const handleClearFilters = () => {
-    		// Clear all applied filters
-    		setSearchQuery('');
-    		setLocationQuery('');
-    		alert('Filters cleared!');
-  	};
+	const handleFilters = () => {
+		// Show filters modal or panel
+		alert('Filters feature coming soon!');
+	};
 
-  	const handleListMapToggle = (view) => {
-    		// Toggle between list and map view
-    		alert(`${view} view selected!`);
-  	};
+	const handleClearFilters = () => {
+		// Clear all applied filters
+		setSearchQuery('');
+		setLocationQuery('');
+		alert('Filters cleared!');
+	};
 
-  	const handleBookNow = (providerName) => {
-    		// Navigate to booking page or show booking modal
-    		alert(`Booking feature for ${providerName} coming soon!`);
-  	};
+	const handleListMapToggle = (view) => {
+		// Toggle between list and map view
+		alert(`${view} view selected!`);
+	};
 
-  	const handleMessage = (providerName) => {
-    		// Navigate to messaging or show message modal
-    		alert(`Messaging feature for ${providerName} coming soon!`);
-  	};
+	const handleBookNow = (providerName) => {
+		// Navigate to booking page or show booking modal
+		alert(`Booking feature for ${providerName} coming soon!`);
+	};
 
-  	const handleSearch = (e) => {
-    		e.preventDefault();
-    		if (searchQuery.trim() || locationQuery.trim()) {
-      			alert(`Searching for: "${searchQuery}" in "${locationQuery}"\n\nSearch functionality coming soon!`);
-    		} else {
-      			alert('Please enter a search term or location');
-    		}
-  	};
+	const handleMessage = (providerName) => {
+		// Navigate to messaging or show message modal
+		alert(`Messaging feature for ${providerName} coming soon!`);
+	};
 
-  	const handleSearchKeyPress = (e) => {
-    		if (e.key === 'Enter') {
-      			handleSearch(e);
-    		}
-  	};
+	const handleSearch = (e) => {
+		e.preventDefault();
+		if (searchQuery.trim() || locationQuery.trim()) {
+			alert(`Searching for: "${searchQuery}" in "${locationQuery}"\n\nSearch functionality coming soon!`);
+		} else {
+			alert('Please enter a search term or location');
+		}
+	};
 
-  	return (
-    		<div className={styles.wPetOwnerDb}>
-      			<div className={styles.header}>
-        				<div className={styles.container}>
-          					<div className={styles.container1}>
-            						<img className={styles.backgroundIcon} alt="Logo" src="/images/paw-logo.png" />
-            						<div className={styles.margin}>
-              							<b className={styles.furmaps}>FurMaps</b>
-            						</div>
-          					</div>
-          					<div className={styles.container2}>
-            						<div className={styles.linkmargin}>
-              							<div className={styles.linkButton} onClick={handleMessages} style={{cursor:'pointer'}}>
-                								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                								<div className={styles.messages}>Messages</div>
-              							</div>
-            						</div>
-            						<div className={styles.linkmargin1}>
-              							<div className={styles.linkButton} onClick={handleMyBookings} style={{cursor:'pointer'}}>
-                								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                								<div className={styles.messages}>My Bookings</div>
-              							</div>
-            						</div>
-            						<div className={styles.linkmargin2}>
-              							<div className={styles.linkButton} onClick={handleProfile} style={{cursor:'pointer'}}>
-                								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                								<div className={styles.messages}>Profile</div>
-              							</div>
-            						</div>
-            						<div className={styles.linkmargin3}>
-              							<div className={styles.linkButton} onClick={handleLogout} style={{cursor:'pointer'}}>
-                								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                								<div className={styles.messages}>Logout</div>
-              							</div>
-            						</div>
-            						<div className={styles.buttonMenu}>
-              							<img className={styles.svgIcon} alt="Arrow" src="/images/arrow.png" />
-              							<div className={styles.background}>
-                								<div className={styles.div}>2</div>
-              							</div>
-            						</div>
-          					</div>
-        				</div>
-      			</div>
-      			<div className={styles.container3}>
-        				<div className={styles.container4}>
-          					<div className={styles.heading1}>
-            						<b className={styles.findPetServices}>Find Pet Services</b>
-          					</div>
-          					<div className={styles.container5}>
-            						<div className={styles.discoverTrustedPet}>Discover trusted pet care providers in your area</div>
-          					</div>
-        				</div>
-        				<div className={styles.container6}>
-          					<div className={styles.overlaybordershadowoverlayb}>
-            						<div className={styles.container7}>
-              							<div className={styles.buttonDialogmargin}>
-                								<div className={styles.buttonDialog} onClick={handleFilters} style={{cursor:'pointer'}}>
-                  									<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                  									<div className={styles.messages}>Filters</div>
-                  									<div className={styles.margin1}>
-                    										<div className={styles.background1}>
-                      											<div className={styles.div}>2</div>
-                    										</div>
-                  									</div>
-                								</div>
-              							</div>
-              							<div className={styles.container8}>
-                								<div className={styles.input}>
-                  									<div className={styles.container9}>
-                    										<input
-                      											type="text"
-                      											placeholder="Search services or providers..."
-                      											value={searchQuery}
-                      											onChange={(e) => setSearchQuery(e.target.value)}
-                      											onKeyPress={handleSearchKeyPress}
-                      											onFocus={() => setIsSearchFocused(true)}
-                      											onBlur={() => setIsSearchFocused(false)}
-                      											style={{
-                        												border: 'none',
-                        												outline: 'none',
-                        												background: 'transparent',
-                        												width: '100%',
-                        												height: '100%',
-                        												fontSize: '14px',
-                        												color: '#333',
-                        												fontFamily: 'inherit',
-                        												padding: '0',
-                        												margin: '0',
-                        												position: 'relative',
-                        												zIndex: 2
-                      											}}
-                    										/>
-                  									</div>
-                  									<div className={styles.container10} />
-                								</div>
-                								<img 
-                  									className={styles.svgIcon1} 
-                  									alt="Search" 
-                  									src="/images/arrow.png" 
-                  									onClick={handleSearch}
-                  									style={{cursor: 'pointer', zIndex: 3}}
-                								/>
-              							</div>
-              							<div className={styles.margin2}>
-                								<div className={styles.container11}>
-                  									<div className={styles.input1}>
-                    										<div className={styles.container12}>
-                      											<input
-                        												type="text"
-                        												placeholder="Location"
-                        												value={locationQuery}
-                        												onChange={(e) => setLocationQuery(e.target.value)}
-                        												onKeyPress={handleSearchKeyPress}
-                        												onFocus={() => setIsLocationFocused(true)}
-                        												onBlur={() => setIsLocationFocused(false)}
-                        												style={{
-                          													border: 'none',
-                          													outline: 'none',
-                          													background: 'transparent',
-                          													width: '100%',
-                          													height: '100%',
-                          													fontSize: '14px',
-                          													color: '#333',
-                          													fontFamily: 'inherit',
-                          													padding: '0',
-                          													margin: '0',
-                          													position: 'relative',
-                          													zIndex: 2
-                        												}}
-                      											/>
-                    										</div>
-                    										<div className={styles.container13} />
-                  									</div>
-                  									<img className={styles.svgIcon2} alt="Arrow" src="/images/arrow.png" />
-                								</div>
-              							</div>
-            						</div>
-          					</div>
-          					<div className={styles.container14}>
-            						<div className={styles.container15}>
-              							<div className={styles.heading2}>
-                								<b className={styles.providersFound}>0 providers found</b>
-              							</div>
-            						</div>
-            						<div className={styles.container16}>
-              							<div className={styles.combobox}>
-                								<div className={styles.container17}>
-                  									<div className={styles.relevance}>Relevance</div>
-                								</div>
-                								<img className={styles.svgIcon3} alt="Arrow" src="/images/arrow.png" />
-              							</div>
-              							<div className={styles.margin3}>
-                								<div className={styles.border}>
-                  									<div className={styles.button} onClick={() => handleListMapToggle('List')} style={{cursor:'pointer'}}>
-                    										<div className={styles.messages}>List</div>
-                  									</div>
-                  									<div className={styles.button1} onClick={() => handleListMapToggle('Map')} style={{cursor:'pointer'}}>
-                    										<div className={styles.messages}>Map</div>
-                  									</div>
-                								</div>
-              							</div>
-            						</div>
-          					</div>
-          					<div className={styles.container18}>
-            						<div className={styles.button2} onClick={handleClearFilters} style={{cursor:'pointer'}}>
-              							<div className={styles.messages}>Clear all filters</div>
-            						</div>
-          					</div>
-          					<div className={styles.container19}>
-            						<div className={styles.overlaybordershadowoverlayb}>
-              							<div className={styles.container20}>
-                								<div className={styles.container21}>
-                  									<div className={styles.margin4}>
-                    										<div className={styles.container22}>
-                      											<div className={styles.container23}>
-                        												<div className={styles.heading3}>
-                          													<div className={styles.sarahJohnson}>No Service Providers Available</div>
-                        												</div>
-                        												<div className={styles.margin5}>
-                          													<div className={styles.backgroundborder}>
-                            														<div className={styles.div}>Coming Soon</div>
-                          													</div>
-                        												</div>
-                      											</div>
-                      											<div className={styles.container24}>
-                        												<div className={styles.discoverTrustedPet}>We're working on connecting you with amazing pet care providers!</div>
-                      											</div>
-                      											<div className={styles.container25}>
-                        												<div className={styles.container1}>
-                          													<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                          													<div className={styles.relevance}>Check back soon for local providers</div>
-                        												</div>
-                        												<div className={styles.margin6}>
-                          													<div className={styles.container1}>
-                            														<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                            														<div className={styles.relevance}>Be the first to know when we launch</div>
-                          													</div>
-                        												</div>
-                      											</div>
-                      											<div className={styles.container29}>
-                        												<div className={styles.background2}>
-                          													<div className={styles.div}>Dogs</div>
-                        												</div>
-                        												<div className={styles.background2}>
-                          													<div className={styles.div}>Cats</div>
-                        												</div>
-                        												<div className={styles.background2}>
-                          													<div className={styles.div}>Other Pets</div>
-                        												</div>
-                      											</div>
-                      											<div className={styles.container30}>
-                        												<div className={styles.experience5Years}>We'll notify you when providers join!</div>
-                      											</div>
-                    										</div>
-                  									</div>
-                  									<img className={styles.containerIcon} alt="User" src="/images/user.png" />
-                								</div>
-                								<div className={styles.container31}>
-                  									<div className={styles.link}>
-                    										<b className={styles.providersFound}>Stay Tuned!</b>
-                  									</div>
-                  									<div className={styles.container33}>
-                    										<div className={styles.link}>
-                      											<div className={styles.button3} onClick={() => alert('We\'ll notify you when booking is available!')} style={{cursor:'pointer'}}>
-                        												<div className={styles.messages}>Get Notified</div>
-                      											</div>
-                    										</div>
-                    										<div className={styles.linkmargin4}>
-                      											<div className={styles.link}>
-                        												<div className={styles.button4} onClick={() => alert('Contact us at support@furmaps.com')} style={{cursor:'pointer'}}>
-                          													<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                          													<div className={styles.messages}>Contact</div>
-                        												</div>
-                      											</div>
-                    										</div>
-                  									</div>
-                								</div>
-              							</div>
-            						</div>
-          					</div>
-        				</div>
-        				<div className={styles.container48} />
-      			</div>
-    		</div>);
+	const handleSearchKeyPress = (e) => {
+		if (e.key === 'Enter') {
+			handleSearch(e);
+		}
+	};
+
+	return (
+		<div className={styles.dashboard}>
+			{/* Header */}
+			<header className={styles.dashboardHeader}>
+				<div className={styles.logoContainer}>
+					<img className={styles.logoIcon} src="/images/paw-logo.png" alt="Logo" />
+					<h1 className={styles.logoText}>FurMaps</h1>
+				</div>
+				
+				<nav className={styles.navMenu}>
+					<button className={styles.navButton}>
+						<img src="/Icons/notification.svg" alt="Notifications" />
+						<span className={styles.badge}>2</span>
+					</button>
+					<button className={styles.navButton} onClick={handleMessages}>
+						<img src="/Icons/chat.svg" alt="Messages" />
+						<span>Messages</span>
+					</button>
+					<button className={styles.navButton} onClick={handleMyBookings}>
+						<img src="/Icons/bookings.svg" alt="Bookings" />
+						<span>My Bookings</span>
+					</button>
+					<button className={styles.navButton} onClick={handleProfile}>
+						<img src="/Icons/simpleUser.svg" alt="Profile" />
+						<span>Profile</span>
+					</button>
+					<button className={styles.navButton} onClick={handleLogout}>
+						<img src="/Icons/logout.svg" alt="Logout" />
+						<span>Logout</span>
+					</button>
+				</nav>
+			</header>
+
+			{/* Main Content */}
+			<main className={styles.dashboardContent}>
+				<div className={styles.dashboardHeaderSection}>
+					<h2>Pet Owner Dashboard</h2>
+					<p>Find and book trusted pet care services</p>
+				</div>
+
+				{/* Stats Cards */}
+				<div className={styles.statsGrid}>
+					{stats.map((stat, index) => (
+						<div key={index} className={styles.statCard} style={{ borderColor: stat.color }}>
+							<div className={styles.statInfo}>
+								<p className={styles.statTitle}>{stat.title}</p>
+								<h3 className={styles.statValue} style={{ color: stat.color }}>{stat.value}</h3>
+							</div>
+							<img src={`/Icons/${stat.icon}`} alt={stat.title} className={styles.statIcon} />
+						</div>
+					))}
+				</div>
+
+				{/* Navigation Tabs */}
+				<div className={styles.dashboardTabs}>
+					<button 
+						className={`${styles.tabButton} ${activeTab === 'search' ? styles.active : ''}`}
+						onClick={() => setActiveTab('search')}
+					>
+						Search Services
+					</button>
+					<button 
+						className={`${styles.tabButton} ${activeTab === 'bookings' ? styles.active : ''}`}
+						onClick={() => setActiveTab('bookings')}
+					>
+						My Bookings
+					</button>
+					<button 
+						className={`${styles.tabButton} ${activeTab === 'favorites' ? styles.active : ''}`}
+						onClick={() => setActiveTab('favorites')}
+					>
+						Favorites
+					</button>
+					<button 
+						className={`${styles.tabButton} ${activeTab === 'history' ? styles.active : ''}`}
+						onClick={() => setActiveTab('history')}
+					>
+						History
+					</button>
+				</div>
+
+				{/* Dynamic Tab Content */}
+				<div className={styles.tabContent}>
+					{activeTab === 'search' && (
+						<div className={styles.searchSection}>
+							{/* Search Bar */}
+							<div className={styles.searchContainer}>
+								<div className={styles.searchBar}>
+									<div className={styles.searchInput}>
+										<input
+											type="text"
+											placeholder="Search services or providers..."
+											value={searchQuery}
+											onChange={(e) => setSearchQuery(e.target.value)}
+											onKeyPress={handleSearchKeyPress}
+											onFocus={() => setIsSearchFocused(true)}
+											onBlur={() => setIsSearchFocused(false)}
+										/>
+									</div>
+									<button className={styles.searchButton} onClick={handleSearch}>
+										<img src="/images/magnifying.png" alt="Search" />
+									</button>
+								</div>
+								
+								<div className={styles.locationInput}>
+									<input
+										type="text"
+										placeholder="Location"
+										value={locationQuery}
+										onChange={(e) => setLocationQuery(e.target.value)}
+										onKeyPress={handleSearchKeyPress}
+										onFocus={() => setIsLocationFocused(true)}
+										onBlur={() => setIsLocationFocused(false)}
+									/>
+									<img src="/images/gps.png" alt="Location" />
+								</div>
+
+								<div className={styles.searchControls}>
+									<button className={styles.filterButton} onClick={handleFilters}>
+										<img src="/images/arrow.png" alt="Filter" />
+										<span>Filters</span>
+									</button>
+									<button className={styles.clearButton} onClick={handleClearFilters}>
+										Clear all filters
+									</button>
+								</div>
+							</div>
+
+							{/* Search Results Header */}
+							<div className={styles.resultsHeader}>
+								<div className={styles.resultsInfo}>
+									<h3>0 providers found</h3>
+								</div>
+								<div className={styles.viewControls}>
+									<div className={styles.sortDropdown}>
+										<span>Relevance</span>
+										<img src="/images/arrow.png" alt="Sort" />
+									</div>
+									<div className={styles.viewToggle}>
+										<button 
+											className={styles.viewButton} 
+											onClick={() => handleListMapToggle('List')}
+										>
+											List
+										</button>
+										<button 
+											className={styles.viewButton} 
+											onClick={() => handleListMapToggle('Map')}
+										>
+											Map
+										</button>
+									</div>
+								</div>
+							</div>
+
+							{/* No Results Message */}
+							<div className={styles.noResults}>
+								<div className={styles.noResultsContent}>
+									<div className={styles.noResultsHeader}>
+										<h3>No Service Providers Available</h3>
+										<div className={styles.comingSoonBadge}>Coming Soon</div>
+									</div>
+									<p>We're working on connecting you with amazing pet care providers!</p>
+									<div className={styles.featuresList}>
+										<div className={styles.featureItem}>
+											<img src="/images/arrow.png" alt="Check" />
+											<span>Check back soon for local providers</span>
+										</div>
+										<div className={styles.featureItem}>
+											<img src="/images/arrow.png" alt="Notify" />
+											<span>Be the first to know when we launch</span>
+										</div>
+									</div>
+									<div className={styles.petTypes}>
+										<span className={styles.petType}>Dogs</span>
+										<span className={styles.petType}>Cats</span>
+										<span className={styles.petType}>Other Pets</span>
+									</div>
+									<p className={styles.notifyText}>We'll notify you when providers join!</p>
+									<div className={styles.actionButtons}>
+										<button className={styles.primaryButton} onClick={() => alert('We\'ll notify you when booking is available!')}>
+											Get Notified
+										</button>
+										<button className={styles.secondaryButton} onClick={() => alert('Contact us at support@furmaps.com')}>
+											<img src="/images/arrow.png" alt="Contact" />
+											<span>Contact</span>
+										</button>
+									</div>
+								</div>
+								<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
+							</div>
+						</div>
+					)}
+					
+					{activeTab === 'bookings' && (
+						<div className={styles.bookingsSection}>
+							<h3>My Bookings</h3>
+							<p>No active bookings found. Start by searching for pet services!</p>
+						</div>
+					)}
+					
+					{activeTab === 'favorites' && (
+						<div className={styles.favoritesSection}>
+							<h3>Favorite Providers</h3>
+							<p>No favorite providers yet. Start exploring to find your perfect match!</p>
+						</div>
+					)}
+					
+					{activeTab === 'history' && (
+						<div className={styles.historySection}>
+							<h3>Booking History</h3>
+							<p>Your past bookings will appear here once you start using our services.</p>
+						</div>
+					)}
+				</div>
+			</main>
+		</div>
+	);
 };
 
 export default WPetOwnerDB;

@@ -62,7 +62,7 @@ const LoginUser = () => {
       if (role === 'admin') {
         navigate('/DashboardAdmin');
       } else if (role === 'provider') {
-        navigate('/DashboardProvider');
+        navigate('/SPdashboard');
       } else {
         navigate('/HomepagePetOwner');
       }
