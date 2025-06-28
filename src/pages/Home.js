@@ -1,3 +1,4 @@
+//Home.js
 import styles from './Home.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -10,7 +11,7 @@ const Homepage = () => {
   const handleGetStarted = () => {
     setIsNavigating(true);
     setTimeout(() => {
-      navigate('/RegisterUser?role=owner');
+      navigate('/RegisterUser');
     }, 1500);
   };
 
