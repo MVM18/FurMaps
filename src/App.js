@@ -5,6 +5,8 @@ import RegisterUser from './pages/RegisterUser';
 import LoginUser from './pages/LoginUser';
 import PageTransition from './components/PageTransition';
 import HomepagePetOwner from './pages/HomepagePetOwner';
+import SPdashboard from './pages/ServiceProviderDashboard/SPdashboard';
+import SPreviews from './pages/ServiceProviderDashboard/SPreviews';
 
 // Custom hook to handle route changes
 const useRouteChange = () => {
@@ -46,6 +48,16 @@ const AppContent = () => {
       <Route path="/HomepagePetOwner" element={
         <PageTransition isLoading={isLoading}>
           <HomepagePetOwner />
+        </PageTransition>
+      } />
+      <Route path="/SPdashboard" element={
+        <PageTransition isLoading={isLoading}>
+          <SPdashboard />
+        </PageTransition>
+      } />
+      <Route path="/SPreviews" element={
+        <PageTransition>
+          <SPreviews />
         </PageTransition>
       } />
     </Routes>
