@@ -5,7 +5,8 @@ import RegisterUser from './pages/RegisterUser';
 import LoginUser from './pages/LoginUser';
 import PageTransition from './components/PageTransition';
 import HomepagePetOwner from './pages/HomepagePetOwner';
-import ServiceProviderDB from './pages/ServiceProvider/ServiceProviderDB';
+
+
 
 // Custom hook to handle route changes
 const useRouteChange = () => {
@@ -49,11 +50,8 @@ const AppContent = () => {
           <HomepagePetOwner />
         </PageTransition>
       } />
-      <Route path="/ServiceProviderDB" element={
-        <PageTransition isLoading={isLoading}>
-          <ServiceProviderDB />
-        </PageTransition>
-      } />
+     
+
       
     </Routes>
   );
