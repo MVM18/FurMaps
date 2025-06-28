@@ -1,15 +1,77 @@
 import styles from './HomepagePetOwner.module.css';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 
 const WPetOwnerDB = () => {
   	const navigate = useNavigate();
+  	const [searchQuery, setSearchQuery] = useState('');
+  	const [locationQuery, setLocationQuery] = useState('');
+  	const [isSearchFocused, setIsSearchFocused] = useState(false);
+  	const [isLocationFocused, setIsLocationFocused] = useState(false);
 
   	const handleLogout = () => {
     		localStorage.clear();
     		// If using supabase, you can also sign out here
     		// supabase.auth.signOut();
     		navigate('/');
+  	};
+
+  	const handleMessages = () => {
+    		// Navigate to messages page or show messages modal
+    		alert('Messages feature coming soon!');
+  	};
+
+  	const handleMyBookings = () => {
+    		// Navigate to bookings page
+    		alert('My Bookings feature coming soon!');
+  	};
+
+  	const handleProfile = () => {
+    		// Navigate to profile page
+    		alert('Profile feature coming soon!');
+  	};
+
+  	const handleFilters = () => {
+    		// Show filters modal or panel
+    		alert('Filters feature coming soon!');
+  	};
+
+  	const handleClearFilters = () => {
+    		// Clear all applied filters
+    		setSearchQuery('');
+    		setLocationQuery('');
+    		alert('Filters cleared!');
+  	};
+
+  	const handleListMapToggle = (view) => {
+    		// Toggle between list and map view
+    		alert(`${view} view selected!`);
+  	};
+
+  	const handleBookNow = (providerName) => {
+    		// Navigate to booking page or show booking modal
+    		alert(`Booking feature for ${providerName} coming soon!`);
+  	};
+
+  	const handleMessage = (providerName) => {
+    		// Navigate to messaging or show message modal
+    		alert(`Messaging feature for ${providerName} coming soon!`);
+  	};
+
+  	const handleSearch = (e) => {
+    		e.preventDefault();
+    		if (searchQuery.trim() || locationQuery.trim()) {
+      			alert(`Searching for: "${searchQuery}" in "${locationQuery}"\n\nSearch functionality coming soon!`);
+    		} else {
+      			alert('Please enter a search term or location');
+    		}
+  	};
+
+  	const handleSearchKeyPress = (e) => {
+    		if (e.key === 'Enter') {
+      			handleSearch(e);
+    		}
   	};
 
   	return (
@@ -24,19 +86,19 @@ const WPetOwnerDB = () => {
           					</div>
           					<div className={styles.container2}>
             						<div className={styles.linkmargin}>
-              							<div className={styles.linkButton}>
+              							<div className={styles.linkButton} onClick={handleMessages} style={{cursor:'pointer'}}>
                 								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
                 								<div className={styles.messages}>Messages</div>
               							</div>
             						</div>
             						<div className={styles.linkmargin1}>
-              							<div className={styles.linkButton}>
+              							<div className={styles.linkButton} onClick={handleMyBookings} style={{cursor:'pointer'}}>
                 								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
                 								<div className={styles.messages}>My Bookings</div>
               							</div>
             						</div>
             						<div className={styles.linkmargin2}>
-              							<div className={styles.linkButton}>
+              							<div className={styles.linkButton} onClick={handleProfile} style={{cursor:'pointer'}}>
                 								<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
                 								<div className={styles.messages}>Profile</div>
               							</div>
@@ -69,7 +131,7 @@ const WPetOwnerDB = () => {
           					<div className={styles.overlaybordershadowoverlayb}>
             						<div className={styles.container7}>
               							<div className={styles.buttonDialogmargin}>
-                								<div className={styles.buttonDialog}>
+                								<div className={styles.buttonDialog} onClick={handleFilters} style={{cursor:'pointer'}}>
                   									<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
                   									<div className={styles.messages}>Filters</div>
                   									<div className={styles.margin1}>
@@ -82,17 +144,67 @@ const WPetOwnerDB = () => {
               							<div className={styles.container8}>
                 								<div className={styles.input}>
                   									<div className={styles.container9}>
-                    										<div className={styles.searchServicesOr}>Search services or providers...</div>
+                    										<input
+                      											type="text"
+                      											placeholder="Search services or providers..."
+                      											value={searchQuery}
+                      											onChange={(e) => setSearchQuery(e.target.value)}
+                      											onKeyPress={handleSearchKeyPress}
+                      											onFocus={() => setIsSearchFocused(true)}
+                      											onBlur={() => setIsSearchFocused(false)}
+                      											style={{
+                        												border: 'none',
+                        												outline: 'none',
+                        												background: 'transparent',
+                        												width: '100%',
+                        												height: '100%',
+                        												fontSize: '14px',
+                        												color: '#333',
+                        												fontFamily: 'inherit',
+                        												padding: '0',
+                        												margin: '0',
+                        												position: 'relative',
+                        												zIndex: 2
+                      											}}
+                    										/>
                   									</div>
                   									<div className={styles.container10} />
                 								</div>
-                								<img className={styles.svgIcon1} alt="Arrow" src="/images/arrow.png" />
+                								<img 
+                  									className={styles.svgIcon1} 
+                  									alt="Search" 
+                  									src="/images/arrow.png" 
+                  									onClick={handleSearch}
+                  									style={{cursor: 'pointer', zIndex: 3}}
+                								/>
               							</div>
               							<div className={styles.margin2}>
                 								<div className={styles.container11}>
                   									<div className={styles.input1}>
                     										<div className={styles.container12}>
-                      											<div className={styles.searchServicesOr}>Location</div>
+                      											<input
+                        												type="text"
+                        												placeholder="Location"
+                        												value={locationQuery}
+                        												onChange={(e) => setLocationQuery(e.target.value)}
+                        												onKeyPress={handleSearchKeyPress}
+                        												onFocus={() => setIsLocationFocused(true)}
+                        												onBlur={() => setIsLocationFocused(false)}
+                        												style={{
+                          													border: 'none',
+                          													outline: 'none',
+                          													background: 'transparent',
+                          													width: '100%',
+                          													height: '100%',
+                          													fontSize: '14px',
+                          													color: '#333',
+                          													fontFamily: 'inherit',
+                          													padding: '0',
+                          													margin: '0',
+                          													position: 'relative',
+                          													zIndex: 2
+                        												}}
+                      											/>
                     										</div>
                     										<div className={styles.container13} />
                   									</div>
@@ -104,7 +216,7 @@ const WPetOwnerDB = () => {
           					<div className={styles.container14}>
             						<div className={styles.container15}>
               							<div className={styles.heading2}>
-                								<b className={styles.providersFound}>3 providers found</b>
+                								<b className={styles.providersFound}>0 providers found</b>
               							</div>
             						</div>
             						<div className={styles.container16}>
@@ -116,10 +228,10 @@ const WPetOwnerDB = () => {
               							</div>
               							<div className={styles.margin3}>
                 								<div className={styles.border}>
-                  									<div className={styles.button}>
+                  									<div className={styles.button} onClick={() => handleListMapToggle('List')} style={{cursor:'pointer'}}>
                     										<div className={styles.messages}>List</div>
                   									</div>
-                  									<div className={styles.button1}>
+                  									<div className={styles.button1} onClick={() => handleListMapToggle('Map')} style={{cursor:'pointer'}}>
                     										<div className={styles.messages}>Map</div>
                   									</div>
                 								</div>
@@ -127,7 +239,7 @@ const WPetOwnerDB = () => {
             						</div>
           					</div>
           					<div className={styles.container18}>
-            						<div className={styles.button2}>
+            						<div className={styles.button2} onClick={handleClearFilters} style={{cursor:'pointer'}}>
               							<div className={styles.messages}>Clear all filters</div>
             						</div>
           					</div>
@@ -139,105 +251,26 @@ const WPetOwnerDB = () => {
                     										<div className={styles.container22}>
                       											<div className={styles.container23}>
                         												<div className={styles.heading3}>
-                          													<div className={styles.sarahJohnson}>Sarah Johnson</div>
+                          													<div className={styles.sarahJohnson}>No Service Providers Available</div>
                         												</div>
                         												<div className={styles.margin5}>
                           													<div className={styles.backgroundborder}>
-                            														<div className={styles.div}>Verified</div>
+                            														<div className={styles.div}>Coming Soon</div>
                           													</div>
                         												</div>
                       											</div>
                       											<div className={styles.container24}>
-                        												<div className={styles.discoverTrustedPet}>{`Dog Walking & Pet Sitting`}</div>
+                        												<div className={styles.discoverTrustedPet}>We're working on connecting you with amazing pet care providers!</div>
                       											</div>
                       											<div className={styles.container25}>
                         												<div className={styles.container1}>
                           													<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                          													<div className={styles.relevance}>Downtown, City Center (2.3 mi)</div>
+                          													<div className={styles.relevance}>Check back soon for local providers</div>
                         												</div>
                         												<div className={styles.margin6}>
                           													<div className={styles.container1}>
                             														<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                            														<div className={styles.relevance}>4.9 (127 reviews)</div>
-                          													</div>
-                        												</div>
-                        												<div className={styles.margin6}>
-                          													<div className={styles.container1}>
-                            														<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                            														<div className={styles.relevance}>{`< 1 hour`}</div>
-                          													</div>
-                        												</div>
-                      											</div>
-                      											<div className={styles.container29}>
-                        												<div className={styles.background2}>
-                          													<div className={styles.div}>Dogs</div>
-                        												</div>
-                        												<div className={styles.background2}>
-                          													<div className={styles.div}>Cats</div>
-                        												</div>
-                      											</div>
-                      											<div className={styles.container30}>
-                        												<div className={styles.experience5Years}>Experience: 5+ years</div>
-                      											</div>
-                    										</div>
-                  									</div>
-                  									<img className={styles.containerIcon} alt="User" src="/images/user.png" />
-                								</div>
-                								<div className={styles.container31}>
-                  									<div className={styles.link}>
-                    										<b className={styles.providersFound}>$25/hour</b>
-                  									</div>
-                  									<div className={styles.container33}>
-                    										<div className={styles.link}>
-                      											<div className={styles.button3}>
-                        												<div className={styles.messages}>Book Now</div>
-                      											</div>
-                    										</div>
-                    										<div className={styles.linkmargin4}>
-                      											<div className={styles.link}>
-                        												<div className={styles.button4}>
-                          													<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                          													<div className={styles.messages}>Message</div>
-                        												</div>
-                      											</div>
-                    										</div>
-                  									</div>
-                								</div>
-              							</div>
-            						</div>
-            						<div className={styles.overlaybordershadowoverlayb}>
-              							<div className={styles.container20}>
-                								<div className={styles.container35}>
-                  									<div className={styles.margin4}>
-                    										<div className={styles.container22}>
-                      											<div className={styles.container23}>
-                        												<div className={styles.heading3}>
-                          													<div className={styles.sarahJohnson}>Mike Chen</div>
-                        												</div>
-                        												<div className={styles.margin5}>
-                          													<div className={styles.backgroundborder}>
-                            														<div className={styles.div}>Verified</div>
-                          													</div>
-                        												</div>
-                      											</div>
-                      											<div className={styles.container24}>
-                        												<div className={styles.discoverTrustedPet}>Pet Grooming</div>
-                      											</div>
-                      											<div className={styles.container25}>
-                        												<div className={styles.container1}>
-                          													<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                          													<div className={styles.relevance}>Westside, Mall Area (4.1 mi)</div>
-                        												</div>
-                        												<div className={styles.margin6}>
-                          													<div className={styles.container1}>
-                            														<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                            														<div className={styles.relevance}>4.8 (89 reviews)</div>
-                          													</div>
-                        												</div>
-                        												<div className={styles.margin6}>
-                          													<div className={styles.container1}>
-                            														<img className={styles.svgmarginIcon5} alt="Arrow" src="/images/arrow.png" />
-                            														<div className={styles.relevance}>{`< 2 hours`}</div>
+                            														<div className={styles.relevance}>Be the first to know when we launch</div>
                           													</div>
                         												</div>
                       											</div>
@@ -249,11 +282,11 @@ const WPetOwnerDB = () => {
                           													<div className={styles.div}>Cats</div>
                         												</div>
                         												<div className={styles.background2}>
-                          													<div className={styles.div}>Rabbits</div>
+                          													<div className={styles.div}>Other Pets</div>
                         												</div>
                       											</div>
                       											<div className={styles.container30}>
-                        												<div className={styles.experience5Years}>Experience: 3-5 years</div>
+                        												<div className={styles.experience5Years}>We'll notify you when providers join!</div>
                       											</div>
                     										</div>
                   									</div>
@@ -261,19 +294,19 @@ const WPetOwnerDB = () => {
                 								</div>
                 								<div className={styles.container31}>
                   									<div className={styles.link}>
-                    										<b className={styles.providersFound}>$40/session</b>
+                    										<b className={styles.providersFound}>Stay Tuned!</b>
                   									</div>
                   									<div className={styles.container33}>
                     										<div className={styles.link}>
-                      											<div className={styles.button3}>
-                        												<div className={styles.messages}>Book Now</div>
+                      											<div className={styles.button3} onClick={() => alert('We\'ll notify you when booking is available!')} style={{cursor:'pointer'}}>
+                        												<div className={styles.messages}>Get Notified</div>
                       											</div>
                     										</div>
                     										<div className={styles.linkmargin4}>
                       											<div className={styles.link}>
-                        												<div className={styles.buttonDialog}>
+                        												<div className={styles.button4} onClick={() => alert('Contact us at support@furmaps.com')} style={{cursor:'pointer'}}>
                           													<img className={styles.svgmarginIcon} alt="Arrow" src="/images/arrow.png" />
-                          													<div className={styles.messages}>Message</div>
+                          													<div className={styles.messages}>Contact</div>
                         												</div>
                       											</div>
                     										</div>

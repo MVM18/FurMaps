@@ -22,24 +22,59 @@ const LoginUser = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogin = async () => {
-    if (!email || !password) return alert("Email and password required.");
+ const handleLogin = async () => {
+  if (!email || !password) return alert("Email and password required.");
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (error) throw error;
-
-      setShowToast(true);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setTimeout(() => {
-        navigate('/HomepagePetOwner');
-      }, 1200);
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
+    if (error && error.message.includes("Email not confirmed")) {
+      return alert("📧 Please confirm your email before logging in.");
     }
-  };
+
+    if (error) throw error;
+
+    const user = data.user;
+    console.log("✅ Logged in user:", user);
+
+    // ✅ Get profile from 'profiles' table
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (fetchError) {
+      console.error("❌ Failed to fetch profile:", fetchError.message);
+      alert("Unable to fetch user profile.");
+      return;
+    }
+
+    console.log("🧠 Profile loaded:", profile);
+
+    const role = profile.role;
+
+    setShowToast(true);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    // ✅ Navigate to dashboard based on role
+    setTimeout(() => {
+      if (role === 'admin') {
+        navigate('/DashboardAdmin');
+      } else if (role === 'provider') {
+        navigate('/DashboardProvider');
+      } else {
+        navigate('/HomepagePetOwner');
+      }
+    }, 1200);
+
+  } catch (err) {
+    console.error("❌ Login error:", err);
+    alert(err.message);
+  }
+};
+
+
 
   return (
     
