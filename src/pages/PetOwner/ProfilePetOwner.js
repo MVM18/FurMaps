@@ -176,11 +176,15 @@ const ProfilePetOwner = () => {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+    const { data, error } = await supabase.storage.from('avatars').getPublicUrl(filePath);
 
-      return publicUrl;
+if (error) {
+  console.error('Error getting public URL:', error);
+  return null;
+}
+
+return data.publicUrl;
+
     } catch (error) {
       console.error('Error uploading image:', error);
       return null;
@@ -227,8 +231,9 @@ const ProfilePetOwner = () => {
           return;
         }
       }
+      console.log('Uploading image URL:', profilePictureUrl);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           first_name: formData.first_name,
@@ -238,10 +243,12 @@ const ProfilePetOwner = () => {
           bio: formData.bio,
           profile_picture: profilePictureUrl
         })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select();
 
       if (error) {
         console.error('Error updating profile:', error);
+
         setToastMsg('Failed to update profile');
         setShowToast(true);
         return;
@@ -252,6 +259,10 @@ const ProfilePetOwner = () => {
         ...formData,
         profile_picture: profilePictureUrl
       });
+      console.log('Selected Image:', selectedImage);
+console.log('Generated URL:', profilePictureUrl);
+console.log('Form Data:', formData);
+console.log('User ID for update:', user.id);
 
       setSelectedImage(null);
       setIsEditing(false);
@@ -372,9 +383,9 @@ const ProfilePetOwner = () => {
                 <div className={styles.profileAvatarContainer}>
                   <div className={styles.profileAvatar}>
                     <img 
-                      src={imagePreview || "/images/user.png"} 
-                      alt="Profile" 
-                      className={styles.avatarImage}
+                     src={imagePreview || userProfile.profile_picture || '/default-avatar.png'}
+                       alt="Profile"
+                        className={styles.profileImage}
                     />
                     {isEditing && (
                       <div className={styles.avatarOverlay}>
