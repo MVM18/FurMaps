@@ -9,6 +9,7 @@ import HomepagePetOwner from './pages/PetOwner/HomepagePetOwner';
 import ProfilePetOwner from './pages/PetOwner/ProfilePetOwner';
 import SPdashboard from './pages/ServiceProviderDashboard/SPdashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AboutPage from './pages/AboutPage';
 
 // Custom hook to handle route changes
 const useRouteChange = () => {
@@ -66,6 +67,12 @@ const AppContent = () => {
       <Route path="/AdminDashboard" element={
         <PageTransition isLoading={isLoading}>
           <AdminDashboard />
+        </PageTransition>
+      } />
+
+                  <Route path="/AboutPage" element={
+        <PageTransition isLoading={isLoading}>
+          <AboutPage />
         </PageTransition>
       } />
     </Routes>
