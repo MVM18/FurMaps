@@ -1,0 +1,427 @@
+/* Modal styles */
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.profile-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+  color: #333;
+}
+
+/* Container styles */
+.profile-container {
+  padding: 30px;
+}
+
+.profile-header {
+  margin-bottom: 30px;
+}
+
+.profile-header h1 {
+  font-size: 28px;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.profile-header p {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* Profile info section */
+.profile-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 30px;
+}
+
+.profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e5e7eb;
+  cursor: pointer;
+}
+
+.change-photo-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.profile-details {
+  flex: 1;
+}
+
+.name-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.name-with-badge h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stars {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.rating-text {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Services section */
+.services-section {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.services-section h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.services-section p {
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.service-tag-container {
+  position: relative;
+}
+
+.service-tag {
+  background: #e5e7eb;
+  padding: 6px 25px 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: inline-block;
+}
+
+.service-tag.active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.remove-service-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-service-container {
+  display: flex;
+  gap: 8px;
+}
+
+.add-service-input {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.add-service-btn {
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Pricing section */
+.pricing-section {
+  margin: 20px 0;
+}
+
+.pricing-section h4 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+.price-input {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.price-input label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.price-input input {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  max-width: 200px;
+}
+
+/* Pet specialties section */
+.pet-specialties {
+  margin: 20px 0;
+}
+
+.pet-specialties h4 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+.pet-specialties p {
+  color: #6b7280;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.pet-checkboxes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.pet-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pet-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.pet-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+/* Service area */
+.service-area {
+  margin-top: 20px;
+}
+
+.service-area h4 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+.service-area p {
+  color: #6b7280;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.areas-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.area-tag {
+  background: #e5e7eb;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+/* Personal information section */
+.personal-info-section {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.section-header h3 {
+  font-size: 20px;
+  margin: 0;
+  color: #1f2937;
+}
+
+.edit-btn {
+  background: none;
+  border: 1px solid #d1d5db;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: #3b82f6;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.personal-info-section p {
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-item.full-width {
+  grid-column: span 2;
+}
+
+.info-item label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.info-value {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.info-value.bio {
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+/* Input fields */
+input[disabled], textarea[disabled] {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+input:not([disabled]), textarea:not([disabled]) {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pet-checkboxes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-item.full-width {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .pet-checkboxes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

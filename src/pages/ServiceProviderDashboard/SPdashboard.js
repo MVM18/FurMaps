@@ -1,11 +1,15 @@
 import './SPdashboard.css';
 import { useState } from 'react';
-import OverlayBorderShadowOverlayBlur from './SPbookings';
-import CustomerReview from './SPreviews';
+import { useNavigate } from 'react-router-dom';
+import OverlayBorderShadowOverlayBlur  from './SPbookings';
+import CustomerReview  from './SPreviews';
+import ProfileModal  from './SPprofile'; 
 
 
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('bookings');
+  const navigate = useNavigate();
+  const [showProfile, setShowProfile] = useState(false);
   
   // Sample data
   const stats = [
@@ -14,6 +18,11 @@ const ProviderDashboard = () => {
     { title: "This Month", value: "₱1,250", icon: "pesos.svg", color: "#d97706" },
     { title: "Active Clients", value: "23", icon: "user.svg", color: "#16a34a" }
   ];
+
+   const handleLogout = () => {
+    // You might want to add logout logic here (clear tokens, etc.)
+    navigate('/'); // Navigate to the home page
+  };
 
   return (
     <div className="dashboard">
@@ -33,11 +42,11 @@ const ProviderDashboard = () => {
             <img src="Icons/chat.svg" alt="Messages" />
             <span>Messages</span>
           </button>
-          <button className="nav-button">
+          <button className="nav-button" onClick={() => setShowProfile(true)}>
             <img src="Icons/simpleUser.svg" alt="Profile" />
             <span>Profile</span>
           </button>
-          <button className="nav-button">
+         <button className="nav-button" onClick={handleLogout}>
             <img src="Icons/logout.svg" alt="Logout" />
             <span>Logout</span>
           </button>
@@ -101,6 +110,7 @@ const ProviderDashboard = () => {
   </div>
 
       </main>
+      {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />} 
     </div>
   );
 };
