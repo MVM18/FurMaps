@@ -1,25 +1,107 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { supabase } from '../../lib/supabaseClient'; 
 import './SPprofile.css';
 
 const ProfileModal = ({ onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.johnson@email.com',
-    phone: '+1 (555) 987-6543',
-    address: '456 Oak Avenue, Downtown, City 12345',
-    experience: '5+ years',
-    certifications: 'Pet First Aid, CPR Certified, Professional Dog Walker Certification',
-    bio: 'Professional pet care provider with over 5 years of experience. I love all animals and provide personalized care for each pet. Certified in pet first aid and CPR.',
-    hourlyRate: 1250
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+   // experience: '',
+  //  certifications: '',
+    bio: ''
+    //hourlyRate: 0
   });
 
   const [services, setServices] = useState([
-    { id: 1, name: 'Dog Walking', active: true },
+     { id: 1, name: 'Dog Walking', active: true },
     { id: 2, name: 'Pet Sitting', active: true },
     { id: 3, name: 'Pet Feeding', active: false }
   ]);
+  const [profilePhoto, setProfilePhoto] = useState('https://via.placeholder.com/120x120/e5e7eb/6b7280?text=Profile');
+  const fileInputRef = useRef(null);
+  const [newServiceName, setNewServiceName] = useState('');
+  const [showAddService, setShowAddService] = useState(false);
+
+
+useEffect(() => {
+  const fetchProfile = async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) return console.error('User fetch error:', userError);
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return;
+    }
+
+    if (data) {
+      setProfileData({
+        firstName: data.first_name,
+        lastName: data.last_name,
+        email: user.email,
+        phone: data.phone,
+        address: data.address,
+        //experience: data.experience || '',
+        //certifications: data.certificate || '',
+        bio: data.bio || '',
+        //hourlyRate: data.hourly_rate || 0,
+      });
+
+      if (data.profile_picture) {
+        setProfilePhoto(data.profile_picture);
+      }
+
+      // Optionally, parse services_offered if stored as a comma-separated string
+      if (data.services_offered) {
+        const parsed = data.services_offered.split(',').map((name, i) => ({
+          id: i + 1,
+          name: name.trim(),
+          active: true
+        }));
+        setServices(parsed);
+      }
+    }
+  };
+
+  fetchProfile();
+}, []);
+
+const handleSave = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      first_name: profileData.firstName,
+      last_name: profileData.lastName,
+      phone: profileData.phone,
+      address: profileData.address,
+     // certificate: profileData.certifications,
+      bio: profileData.bio,
+      //experience: profileData.experience,
+      //hourly_rate: profileData.hourlyRate,
+     // services_offered: services.map(s => s.name).join(', '),
+      profile_picture: profilePhoto // only if it’s a URL or already uploaded
+    })
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Error updating provider profile:', error);
+  } else {
+    setIsEditing(false);
+  }
+};
+
 
   const [petSpecialties, setPetSpecialties] = useState({
     dogs: true,
@@ -30,11 +112,6 @@ const ProfileModal = ({ onClose }) => {
     exoticPets: false
   });
 
-  const [profilePhoto, setProfilePhoto] = useState('https://via.placeholder.com/120x120/e5e7eb/6b7280?text=Profile');
-  const fileInputRef = useRef(null);
-  const [newServiceName, setNewServiceName] = useState('');
-  const [showAddService, setShowAddService] = useState(false);
-
   const handleEditToggle = () => setIsEditing(!isEditing);
 
   const handleInputChange = (field, value) => {
@@ -43,14 +120,48 @@ const ProfileModal = ({ onClose }) => {
 
   const handlePhotoChange = () => fileInputRef.current?.click();
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => setProfilePhoto(e.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
+  const handleFileSelect = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.error('User fetch error:', userError);
+    return;
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const filePath = `profile-pictures/${user.id}-${Date.now()}.${fileExt}`;
+
+  // Upload to Supabase Storage
+  const { error: uploadError } = await supabase
+    .storage
+    .from('avatars') // 👈 Make sure this bucket exists
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    return;
+  }
+
+  // Get public URL
+  const { data: publicUrlData, error: urlError } = supabase
+    .storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  if (urlError) {
+    console.error('URL error:', urlError);
+    return;
+  }
+
+  if (publicUrlData?.publicUrl) {
+    setProfilePhoto(publicUrlData.publicUrl); // ✅ Set uploaded photo to preview
+  }
+};
 
   const toggleService = (serviceId) => {
     setServices(prev => prev.map(service => 
@@ -247,7 +358,7 @@ const ProfileModal = ({ onClose }) => {
           <div className="personal-info-section">
             <div className="section-header">
               <h3>Personal Information</h3>
-              <button className="edit-btn" onClick={handleEditToggle}>
+              <button className="edit-btn" onClick={isEditing ? handleSave: handleEditToggle}>
                 {isEditing ? 'Save' : 'Edit'}
               </button>
             </div>
