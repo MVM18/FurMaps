@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import ServiceProviderBookings  from './SPbookings';
 import CustomerReview  from './SPreviews';
 import ProfileModal  from './SPprofile'; 
+import ServiceOffered from './SPservices';
 
 
 const ProviderDashboard = () => {
-  const [activeTab, setActiveTab] = useState('bookings');
+  const [activeTab, setActiveTab] = useState('services');
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   
@@ -76,6 +77,12 @@ const ProviderDashboard = () => {
         {/* Navigation Tabs */}
         <div className="dashboard-tabs">
           <button 
+            className={`tab-button ${activeTab === 'services' ? 'active' : ''}`}
+            onClick={() => setActiveTab('services')}
+          >
+            Service Offered
+          </button>
+          <button 
             className={`tab-button ${activeTab === 'bookings' ? 'active' : ''}`}
             onClick={() => setActiveTab('bookings')}
           >
@@ -103,6 +110,7 @@ const ProviderDashboard = () => {
 
         {/* Dynamic Tab Content */}
   <div className="tab-content">
+    {activeTab === 'services' && <ServiceOffered />}
     {activeTab === 'bookings' && <ServiceProviderBookings />}
     {activeTab === 'reviews' && <CustomerReview/>}
     {activeTab === 'gallery' && <p>Gallery content coming soon...</p>}
