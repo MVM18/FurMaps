@@ -25,7 +25,7 @@ const RegisterUser = () => {
     phone: '',
     address: '',
     password: '',
-    confirm_password: '',
+   // confirm_password: '',
     // Service Provider fields
     services_offered: '',
     certificate: null,
@@ -41,7 +41,7 @@ const RegisterUser = () => {
 
     return () => clearTimeout(timer);
   }, []);
-
+ 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -64,7 +64,7 @@ const RegisterUser = () => {
     if (!formData.address.trim()) errors.address = 'Address is required';
     if (!formData.password) errors.password = 'Password is required';
     else if (formData.password.length < 6) errors.password = 'Password must be at least 6 characters';
-    if (formData.password !== formData.confirm_password) errors.confirm_password = 'Passwords do not match';
+    //if (formData.password !== formData.confirm_password) errors.confirm_password = 'Passwords do not match';
     if (formData.role === 'provider') {
       if (!formData.services_offered.trim()) errors.services_offered = 'Describe your services';
       if (!formData.certificate) errors.certificate = 'Certificate required';
@@ -74,68 +74,86 @@ const RegisterUser = () => {
     return errors;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errors = validate();
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
-      if (error) {
-        setToastMsg(error.message);
-        setShowToast(true);
-        setSubmitting(false);
-        return;
-      }
-      if (!data.session) {
-        setToastMsg('Please verify your email before continuing.');
-        setShowToast(true);
-        setSubmitting(false);
-        return;
-      }
-      const userId = data.user.id;
-      const { error: insertError } = await supabase.from('profiles').insert([
-        {
-          id: userId,
-          role: formData.role,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          address: formData.address,
-        },
-      ]);
-      if (insertError) {
-        setToastMsg('Failed to save user profile: ' + insertError.message);
-        setShowToast(true);
-      } else {
-        setToastMsg('Registered successfully!');
-        setShowToast(true);
-        setFormData({
-          role: userRole,
-          first_name: '',
-          last_name: '',
-          email: '',
-          phone: '',
-          address: '',
-          password: '',
-          confirm_password: '',
-          // Service Provider fields
-          services_offered: '',
-          certificate: null,
-          valid_id: null,
-          proof_of_address: null,
-        });
-      }
-    } catch (err) {
-      setToastMsg('Registration failed. Please try again.');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("🚀 handleSubmit triggered");
+
+  const errors = validate();
+  console.log("🧪 Validation errors:", errors);
+  setFormErrors(errors);
+  if (Object.keys(errors).length > 0) return;
+
+  setSubmitting(true);
+
+  try {
+    // Sign up with Supabase Auth and store user info in metadata
+    // eslint-disable-next-line no-unused-vars
+   const { data, error: signUpError } = await supabase.auth.signUp({
+  email: formData.email,
+  password: formData.password,
+}, {
+  data: {
+    role: formData.role,
+    first_name: formData.first_name,
+    last_name: formData.last_name,
+    phone: formData.phone,
+    address: formData.address,
+    services_offered: formData.role === 'provider' ? formData.services_offered : null,
+    certificate: formData.role === 'provider' ? formData.certificate?.name : null,
+    valid_id: formData.role === 'provider' ? formData.valid_id?.name : null,
+    proof_of_address: formData.role === 'provider' ? formData.proof_of_address?.name : null,
+  }
+});
+
+    if (signUpError) {
+      console.error("❌ Sign-up error:", signUpError.message);
+      setToastMsg("Failed to register: " + signUpError.message);
       setShowToast(true);
+      return;
     }
-    setSubmitting(false);
+
+    const userId = data.user?.id;
+    if (!userId) {
+  console.error("⚠️ No user ID returned after signup.");
+  return;
+}
+
+if (userId) {
+  const profileData = {
+    user_id: userId,
+    role: formData.role,
+    first_name: formData.first_name,
+    last_name: formData.last_name,
+    phone: formData.phone,
+    address: formData.address,
+    services_offered: formData.role === 'provider' ? formData.services_offered : null,
+    certificate: formData.role === 'provider' ? formData.certificate?.name : null,
+    valid_id: formData.role === 'provider' ? formData.valid_id?.name : null,
+    proof_of_address: formData.role === 'provider' ? formData.proof_of_address?.name : null,
   };
+
+  const { error: insertError } = await supabase.from('profiles').insert([profileData]);
+  if (insertError) {
+    console.error("❌ Failed to insert profile data:", insertError.message);
+  } else {
+    console.log("✅ Profile inserted successfully!");
+  }
+}
+
+    console.log("✅ User registered. Awaiting email confirmation.");
+   setToastMsg(`✅ Account created as ${formData.role}. Please confirm your email.`);
+    setShowToast(true);
+    setTimeout(() => {
+  navigate('/LoginUser');
+}, 2000);
+  } catch (err) {
+    console.error("❌ Registration error:", err);
+    setToastMsg("Something went wrong.");
+    setShowToast(true);
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className={styles.registerWrapper} style={{ position: 'relative', overflow: 'hidden' }}>
