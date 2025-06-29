@@ -60,7 +60,7 @@ const LoginUser = () => {
     // ✅ Navigate to dashboard based on role
     setTimeout(() => {
       if (role === 'admin') {
-        navigate('/DashboardAdmin');
+        navigate('/AdminDashboard');
       } else if (role === 'provider') {
         navigate('/SPdashboard');
       } else {
