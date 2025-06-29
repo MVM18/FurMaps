@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect,useState } from 'react';
 import './SPservices.css';
+import { supabase } from '../../lib/supabaseClient'; // make sure this is correct
+
 
 const ServiceOffered = () => {
   const [services, setServices] = useState([]);
@@ -20,35 +22,149 @@ const ServiceOffered = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.name && formData.location && formData.serviceType && formData.contactNumber && formData.price) {
-      const newService = {
-        id: Date.now(),
-        ...formData,
-        createdAt: new Date().toLocaleDateString()
-      };
-      setServices(prev => [...prev, newService]);
-      setFormData({
-        name: '',
-        location: '',
-        serviceType: '',
-        contactNumber: '',
-        price: ''
-      });
-      setShowForm(false);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const { name, location, serviceType, contactNumber, price, id } = formData;
+  if (!name || !location || !serviceType || !contactNumber || !price) return;
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.error('User not found:', userError);
+    return;
+  }
+
+  if (id) {
+    // 🔄 Update existing service
+    const { error: updateError } = await supabase
+      .from('services')
+      .update({
+        name,
+        location,
+        service_type: serviceType,
+        contact_number: contactNumber,
+        price: parseFloat(price)
+      })
+      .eq('id', id);
+
+    if (updateError) {
+      console.error('Error updating service:', updateError);
+      return;
+    }
+    setServices(prev => prev.map(service =>
+    service.id === id
+      ? { ...service, name, location, serviceType, contactNumber, price }
+      : service
+  ));
+
+    // Replace in local state (optional)
+    /*setServices(prev => [...prev, {
+      id,
+      name,
+      location,
+      serviceType,
+      contactNumber,
+      price,
+      createdAt: new Date().toLocaleDateString()
+    }]);*/
+  } else {
+    // ➕ Add new service
+    const { data: insertedService, error: insertError } = await supabase.from('services').insert([{
+      provider_id: user.id,
+      name,
+      location,
+      service_type: serviceType,
+      contact_number: contactNumber,
+      price: parseFloat(price)
+    }]).select();
+
+    if (insertError) {
+      console.error('Error adding service:', insertError);
+      return;
+    }
+
+    // Optional: Add to local state temporarily
+    setServices(prev => [...prev, {
+  id: insertedService[0].id,
+  name,
+  location,
+  serviceType,
+  contactNumber,
+  price,
+  createdAt: new Date(insertedService[0].created_at).toLocaleDateString()
+}]);
+  }
+
+  // Reset form
+  setFormData({
+    id:'',
+    name: '',
+    location: '',
+    serviceType: '',
+    contactNumber: '',
+    price: ''
+  });
+  setShowForm(false);
+};
+
+
+useEffect(() => {
+  const fetchServices = async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('User fetch error:', userError);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('provider_id', user.id);
+
+    if (error) {
+      console.error('Error loading services:', error);
+    } else {
+      setServices(data.map(service => ({
+        id: service.id,
+        name: service.name,
+        location: service.location,
+        serviceType: service.service_type,
+        contactNumber: service.contact_number,
+        price: service.price,
+        createdAt: new Date(service.created_at).toLocaleDateString()
+      })));
     }
   };
 
-  const handleDelete = (id) => {
-    setServices(prev => prev.filter(service => service.id !== id));
-  };
+  fetchServices();
+}, []);
+
+ const handleDelete = async (id) => {
+  const { error } = await supabase
+    .from('services')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting service:', error);
+    return;
+  }
+
+  setServices(prev => prev.filter(service => service.id !== id));
+};
+
 
   const handleEdit = (service) => {
-    setFormData(service);
-    setShowForm(true);
-    setServices(prev => prev.filter(s => s.id !== service.id));
-  };
+  setFormData({
+    id: service.id, // make sure this is preserved for update
+    name: service.name,
+    location: service.location,
+    serviceType: service.serviceType,
+    contactNumber: service.contactNumber,
+    price: service.price
+  });
+  setShowForm(true);
+};
 
   return (
     <div className="services-container">
