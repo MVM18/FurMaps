@@ -6,7 +6,7 @@ import RegisterUser from './pages/RegisterUser';
 import LoginUser from './pages/LoginUser';
 import PageTransition from './components/PageTransition';
 import HomepagePetOwner from './pages/HomepagePetOwner';
-import ServiceProviderDB from './pages/ServiceProvider/ServiceProviderDB';
+import SPdashboard from './pages/ServiceProviderDashboard/SPdashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
 // Custom hook to handle route changes
