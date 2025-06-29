@@ -1,6 +1,9 @@
 import styles from './HomepagePetOwner.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabaseClient';
+import ServiceCard from '../../components/ServiceCard';
+import BookingModal from '../../components/BookingModal';
 
 const WPetOwnerDB = () => {
 	const navigate = useNavigate();
@@ -9,14 +12,128 @@ const WPetOwnerDB = () => {
 	const [locationQuery, setLocationQuery] = useState('');
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const [isLocationFocused, setIsLocationFocused] = useState(false);
+	
+	// New state for services and booking
+	const [services, setServices] = useState([]);
+	const [filteredServices, setFilteredServices] = useState([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [selectedService, setSelectedService] = useState(null);
+	const [showBookingModal, setShowBookingModal] = useState(false);
+	const [bookings, setBookings] = useState([]);
 
 	// Sample data for pet owner dashboard
 	const stats = [
-		{ title: "Total Bookings", value: "15", icon: "bookings.svg", color: "#059669" },
+		{ title: "Total Bookings", value: bookings.length.toString(), icon: "bookings.svg", color: "#059669" },
 		{ title: "Favorite Providers", value: "8", icon: "star.svg", color: "#2563eb" },
 		{ title: "This Month", value: "₱2,450", icon: "pesos.svg", color: "#d97706" },
-		{ title: "Active Services", value: "3", icon: "user.svg", color: "#16a34a" }
+		{ title: "Active Services", value: bookings.filter(b => b.status === 'confirmed').length.toString(), icon: "user.svg", color: "#16a34a" }
 	];
+
+	// Fetch services from database
+	useEffect(() => {
+		fetchServices();
+		fetchBookings();
+	}, []);
+
+	// Filter services based on search query
+	useEffect(() => {
+		const filtered = services.filter(service => {
+			const matchesSearch = searchQuery === '' || 
+				service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				service.serviceType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				(service.provider_name && service.provider_name.toLowerCase().includes(searchQuery.toLowerCase()));
+			
+			const matchesLocation = locationQuery === '' || 
+				service.location.toLowerCase().includes(locationQuery.toLowerCase());
+			
+			return matchesSearch && matchesLocation;
+		});
+		setFilteredServices(filtered);
+	}, [services, searchQuery, locationQuery]);
+
+	const fetchServices = async () => {
+		setIsLoading(true);
+		try {
+			// 1. Fetch all services
+			const { data: services, error: servicesError } = await supabase
+				.from('services')
+				.select('*')
+				.order('created_at', { ascending: false });
+
+			if (servicesError) {
+				setServices([]);
+				return;
+			}
+
+			// 2. Fetch all provider profiles
+			const { data: providers, error: providersError } = await supabase
+				.from('profiles')
+				.select('id, user_id, first_name, last_name, role')
+				.eq('role', 'provider');
+
+			if (providersError) {
+				setServices([]);
+				return;
+			}
+
+			// 3. Join services with provider profiles
+			const formattedServices = services
+				.map(service => {
+					const provider = providers.find(
+						p => p.user_id === service.provider_id
+					);
+					if (!provider) return null; // Only show services with a valid provider
+					return {
+						id: service.id,
+						name: service.name,
+						location: service.location,
+						serviceType: service.service_type,
+						contactNumber: service.contact_number,
+						price: service.price,
+						provider_id: service.provider_id,
+						provider_name: `${provider.first_name} ${provider.last_name}`.trim(),
+						provider_role: provider.role,
+						createdAt: new Date(service.created_at).toLocaleDateString()
+					};
+				})
+				.filter(Boolean); // Remove any nulls
+
+			setServices(formattedServices);
+		} catch (error) {
+			setServices([]);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const fetchBookings = async () => {
+		try {
+			const { data: { user }, error: userError } = await supabase.auth.getUser();
+			if (userError || !user) return;
+
+			const { data, error } = await supabase
+				.from('bookings')
+				.select(`
+					*,
+					services (
+						name,
+						service_type,
+						price
+					)
+				`)
+				.eq('pet_owner_id', user.id)
+				.order('created_at', { ascending: false });
+
+			if (error) {
+				console.error('Error fetching bookings:', error);
+				return;
+			}
+
+			setBookings(data || []);
+		} catch (error) {
+			console.error('Error fetching bookings:', error);
+		}
+	};
 
 	const handleLogout = () => {
 		localStorage.clear();
@@ -57,20 +174,27 @@ const WPetOwnerDB = () => {
 		alert(`${view} view selected!`);
 	};
 
-	const handleBookNow = (providerName) => {
-		// Navigate to booking page or show booking modal
-		alert(`Booking feature for ${providerName} coming soon!`);
+	const handleBookNow = (service) => {
+		setSelectedService(service);
+		setShowBookingModal(true);
 	};
 
-	const handleMessage = (providerName) => {
+	const handleMessage = (service) => {
 		// Navigate to messaging or show message modal
-		alert(`Messaging feature for ${providerName} coming soon!`);
+		alert(`Messaging feature for ${service.name} coming soon!`);
+	};
+
+	const handleBookingSuccess = (booking) => {
+		// Refresh bookings after successful booking
+		fetchBookings();
+		alert('Booking created successfully! The service provider will contact you soon.');
 	};
 
 	const handleSearch = (e) => {
 		e.preventDefault();
 		if (searchQuery.trim() || locationQuery.trim()) {
-			alert(`Searching for: "${searchQuery}" in "${locationQuery}"\n\nSearch functionality coming soon!`);
+			// Search is handled by the useEffect filter
+			console.log(`Searching for: "${searchQuery}" in "${locationQuery}"`);
 		} else {
 			alert('Please enter a search term or location');
 		}
@@ -213,7 +337,7 @@ const WPetOwnerDB = () => {
 							{/* Search Results Header */}
 							<div className={styles.resultsHeader}>
 								<div className={styles.resultsInfo}>
-									<h3>0 providers found</h3>
+									<h3>{filteredServices.length} providers found</h3>
 								</div>
 								<div className={styles.viewControls}>
 									<div className={styles.sortDropdown}>
@@ -237,41 +361,45 @@ const WPetOwnerDB = () => {
 								</div>
 							</div>
 
-							{/* No Results Message */}
-							<div className={styles.noResults}>
-								<div className={styles.noResultsContent}>
-									<div className={styles.noResultsHeader}>
-										<h3>No Service Providers Available</h3>
-										<div className={styles.comingSoonBadge}>Coming Soon</div>
+							{/* Search Results */}
+							<div className={styles.searchResults}>
+								{isLoading ? (
+									<div className={styles.loadingState}>
+										<div className={styles.loadingSpinner}></div>
+										<p>Loading services...</p>
 									</div>
-									<p>We're working on connecting you with amazing pet care providers!</p>
-									<div className={styles.featuresList}>
-										<div className={styles.featureItem}>
-											<img src="/images/arrow.png" alt="Check" />
-											<span>Check back soon for local providers</span>
+								) : filteredServices.length > 0 ? (
+									<div className={styles.servicesGrid}>
+										{filteredServices.map((service) => (
+											<ServiceCard
+												key={service.id}
+												service={service}
+												onBookNow={handleBookNow}
+												onMessage={handleMessage}
+											/>
+										))}
+									</div>
+								) : (
+									<div className={styles.noResults}>
+										<div className={styles.noResultsContent}>
+											<div className={styles.noResultsHeader}>
+												<h3>No Service Providers Found</h3>
+											</div>
+											<p>Try adjusting your search criteria or location to find available services.</p>
+											<div className={styles.featuresList}>
+												<div className={styles.featureItem}>
+													<img src="/images/arrow.png" alt="Check" />
+													<span>Check your search terms</span>
+												</div>
+												<div className={styles.featureItem}>
+													<img src="/images/arrow.png" alt="Notify" />
+													<span>Try a different location</span>
+												</div>
+											</div>
 										</div>
-										<div className={styles.featureItem}>
-											<img src="/images/arrow.png" alt="Notify" />
-											<span>Be the first to know when we launch</span>
-										</div>
+										<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
 									</div>
-									<div className={styles.petTypes}>
-										<span className={styles.petType}>Dogs</span>
-										<span className={styles.petType}>Cats</span>
-										<span className={styles.petType}>Other Pets</span>
-									</div>
-									<p className={styles.notifyText}>We'll notify you when providers join!</p>
-									<div className={styles.actionButtons}>
-										<button className={styles.primaryButton} onClick={() => alert('We\'ll notify you when booking is available!')}>
-											Get Notified
-										</button>
-										<button className={styles.secondaryButton} onClick={() => alert('Contact us at support@furmaps.com')}>
-											<img src="/images/arrow.png" alt="Contact" />
-											<span>Contact</span>
-										</button>
-									</div>
-								</div>
-								<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
+								)}
 							</div>
 						</div>
 					)}
@@ -279,7 +407,26 @@ const WPetOwnerDB = () => {
 					{activeTab === 'bookings' && (
 						<div className={styles.bookingsSection}>
 							<h3>My Bookings</h3>
-							<p>No active bookings found. Start by searching for pet services!</p>
+							{bookings.length > 0 ? (
+								<div className={styles.bookingsList}>
+									{bookings.map((booking) => (
+										<div key={booking.id} className={styles.bookingItem}>
+											<div className={styles.bookingInfo}>
+												<h4>{booking.services?.name || 'Service'}</h4>
+												<p>Date: {new Date(booking.service_date).toLocaleDateString()}</p>
+												<p>Time: {booking.service_time}</p>
+												<p>Status: <span className={`status-${booking.status}`}>{booking.status}</span></p>
+												<p>Pet: {booking.pet_name} ({booking.pet_type})</p>
+											</div>
+											<div className={styles.bookingPrice}>
+												₱{booking.total_price}
+											</div>
+										</div>
+									))}
+								</div>
+							) : (
+								<p>No active bookings found. Start by searching for pet services!</p>
+							)}
 						</div>
 					)}
 					
@@ -298,6 +445,19 @@ const WPetOwnerDB = () => {
 					)}
 				</div>
 			</main>
+
+			{/* Booking Modal */}
+			{selectedService && (
+				<BookingModal
+					service={selectedService}
+					isOpen={showBookingModal}
+					onClose={() => {
+						setShowBookingModal(false);
+						setSelectedService(null);
+					}}
+					onBookingSuccess={handleBookingSuccess}
+				/>
+			)}
 		</div>
 	);
 };

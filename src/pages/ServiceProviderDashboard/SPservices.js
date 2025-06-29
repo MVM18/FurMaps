@@ -118,8 +118,8 @@ useEffect(() => {
 
     const { data, error } = await supabase
       .from('services')
-      .select('*')
-      .eq('provider_id', user.id);
+      .select('*');
+    console.log(data, error);
 
     if (error) {
       console.error('Error loading services:', error);
@@ -333,7 +333,7 @@ useEffect(() => {
                       className="edit-btn"
                       onClick={() => handleEdit(service)}
                     >
-                      <img src="Icons/view.svg" alt="Edit" />
+                      <img src="Icons/edit.svg" alt="Edit" />
                     </button>
                     <button 
                       className="delete-btn"
