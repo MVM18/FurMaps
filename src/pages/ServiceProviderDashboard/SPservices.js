@@ -333,7 +333,7 @@ useEffect(() => {
                       className="edit-btn"
                       onClick={() => handleEdit(service)}
                     >
-                      <img src="Icons/view.svg" alt="Edit" />
+                      <img src="Icons/edit.svg" alt="Edit" />
                     </button>
                     <button 
                       className="delete-btn"
