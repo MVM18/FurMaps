@@ -146,11 +146,11 @@ const RegisterUser = () => {
         onClick={() => navigate('/')}
         aria-label="Go to home"
       >
-        <img src="/images/paw-logo.png" alt="Home" className={styles.homeBtnIcon} />
+        <img src="/Images/paw-logo.png" alt="Home" className={styles.homeBtnIcon} />
       </button>
       {/* Top left paw print */}
       <img
-        src="/images/paw-logo.png"
+        src="/Images/paw-logo.png"
         alt=""
         style={{
           position: 'absolute',

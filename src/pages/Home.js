@@ -97,9 +97,9 @@ const Homepage = () => {
           <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
           <b className={styles.cardTitle}>What pets do you have?</b>
           <div className={styles.petsType}>
-            <img src="images/blck-dog.png" alt="Dog" className={styles.petIcon} />
+            <img src="/Images/blck-dog.png" alt="Dog" className={styles.petIcon} />
             <span>DOGS</span>
-            <img src="images/blck-cat.png" alt="Cat" className={styles.petIcon} />
+            <img src="/Images/blck-cat.png" alt="Cat" className={styles.petIcon} />
             <span>CATS</span>
           </div>
         </div>
@@ -114,31 +114,31 @@ const Homepage = () => {
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
           <div className={styles.cardAccent} style={{background:'#8fd400'}} />
-          <img src="images/dog-hug.png" alt="Pet Sitters" className={styles.cardIcon} />
+          <img src="/Images/dog-hug.png" alt="Pet Sitters" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Connect with awesome pet sitters</b>
           <div>Easily find verified, reviewed sitters who will give your pets the care, companionship, and attention they deserve while you're away.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
           <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
-          <img src="images/walk-dog.png" alt="Dog Walking" className={styles.cardIcon} />
+          <img src="/Images/walk-dog.png" alt="Dog Walking" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Discover local dog walking services</b>
           <div>Quickly connect with nearby dog walkers who'll give your pup the exercise, fresh air, and attention they need.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
           <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
-          <img src="images/dogies.png" alt="Pet Hotels" className={styles.cardIcon} />
+          <img src="/Images/dogies.png" alt="Pet Hotels" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Book and locate trusted pet hotels</b>
           <div>Find verified, well-reviewed hosts who'll welcome your pet into a cozy home, offering round-the-clock care, comfort, and attention while you're away.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
           <div className={styles.cardAccent} style={{background:'#8fd400'}} />
-          <img src="images/locate.png" alt="Daycare" className={styles.cardIcon} />
+          <img src="/Images/locate.png" alt="Daycare" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Find nearby pet daycare centers</b>
           <div>Easily locate trusted pet daycare spots where your pet can stay active, social, and well-cared for throughout the day.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
           <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
-          <img src="images/cat-fur.png" alt="Groomers" className={styles.cardIcon} />
+          <img src="/Images/cat-fur.png" alt="Groomers" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Explore pet pampering services</b>
           <div>Easily locate trusted groomers who'll keep your pet looking fresh, clean, and feeling their best.</div>
         </div>
@@ -147,7 +147,7 @@ const Homepage = () => {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerBrand}>
-          <img src="/images/gps.png" alt="FurMaps Logo" className={styles.footerLogo} />
+          <img src="/Images/gps.png" alt="FurMaps Logo" className={styles.footerLogo} />
           <span>FurMaps</span>
         </div>
         <div className={styles.footerLinks}>
@@ -159,12 +159,12 @@ const Homepage = () => {
           <b>Contact Us</b>
           <div>Email us: <a href="mailto:support@furmaps.com">support@furmaps.com</a></div>
           <div className={styles.footerSocials}>
-            <a href="#"><img src="images/fb.png" alt="Facebook" /></a>
-            <a href="#"><img src="images/ig.png" alt="Instagram" /></a>
+            <a href="#"><img src="/Images/fb.png" alt="Facebook" /></a>
+            <a href="#"><img src="/Images/ig.png" alt="Instagram" /></a>
           </div>
         </div>
         <div className={styles.footerCopyright}>
-          <img src="images/copyright.png" alt="Copyright" />
+          <img src="/Images/copyright.png" alt="Copyright" />
           <span>Copyright FurMaps 2025</span>
         </div>
       </footer>

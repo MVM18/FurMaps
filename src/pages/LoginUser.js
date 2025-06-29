@@ -46,7 +46,7 @@ const LoginUser = () => {
    <div
   className={styles.loginWrapper}
   style={{
-    backgroundImage: "url('/images/dog-background.png')",
+    backgroundImage: "url('/Images/dog-background.png')",
     backgroundSize: "cover",            // Fills the screen
     backgroundPosition: "top center",   // Shift image upward (less zoomed look)
     backgroundRepeat: "no-repeat",
@@ -65,7 +65,7 @@ const LoginUser = () => {
         {/* Top Bar */}
         <div className={styles.navbar}>
           <Link to="/">
-            <img className={styles.logo} src="/images/gps.png" alt="Logo" />
+            <img className={styles.logo} src="/Images/gps.png" alt="Logo" />
           </Link>
           <div className={styles.brand}>FurMaps</div>
         </div>
@@ -79,7 +79,7 @@ const LoginUser = () => {
 
           <label>Email</label>
           <div className={styles.inputGroup}>
-            <img src="/images/email.png" alt="email" />
+            <img src="/Images/email.png" alt="email" />
             <input
               type="email"
               placeholder="Enter your email"
@@ -90,7 +90,7 @@ const LoginUser = () => {
 
           <label>Password</label>
           <div className={styles.inputGroup}>
-            <img src="/images/pass.png" alt="password" />
+            <img src="/Images/pass.png" alt="password" />
             <input
               type="password"
               placeholder="Enter your password"

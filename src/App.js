@@ -6,6 +6,7 @@ import LoginUser from './pages/LoginUser';
 import PageTransition from './components/PageTransition';
 import HomepagePetOwner from './pages/HomepagePetOwner';
 import ServiceProviderDB from './pages/ServiceProvider/ServiceProviderDB';
+import AdminDashboard from './pages/AdminDashboard';
 
 // Custom hook to handle route changes
 const useRouteChange = () => {
@@ -55,6 +56,11 @@ const AppContent = () => {
         </PageTransition>
       } />
       
+      <Route path="/AdminDashboard" element={
+        <PageTransition isLoading={isLoading}>
+          <AdminDashboard />
+        </PageTransition>
+      } />
     </Routes>
   );
 };
