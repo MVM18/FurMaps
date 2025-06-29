@@ -355,4 +355,4 @@ const ProfileModal = ({ onClose }) => {
   );
 };
 
-export default ProfileModal;
+export default ProfileModal;  

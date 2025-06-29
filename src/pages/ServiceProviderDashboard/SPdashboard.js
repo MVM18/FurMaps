@@ -1,7 +1,7 @@
 import './SPdashboard.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import OverlayBorderShadowOverlayBlur  from './SPbookings';
+import ServiceProviderBookings  from './SPbookings';
 import CustomerReview  from './SPreviews';
 import ProfileModal  from './SPprofile'; 
 
@@ -103,7 +103,7 @@ const ProviderDashboard = () => {
 
         {/* Dynamic Tab Content */}
   <div className="tab-content">
-    {activeTab === 'bookings' && <OverlayBorderShadowOverlayBlur />}
+    {activeTab === 'bookings' && <ServiceProviderBookings />}
     {activeTab === 'reviews' && <CustomerReview/>}
     {activeTab === 'gallery' && <p>Gallery content coming soon...</p>}
     {activeTab === 'analytics' && <p>Analytics content coming soon...</p>}
