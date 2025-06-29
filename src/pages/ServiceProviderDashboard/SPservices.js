@@ -118,8 +118,8 @@ useEffect(() => {
 
     const { data, error } = await supabase
       .from('services')
-      .select('*')
-      .eq('provider_id', user.id);
+      .select('*');
+    console.log(data, error);
 
     if (error) {
       console.error('Error loading services:', error);
