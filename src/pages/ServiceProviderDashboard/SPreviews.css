@@ -83,3 +83,43 @@
   margin: 0;
   color: #4c4c54;
 }
+/* Add to your SPreviews.css */
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.star {
+  color: #d1d5db;
+  font-size: 16px;
+}
+
+.star.filled {
+  color: #f59e0b;
+}
+
+/* Adjust the reviewer-info to stack name and rating */
+.reviewer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.reviewer-info > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.reviewer-info h3 {
+  margin-bottom: 4px;
+}
+
+/* Optional: Add hover effect to stars */
+.star-rating:hover .star {
+  cursor: pointer;
+  transform: scale(1.1);
+  transition: transform 0.2s;
+}

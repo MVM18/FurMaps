@@ -6,15 +6,33 @@ const CustomerReview = () => {
       initials: "AS",
       name: "Alice Smith",
       date: "2024-01-10",
+      rating: 5, // Add rating (1-5)
       comment: "Sarah was amazing with Max. Very professional and caring.",
     },
     {
       initials: "BJ",
       name: "Bob Johnson",
       date: "2024-01-10",
+      rating: 4, // Add rating (1-5)
       comment: "Excellent service, highly recommended!",
     },
   ];
+
+  // Star rating component
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="star-rating">
+        {[...Array(5)].map((_, i) => (
+          <span 
+            key={i} 
+            className={`star ${i < rating ? 'filled' : ''}`}
+          >
+            {i < rating ? '★' : '☆'}
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="reviews-container">
@@ -31,7 +49,10 @@ const CustomerReview = () => {
             </div>
             <div className="review-content">
               <div className="reviewer-info">
-                <h3>{review.name}</h3>
+                <div>
+                  <h3>{review.name}</h3>
+                  <StarRating rating={review.rating} />
+                </div>
                 <span>{review.date}</span>
               </div>
               <p>{review.comment}</p>

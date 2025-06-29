@@ -161,3 +161,199 @@
   display: flex;
   align-items: center;
 }
+/* Add these styles to your SPbookings.css */
+
+.booking-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e4e4e7;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.booking-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f4f4f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.client-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.service-info {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.service-info span {
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.price {
+  font-weight: 600;
+  color: #000;
+}
+
+.booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.detail-row img {
+  width: 16px;
+  height: 16px;
+}
+
+.pet-info, .special-requests {
+  margin-bottom: 16px;
+}
+
+.pet-info h4, .special-requests h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.pet-info p, .special-requests p {
+  font-size: 14px;
+  margin: 4px 0;
+  color: #4b5563;
+}
+
+.booking-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #4b5563;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+.message-btn:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  transform: translateY(-1px);
+}
+.message-btn:active {
+  transform: translateY(0);
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.decline-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  color: #4b5563;
+  transition: all 0.2s ease;
+}
+
+.decline-btn:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+  transform: translateY(-1px);
+}
+.decline-btn:active {
+  transform: translateY(0);
+}
+
+.accept-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  background: #059669;
+  border: none;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.accept-btn:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+.accept-btn:active {
+  transform: translateY(0);
+}
+/* Add to your SPbookings.css */
+
+.action-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.action-status.accepted {
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.action-status.declined {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.action-status img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Disable hover effects when in status state */
+.action-status:hover {
+  transform: none !important;
+  cursor: default;
+}
