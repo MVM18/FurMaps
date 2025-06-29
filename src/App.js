@@ -5,7 +5,8 @@ import Home from './pages/Home';
 import RegisterUser from './pages/RegisterUser'; 
 import LoginUser from './pages/LoginUser';
 import PageTransition from './components/PageTransition';
-import HomepagePetOwner from './pages/HomepagePetOwner';
+import HomepagePetOwner from './pages/PetOwner/HomepagePetOwner';
+import ProfilePetOwner from './pages/PetOwner/ProfilePetOwner';
 import SPdashboard from './pages/ServiceProviderDashboard/SPdashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -49,6 +50,11 @@ const AppContent = () => {
       <Route path="/HomepagePetOwner" element={
         <PageTransition isLoading={isLoading}>
           <HomepagePetOwner />
+        </PageTransition>
+      } />
+      <Route path="/ProfilePetOwner" element={
+        <PageTransition isLoading={isLoading}>
+          <ProfilePetOwner />
         </PageTransition>
       } />
       <Route path="/SPdashboard" element={

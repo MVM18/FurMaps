@@ -37,7 +37,7 @@ const WPetOwnerDB = () => {
 
 	const handleProfile = () => {
 		// Navigate to profile page
-		alert('Profile feature coming soon!');
+		navigate('/ProfilePetOwner');
 	};
 
 	const handleFilters = () => {
