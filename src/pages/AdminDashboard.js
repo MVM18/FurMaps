@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 
 const providers = [
@@ -88,6 +89,7 @@ const topProviders = [
 ];
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState('');
   
@@ -116,8 +118,10 @@ const AdminDashboard = () => {
 
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);
+
     // Add actual logout logic here
     alert('Successfully logged out!');
+    navigate('/');
   };
 
   const handleLogoutCancel = () => {
