@@ -90,53 +90,123 @@ const topProviders = [
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState('');
-  const filteredUsers = users.filter(
+  
+  // Additional state for button functionality
+  const [showNotification, setShowNotification] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [viewedDocument, setViewedDocument] = useState(null);
+  const [userFilterOpen, setUserFilterOpen] = useState(false);
+  const [viewedUser, setViewedUser] = useState(null);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState('Last 30 days');
+  const [showExportMsg, setShowExportMsg] = useState(false);
+  const [providersList, setProvidersList] = useState(providers);
+  const [usersList, setUsersList] = useState(users);
+  const [userTypeFilter, setUserTypeFilter] = useState('All');
+  const [showAnalyticsDropdown, setShowAnalyticsDropdown] = useState(false);
+
+  // Handler functions
+  const handleBellClick = () => {
+    setShowNotification(!showNotification);
+    console.log('Notifications clicked');
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
+    // Add actual logout logic here
+    alert('Successfully logged out!');
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutConfirm(false);
+  };
+
+  const handleViewDocument = (provider, doc) => {
+    setViewedDocument({ provider, doc });
+    console.log(`Viewing document: ${doc.filename} for ${provider.name}`);
+  };
+
+  const handleCloseDocument = () => {
+    setViewedDocument(null);
+  };
+
+  const handleApproveProvider = (email) => {
+    setProvidersList(prev => prev.filter(p => p.email !== email));
+    alert(`Provider ${email} has been approved!`);
+  };
+
+  const handleRejectProvider = (email) => {
+    setProvidersList(prev => prev.filter(p => p.email !== email));
+    alert(`Provider ${email} has been rejected!`);
+  };
+
+  const handleUserFilterClick = () => {
+    setUserFilterOpen(!userFilterOpen);
+  };
+
+  const handleViewUser = (user) => {
+    setViewedUser(user);
+  };
+
+  const handleCloseUser = () => setViewedUser(null);
+
+  const handleSuspendUser = (email) => {
+    setUsersList(prev => prev.map(user =>
+      user.email === email ? { ...user, status: 'Suspended' } : user
+    ));
+    alert(`User ${email} has been suspended!`);
+  };
+
+  const handleActivateUser = (email) => {
+    setUsersList(prev => prev.map(user =>
+      user.email === email ? { ...user, status: 'Active' } : user
+    ));
+    alert(`User ${email} has been activated!`);
+  };
+
+  const handleAnalyticsPeriodChange = (period) => {
+    setAnalyticsPeriod(period);
+    console.log(`Analytics period changed to: ${period}`);
+  };
+
+  const handleExport = () => {
+    setShowExportMsg(true);
+    setTimeout(() => setShowExportMsg(false), 2000);
+    console.log('Exporting analytics data...');
+  };
+
+  const filteredUsers = usersList.filter(
     (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
+      (userTypeFilter === 'All' || u.role === userTypeFilter) &&
+      (u.name.toLowerCase().includes(search.toLowerCase()) ||
+       u.email.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
     <div className="dashboard-bg">
       {/* Header */}
-      <div className="header" style={{ width: '100%', background: '#fff', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div className="header-content" style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 32px', height: 64 }}>
-          <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #10b981 0%, #2563eb 100%)',
-              marginRight: 10
-            }}>
+      <div className="dashboard-header">
+        <div className="header-content">
+          <div className="logo">
+            <span className="logo-icon">
               {/* Inline SVG heart icon */}
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 19s-7-4.35-7-9.5A4.5 4.5 0 0 1 11 5.5a4.5 4.5 0 0 1 7 4.01C18 14.65 11 19 11 19z" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            <span className="furmapsAdminLogoText" style={{
-              fontWeight: 700,
-              fontSize: '1.4rem',
-              letterSpacing: 0.5,
-              background: 'linear-gradient(90deg, #10b981 0%, #2563eb 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              color: 'transparent',
-              lineHeight: 1
-            }}>
+            <span className="furmapsAdminLogoText">
               FurMaps Admin
             </span>
           </div>
-          <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 24, marginLeft: 'auto' }}>
-            <button className="bell-btn" style={{ background: 'none', border: 'none', position: 'relative', cursor: 'pointer', marginRight: 8, display: 'flex', alignItems: 'center' }}>
+          <div className="header-actions">
+            <button className="bell-btn" onClick={handleBellClick} style={{ background: 'none', border: 'none', position: 'relative', cursor: 'pointer', marginRight: 8, display: 'flex', alignItems: 'center' }}>
               <img src="/Images/notification.svg" alt="Notifications" style={{ width: 20, height: 20, verticalAlign: 'middle' }} />
               <span className="bell-badge">2</span>
             </button>
-            <button className="logout-btn" style={{ background: 'none', border: 'none', color: '#222', fontWeight: 400, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <button className="logout-btn" onClick={handleLogoutClick} style={{ background: 'none', border: 'none', color: '#222', fontWeight: 400, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <img src="/Images/log-out.svg" alt="Logout" style={{ width: 20, height: 20, marginRight: 6, verticalAlign: 'middle' }} />
               Logout
             </button>
@@ -144,18 +214,18 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px' }}>
+      <div className="admin-dashboard-main">
         {/* Title */}
-        <div style={{ marginTop: 32, marginBottom: 8 }}>
-          <div style={{ fontWeight: 'bold', fontSize: '1.5rem', marginBottom: 4 }}>Admin Dashboard</div>
-          <div style={{ color: '#6b7280', fontSize: '1.05rem' }}>Manage users and approve service providers</div>
+        <div className="admin-dashboard-title-section">
+          <div className="admin-dashboard-title">Admin Dashboard</div>
+          <div className="admin-dashboard-desc">Manage users and approve service providers</div>
         </div>
 
         {/* Stats Row */}
         <div className="stats-row">
           {stats.map((stat) => (
             <div key={stat.label} className={`stat-card ${stat.color}`}>
-              <div className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="stat-label">
                 <img src={stat.icon.startsWith('/') ? stat.icon : `/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" style={{ width: 20, height: 20 }} />
                 {stat.label}
               </div>
@@ -185,7 +255,7 @@ const AdminDashboard = () => {
           <div className="card">
             <div className="card-title">Pending Service Provider Approvals</div>
             <div className="card-desc">Review and approve new service provider applications</div>
-            {providers.map((provider) => (
+            {providersList.map((provider) => (
               <div className="provider-approval" key={provider.email}>
                 <div className="provider-header">
                   <div className="avatar">{provider.initials}</div>
@@ -210,13 +280,13 @@ const AdminDashboard = () => {
                         <div className={`document-title${doc.color !== 'blue' ? ' ' + doc.color : ''}`}>{doc.type}</div>
                       </div>
                       <div className="document-filename">{doc.filename}</div>
-                      <button className={`document-btn${doc.color !== 'blue' ? ' ' + doc.color : ''}`}>View</button>
+                      <button className={`document-btn${doc.color !== 'blue' ? ' ' + doc.color : ''}`} onClick={() => handleViewDocument(provider, doc)}>View</button>
                     </div>
                   ))}
                 </div>
                 <div className="action-row">
-                  <button className="approve-btn">Approve</button>
-                  <button className="reject-btn">Reject</button>
+                  <button className="approve-btn" onClick={() => handleApproveProvider(provider.email)}>Approve</button>
+                  <button className="reject-btn" onClick={() => handleRejectProvider(provider.email)}>Reject</button>
                 </div>
               </div>
             ))}
@@ -236,11 +306,37 @@ const AdminDashboard = () => {
                   onChange={e => setSearch(e.target.value)}
                 />
               </div>
-              <div className="user-filter-box">
-                <button className="user-filter-btn">
-                  Filter by type
+              <div className="user-filter-box" style={{ position: 'relative' }}>
+                <button className="user-filter-btn" onClick={handleUserFilterClick}>
+                  {userTypeFilter === 'All' ? 'Filter by type' : userTypeFilter}
                   <img src="/Images/filter.svg" alt="dropdown" style={{ width: 16, height: 16, marginLeft: 8 }} />
                 </button>
+                {userFilterOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '110%',
+                    right: 0,
+                    background: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 8,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    zIndex: 10,
+                    minWidth: 140
+                  }}>
+                    <div
+                      style={{ padding: '8px 16px', cursor: 'pointer', background: userTypeFilter === 'All' ? '#f3f4f6' : '#fff' }}
+                      onClick={() => { setUserTypeFilter('All'); setUserFilterOpen(false); }}
+                    >All</div>
+                    <div
+                      style={{ padding: '8px 16px', cursor: 'pointer', background: userTypeFilter === 'Pet Owner' ? '#f3f4f6' : '#fff' }}
+                      onClick={() => { setUserTypeFilter('Pet Owner'); setUserFilterOpen(false); }}
+                    >Pet Owner</div>
+                    <div
+                      style={{ padding: '8px 16px', cursor: 'pointer', background: userTypeFilter === 'Service Provider' ? '#f3f4f6' : '#fff' }}
+                      onClick={() => { setUserTypeFilter('Service Provider'); setUserFilterOpen(false); }}
+                    >Service Provider</div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="user-list">
@@ -258,13 +354,13 @@ const AdminDashboard = () => {
                   </div>
                   <div className="user-status-actions">
                     <span className={`user-status-badge ${user.status === 'Active' ? 'active' : 'suspended'}`}>{user.status}</span>
-                    <button className="user-action-btn">
+                    <button className="user-action-btn" onClick={() => handleViewUser(user)}>
                       <img src="/Images/see.svg" alt="View" />
                     </button>
                     {user.status === 'Active' ? (
-                      <button className="user-action-btn suspend">Suspend</button>
+                      <button className="user-action-btn suspend" onClick={() => handleSuspendUser(user.email)}>Suspend</button>
                     ) : (
-                      <button className="user-action-btn activate">Activate</button>
+                      <button className="user-action-btn activate" onClick={() => handleActivateUser(user.email)}>Activate</button>
                     )}
                   </div>
                 </div>
@@ -282,8 +378,26 @@ const AdminDashboard = () => {
                   <div style={{ color: '#6b7280', fontSize: '1rem' }}>Monitor platform metrics and user activity</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button className="user-filter-btn">Last 30 days <img src="/Images/filter.svg" alt="dropdown" style={{ width: 16, height: 16, marginLeft: 8 }} /></button>
-                  <button className="user-filter-btn" style={{ color: '#2563eb', borderColor: '#2563eb' }}>Export</button>
+                  <div style={{ position: 'relative' }}>
+                    <button className="user-filter-btn" onClick={() => setShowAnalyticsDropdown(open => !open)}>
+                      {analyticsPeriod} <img src="/Images/filter.svg" alt="dropdown" style={{ width: 16, height: 16, marginLeft: 8 }} />
+                    </button>
+                    {showAnalyticsDropdown && (
+                      <div style={{
+                        position: 'absolute', right: 0, top: '110%',
+                        background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, zIndex: 10
+                      }}>
+                        {['Last 7 days', 'Last 30 days', 'Last 90 days'].map(period => (
+                          <div
+                            key={period}
+                            style={{ padding: '8px 16px', cursor: 'pointer', background: analyticsPeriod === period ? '#f3f4f6' : '#fff' }}
+                            onClick={() => { setAnalyticsPeriod(period); setShowAnalyticsDropdown(false); }}
+                          >{period}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={handleExport} className="user-filter-btn" style={{ color: '#2563eb', borderColor: '#2563eb' }}>Export</button>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 18, marginBottom: 24 }}>
@@ -398,6 +512,77 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      {viewedDocument && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 300
+        }}>
+          <div style={{
+            background: '#fff',
+            padding: 32,
+            borderRadius: 12,
+            boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
+            minWidth: 320,
+            maxWidth: 400
+          }}>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 16 }}>
+              {viewedDocument.doc.type}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <strong>Filename:</strong> {viewedDocument.doc.filename}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <strong>Provider:</strong> {viewedDocument.provider.name}
+            </div>
+            {viewedDocument.doc.filename.endsWith('.jpg') || viewedDocument.doc.filename.endsWith('.png') ? (
+              <img src={`/path/to/docs/${viewedDocument.doc.filename}`} alt="Document Preview" style={{ maxWidth: '100%', marginBottom: 12 }} />
+            ) : null}
+            <button onClick={handleCloseDocument} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff' }}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {showLogoutConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 200
+        }}>
+          <div style={{
+            background: '#fff',
+            padding: 32,
+            borderRadius: 12,
+            boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
+            minWidth: 320
+          }}>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 16 }}>Confirm Logout</div>
+            <div style={{ color: '#6b7280', marginBottom: 24 }}>Are you sure you want to logout?</div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button onClick={handleLogoutCancel} style={{ padding: '8px 18px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#f3f4f6', color: '#222' }}>Cancel</button>
+              <button onClick={handleLogoutConfirm} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff' }}>Logout</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExportMsg && (
+        <div style={{
+          position: 'fixed', top: 20, right: 20, background: '#2563eb', color: '#fff',
+          padding: '12px 24px', borderRadius: 8, zIndex: 999
+        }}>
+          Exported!
+        </div>
+      )}
     </div>
   );
 };

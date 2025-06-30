@@ -778,93 +778,100 @@
   padding-bottom: 40px;
 }
 
-.header {
+.dashboard-header {
+  width: 100%;
   background: #fff;
   border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .header-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 8px 32px 8px 32px;
+  width: 100%;
+  padding: 0 32px;
+  height: 64px;
 }
 .logo {
-  font-weight: bold;
-  font-size: 1.5rem;
-  color: #2563eb;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
+  margin-right: 10px;
+}
+.furmapsAdminLogoText {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #10b981 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
 }
 .header-actions {
   display: flex;
   align-items: center;
   gap: 24px;
+  margin-left: auto;
 }
-.bell-btn {
-  background: none;
-  border: none;
-  position: relative;
-  cursor: pointer;
-  margin-right: 8px;
-  display: flex;
-  align-items: center;
-}
-.bell-badge {
-  position: absolute;
-  top: -8px;
-  right: -10px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 0.8rem;
+.admin-dashboard-title {
   font-weight: bold;
-  border-radius: 999px;
-  padding: 2px 6px;
-  min-width: 18px;
-  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 4px;
 }
-.logout-btn {
-  background: none;
-  border: none;
-  color: #111;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.admin-dashboard-desc {
+  color: #6b7280;
+  font-size: 1.05rem;
 }
 
+.admin-dashboard-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.admin-dashboard-title-section {
+  margin-top: 32px;
+  margin-bottom: 8px;
+}
 .stats-row {
   display: flex;
   gap: 24px;
-  margin: 32px 0 24px 0;
+  margin-bottom: 24px;
 }
 .stat-card {
   flex: 1;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 24px 24px 20px 24px;
+  padding: 20px;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  min-width: 180px;
-  border: 1.5px solid #e5e7eb;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 160px;
 }
 .stat-label {
-  color: #6b7280;
-  font-size: 1rem;
-  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .stat-value {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: #10b981;
-  margin-bottom: 2px;
+  color: #111;
 }
 .stat-card.blue .stat-value { color: #2563eb; }
 .stat-card.yellow .stat-value { color: #f59e42; }
@@ -877,23 +884,22 @@
 
 .tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 32px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 .tab {
-  padding: 8px 24px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  color: #374151;
-  font-weight: 500;
-  cursor: pointer;
+  background: none;
   border: none;
-  outline: none;
-  transition: background 0.2s, color 0.2s;
-  position: relative;
+  font-size: 1rem;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #222;
+  font-weight: 500;
+  transition: background 0.2s;
 }
 .tab.active {
-  background: #059669;
+  background: linear-gradient(90deg, #10b981 0%, #2563eb 100%);
   color: #fff;
 }
 .tab-count {
@@ -913,22 +919,19 @@
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 32px 32px 24px 32px;
+  padding: 32px;
   margin-bottom: 32px;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-  border: 1.5px solid #e5e7eb;
+  max-width: 100%;
 }
 .card-title {
-  font-size: 1.3rem;
   font-weight: bold;
+  font-size: 1.2rem;
   margin-bottom: 4px;
 }
 .card-desc {
   color: #6b7280;
   font-size: 1rem;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .provider-approval {
@@ -1293,5 +1296,21 @@
     min-width: 0;
     text-align: left;
   }
+}
+
+.bell-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 2px 6px;
+  min-width: 18px;
+  text-align: center;
+  font-weight: bold;
+  line-height: 1;
+  display: inline-block;
 }
 
