@@ -174,7 +174,36 @@ useEffect(() => {
         <p>Manage your pet care services and offerings</p>
         <button 
           className="add-service-btn"
-          onClick={() => setShowForm(true)}
+          onClick={async () => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.error("User fetch failed:", userError);
+    return;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('address, phone')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error("Profile fetch failed:", profileError);
+    return;
+  }
+  if (!profile) {
+  console.warn("No profile data found for this user.");
+  return; // Or you can still show the form with empty/default values
+}
+
+  setFormData(prev => ({
+    ...prev,
+    location: profile.address || '',
+    contactNumber: profile.phone || ''
+  }));
+
+  setShowForm(true);
+}}
         >
           <img src="Icons/check.svg" alt="Add" />
           Add New Service
@@ -318,7 +347,35 @@ useEffect(() => {
             <p>Start by adding your first service offering</p>
             <button 
               className="add-first-service-btn"
-              onClick={() => setShowForm(true)}
+              onClick={async () => {
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.error("User fetch failed:", userError);
+    return;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('address, phone')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error("Profile fetch failed:", profileError);
+    return;
+  }
+
+  setFormData({
+    name: '',
+    location: profile.address || '',
+    serviceType: '',
+    contactNumber: profile.phone || '',
+    price: ''
+  });
+
+  setShowForm(true);
+}}
+
             >
               Add Your First Service
             </button>
