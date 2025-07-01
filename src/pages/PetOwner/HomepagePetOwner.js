@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard from '../../components/ServiceCard';
 import BookingModal from '../../components/BookingModal';
+import ProviderProfile from './ProviderProfile';
 
 const WPetOwnerDB = () => {
 	const navigate = useNavigate();
@@ -20,6 +21,8 @@ const WPetOwnerDB = () => {
 	const [selectedService, setSelectedService] = useState(null);
 	const [showBookingModal, setShowBookingModal] = useState(false);
 	const [bookings, setBookings] = useState([]);
+	const [selectedProviderId, setSelectedProviderId] = useState(null);
+	const [showProviderProfileModal, setShowProviderProfileModal] = useState(false);
 
 	// Sample data for pet owner dashboard
 	const stats = [
@@ -91,6 +94,7 @@ const WPetOwnerDB = () => {
 						contactNumber: service.contact_number,
 						price: service.price,
 						provider_id: service.provider_id,
+						provider_user_id: provider.user_id,
 						provider_name: `${provider.first_name} ${provider.last_name}`.trim(),
 						provider_role: provider.role,
 						createdAt: new Date(service.created_at).toLocaleDateString()
@@ -204,6 +208,12 @@ const WPetOwnerDB = () => {
 		if (e.key === 'Enter') {
 			handleSearch(e);
 		}
+	};
+
+	const handleProviderCardClick = (providerId, service) => {
+		setSelectedProviderId(providerId);
+		setSelectedService(service);
+		setShowProviderProfileModal(true);
 	};
 
 	return (
@@ -376,6 +386,7 @@ const WPetOwnerDB = () => {
 												service={service}
 												onBookNow={handleBookNow}
 												onMessage={handleMessage}
+												onProviderClick={providerId => handleProviderCardClick(providerId, service)}
 											/>
 										))}
 									</div>
@@ -446,15 +457,53 @@ const WPetOwnerDB = () => {
 				</div>
 			</main>
 
+			{/* Provider Profile Modal */}
+			{showProviderProfileModal && (
+				<div
+					className="booking-modal-overlay"
+					onClick={e => {
+						if (e.target.classList.contains('booking-modal-overlay')) {
+							setShowProviderProfileModal(false);
+							setSelectedProviderId(null);
+							setSelectedService(null);
+						}
+					}}
+				>
+					<div className="booking-modal" style={{ padding: 0, maxWidth: 520, position: 'relative' }}>
+						<button
+							className="close-btn"
+							onClick={() => { setShowProviderProfileModal(false); setSelectedProviderId(null); setSelectedService(null); }}
+							style={{ position: 'absolute', top: 16, right: 16, zIndex: 2 }}
+						>
+							&times;
+						</button>
+						<div style={{ padding: 0 }}>
+							<ProviderProfile userId={selectedProviderId} />
+							{selectedService && (
+								<div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0 8px 0' }}>
+									<button
+										className="book-now-btn"
+										style={{ fontSize: '1rem', padding: '12px 32px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, boxShadow: '0 2px 8px rgba(59,130,246,0.08)' }}
+										onClick={() => {
+											setShowProviderProfileModal(false);
+											setShowBookingModal(true);
+										}}
+									>
+										Book Now
+									</button>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Booking Modal */}
-			{selectedService && (
+			{showBookingModal && selectedService && (
 				<BookingModal
 					service={selectedService}
 					isOpen={showBookingModal}
-					onClose={() => {
-						setShowBookingModal(false);
-						setSelectedService(null);
-					}}
+					onClose={() => { setShowBookingModal(false); setSelectedService(null); }}
 					onBookingSuccess={handleBookingSuccess}
 				/>
 			)}

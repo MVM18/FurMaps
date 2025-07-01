@@ -10,6 +10,7 @@ import ProfilePetOwner from './pages/PetOwner/ProfilePetOwner';
 import SPdashboard from './pages/ServiceProviderDashboard/SPdashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AboutPage from './pages/AboutPage';
+import ProviderProfile from './pages/PetOwner/ProviderProfile';
 
 // Custom hook to handle route changes
 const useRouteChange = () => {
@@ -73,6 +74,12 @@ const AppContent = () => {
                   <Route path="/AboutPage" element={
         <PageTransition isLoading={isLoading}>
           <AboutPage />
+        </PageTransition>
+      } />
+
+      <Route path="/provider/:userId" element={
+        <PageTransition isLoading={isLoading}>
+          <ProviderProfile />
         </PageTransition>
       } />
     </Routes>

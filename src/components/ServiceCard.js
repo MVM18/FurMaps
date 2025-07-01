@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ServiceCard.css';
 
-const ServiceCard = ({ service, onBookNow, onMessage }) => {
+const ServiceCard = ({ service, onBookNow, onMessage, onProviderClick }) => {
+  const navigate = useNavigate();
+
   const getServiceIcon = (serviceType) => {
     switch (serviceType.toLowerCase()) {
       case 'dog walking':
@@ -17,50 +20,40 @@ const ServiceCard = ({ service, onBookNow, onMessage }) => {
     }
   };
 
+  const handleCardClick = () => {
+    if (onProviderClick && service.provider_user_id) {
+      onProviderClick(service.provider_user_id);
+    } else if (service.provider_user_id) {
+      navigate(`/provider/${service.provider_user_id}`);
+    }
+  };
+
   return (
-    <div className="service-card">
-      <div className="service-card-header">
-        <div className="service-icon">
-          <img src={getServiceIcon(service.serviceType)} alt={service.serviceType} />
+    <div className="service-card-horizontal" onClick={handleCardClick}>
+      <div className="service-card-image">
+        <img src={getServiceIcon(service.serviceType)} alt={service.serviceType} />
+      </div>
+      <div className="service-card-info">
+        <div className="service-card-title-row">
+          <h3 className="service-card-title">{service.name}</h3>
+          <span className="service-card-type">{service.serviceType}</span>
         </div>
-        <div className="service-info">
-          <h3 className="service-name">{service.name}</h3>
-          <p className="service-type">{service.serviceType}</p>
-          <div className="service-location">
-            <img src="/images/location.png" alt="Location" />
-            <span>{service.location}</span>
-          </div>
+        <div className="service-card-location">{service.location}</div>
+        <div className="service-card-provider">
+          <span className="provider-label">Provider:</span> {service.provider_name}
         </div>
-        <div className="service-price">
-          <span className="price-amount">₱{service.price}</span>
-          <span className="price-label">per service</span>
+        <div className="service-card-contact">
+          <span className="contact-label">Contact:</span> {service.contactNumber}
         </div>
       </div>
-
-      <div className="service-card-body">
-        <div className="provider-info">
-          <div className="provider-avatar">
-            <img src="/images/user.png" alt="Provider" />
-          </div>
-          <div className="provider-details">
-            <p className="provider-name">{service.provider_name || 'Service Provider'}</p>
-            <p className="provider-contact">{service.contactNumber}</p>
-          </div>
-        </div>
-
-        <div className="service-actions">
-          <button 
-            className="book-now-btn"
-            onClick={() => onBookNow(service)}
-          >
-            <img src="/Icons/check.svg" alt="Book" />
+      <div className="service-card-price-block">
+        <span className="service-card-price">₱{service.price}</span>
+        <span className="service-card-price-label">/service</span>
+        <div className="service-card-actions">
+          <button className="book-now-btn" onClick={e => { e.stopPropagation(); onBookNow(service); }}>
             Book Now
           </button>
-          <button 
-            className="message-btn"
-            onClick={() => onMessage(service)}
-          >
-            <img src="/Icons/chat.svg" alt="Message" />
+          <button className="message-btn" onClick={e => { e.stopPropagation(); onMessage(service); }}>
             Message
           </button>
         </div>
