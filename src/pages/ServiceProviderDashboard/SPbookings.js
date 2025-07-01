@@ -51,7 +51,8 @@ const ServiceProviderBookings = () => {
       address
     ),
     services (
-      name
+      name,
+      service_type
     )
   `)
   .eq('service_provider_id', user.id);
@@ -70,6 +71,7 @@ const ServiceProviderBookings = () => {
     name: `${b.profiles?.first_name || ''} ${b.profiles?.last_name || ''}`,
     initials: `${b.profiles?.first_name?.[0] || ''}${b.profiles?.last_name?.[0] || ''}`,
     service: b.services?.name || "Unknown",
+    serviceType: b.services?.service_type || "Unknown",
     pet: {
       name: b.pet_name,
       breed: b.pet_type,
@@ -147,7 +149,7 @@ const ServiceProviderBookings = () => {
               <div className="customer-info">
                 <div className="customer-name">{booking.name}</div>
                 <div className="service-info">
-                  <span className="service-name">{booking.service}</span>
+                   <span className="service-name">{booking.service} ({booking.serviceType})</span>
                   <span className="service-price">{booking.price}</span>
                 </div>
               </div>
