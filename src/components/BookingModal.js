@@ -4,12 +4,11 @@ import './BookingModal.css';
 
 const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   const [bookingData, setBookingData] = useState({
-    serviceDate: '',
-    serviceTime: '',
-    petType: '',
-    petName: '',
-    specialInstructions: '',
-    contactNumber: ''
+     serviceStartDatetime: '',
+  serviceEndDatetime: '',
+  petType: '',
+  petName: '',
+  specialInstructions: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,23 +32,44 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
         setError('Please log in to book a service');
         return;
       }
+        // 🔧 Fetch the profile using the user's ID
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('phone, address')
+      .eq('user_id', user.id)
+      .single();
+
+       if (profileError || !profile) {
+      setError('Unable to fetch profile information.');
+      return;
+    }
+
+      const selectedDate = new Date(bookingData.serviceStartDatetime);
+const nowPlusOneDay = new Date();
+nowPlusOneDay.setDate(nowPlusOneDay.getDate() + 1);
+
+if (selectedDate < nowPlusOneDay) {
+  setError("You must book at least 1 day in advance.");
+  return;
+}
 
       const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert([{
-          service_id: service.id,
-          pet_owner_id: user.id,
-          service_provider_id: service.provider_id,
-          service_date: bookingData.serviceDate,
-          service_time: bookingData.serviceTime,
-          pet_type: bookingData.petType,
-          pet_name: bookingData.petName,
-          special_instructions: bookingData.specialInstructions,
-          contact_number: bookingData.contactNumber,
-          status: 'pending',
-          total_price: service.price
-        }])
-        .select();
+  .from('bookings')
+  .insert([{
+    service_id: service.id,
+    pet_owner_id: user.id,
+    service_provider_id: service.provider_id,
+    service_start_datetime: bookingData.serviceStartDatetime,
+    service_end_datetime: bookingData.serviceEndDatetime,
+    pet_type: bookingData.petType,
+    pet_name: bookingData.petName,
+    special_instructions: bookingData.specialInstructions,
+    contact_number: profile.phone,
+    address: profile.address,
+    status: 'pending',
+    total_price: service.price
+  }])
+  .select();
 
       if (bookingError) {
         console.error('Booking error:', bookingError);
@@ -68,6 +88,15 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   };
 
   if (!isOpen) return null;
+
+  const getTomorrowDateTime = () => {
+  const now = new Date();
+  now.setDate(now.getDate() + 1);
+  now.setMinutes(0);
+  now.setSeconds(0);
+  now.setMilliseconds(0);
+  return now.toISOString().slice(0, 16); // returns format: "2025-07-02T00:00"
+};
 
   return (
     <div className="booking-modal-overlay">
@@ -89,27 +118,28 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
           {error && <div className="error-message">{error}</div>}
           
           <div className="form-group">
-            <label htmlFor="serviceDate">Service Date *</label>
-            <input
-              type="date"
-              id="serviceDate"
-              name="serviceDate"
-              value={bookingData.serviceDate}
-              onChange={handleInputChange}
-              required
-              min={new Date().toISOString().split('T')[0]}
+             <label htmlFor="serviceStartDatetime">Service Start Date & Time *</label>
+  <input
+    type="datetime-local"
+    id="serviceStartDatetime"
+    name="serviceStartDatetime"
+    value={bookingData.serviceStartDatetime}
+    onChange={handleInputChange}
+    required
+    min={getTomorrowDateTime()} // restrict past dates
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="serviceTime">Service Time *</label>
-            <input
-              type="time"
-              id="serviceTime"
-              name="serviceTime"
-              value={bookingData.serviceTime}
-              onChange={handleInputChange}
-              required
+            <label htmlFor="serviceEndDatetime">Service End Date & Time *</label>
+  <input
+    type="datetime-local"
+    id="serviceEndDatetime"
+    name="serviceEndDatetime"
+    value={bookingData.serviceEndDatetime}
+    onChange={handleInputChange}
+    required
+    min={bookingData.serviceStartDatetime}
             />
           </div>
 
@@ -142,19 +172,6 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
               onChange={handleInputChange}
               required
               placeholder="Enter your pet's name"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="contactNumber">Contact Number *</label>
-            <input
-              type="tel"
-              id="contactNumber"
-              name="contactNumber"
-              value={bookingData.contactNumber}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter your contact number"
             />
           </div>
 

@@ -118,8 +118,8 @@ useEffect(() => {
 
     const { data, error } = await supabase
       .from('services')
-      .select('*');
-    console.log(data, error);
+      .select('*')
+      .eq('provider_id', user.id); // ✅ Only fetch current user's services
 
     if (error) {
       console.error('Error loading services:', error);
@@ -138,6 +138,7 @@ useEffect(() => {
 
   fetchServices();
 }, []);
+
 
  const handleDelete = async (id) => {
   const { error } = await supabase
