@@ -43,6 +43,7 @@ const WPetOwnerDB = () => {
 	const [unreadCount, setUnreadCount] = useState(0);
 	const [highlightedBookingId, setHighlightedBookingId] = useState(null);
 	const prevNewIdsRef = useRef([]);
+	const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
 
 	// Helper to get/set last seen notifs in localStorage
 	function getLastSeenNotifs() {
@@ -248,8 +249,7 @@ const WPetOwnerDB = () => {
 	};
 
 	const handleListMapToggle = (view) => {
-		// Toggle between list and map view
-		alert(`${view} view selected!`);
+		setViewMode(view.toLowerCase());
 	};
 
 	const handleBookNow = (service) => {
@@ -543,13 +543,13 @@ const WPetOwnerDB = () => {
 									</div>
 									<div className={styles.viewToggle}>
 										<button 
-											className={styles.viewButton} 
+											className={styles.viewButton + (viewMode === 'list' ? ' ' + styles.activeView : '')}
 											onClick={() => handleListMapToggle('List')}
 										>
 											List
 										</button>
 										<button 
-											className={styles.viewButton} 
+											className={styles.viewButton + (viewMode === 'map' ? ' ' + styles.activeView : '')}
 											onClick={() => handleListMapToggle('Map')}
 										>
 											Map
@@ -558,46 +558,113 @@ const WPetOwnerDB = () => {
 								</div>
 							</div>
 							{/* Search Results */}
-							<div className={styles.searchResults}>
-								{isLoading ? (
-									<div className={styles.loadingState}>
-										<div className={styles.loadingSpinner}></div>
-										<p>Loading services...</p>
-									</div>
-								) : filteredServices.length > 0 ? (
-									<div className={styles.servicesGrid}>
-										{filteredServices.map((service) => (
-											<ServiceCard
-												key={service.id}
-												service={service}
-												onBookNow={handleBookNow}
-												onMessage={handleMessage}
-												onProviderClick={providerId => handleProviderCardClick(providerId, service)}
-											/>
-										))}
-									</div>
-								) : (
-									<div className={styles.noResults}>
-										<div className={styles.noResultsContent}>
-											<div className={styles.noResultsHeader}>
-												<h3>No Service Providers Found</h3>
+							{viewMode === 'list' ? (
+								<div className={styles.searchResults}>
+									{isLoading ? (
+										<div className={styles.loadingState}>
+											<div className={styles.loadingSpinner}></div>
+											<p>Loading services...</p>
+										</div>
+									) : filteredServices.length > 0 ? (
+										<div className={styles.servicesGrid}>
+											{filteredServices.map((service) => (
+												<ServiceCard
+													key={service.id}
+													service={service}
+													onBookNow={handleBookNow}
+													onMessage={handleMessage}
+													onProviderClick={providerId => handleProviderCardClick(providerId, service)}
+												/>
+											))}
+										</div>
+									) : (
+										<div className={styles.noResults}>
+											<div className={styles.noResultsContent}>
+												<div className={styles.noResultsHeader}>
+													<h3>No Service Providers Found</h3>
+												</div>
+												<p>Try adjusting your search criteria or location to find available services.</p>
+												<div className={styles.featuresList}>
+													<div className={styles.featureItem}>
+														<img src="/images/arrow.png" alt="Check" />
+														<span>Check your search terms</span>
+													</div>
+													<div className={styles.featureItem}>
+														<img src="/images/arrow.png" alt="Notify" />
+														<span>Try a different location</span>
+													</div>
+												</div>
 											</div>
-											<p>Try adjusting your search criteria or location to find available services.</p>
-											<div className={styles.featuresList}>
-												<div className={styles.featureItem}>
-													<img src="/images/arrow.png" alt="Check" />
-													<span>Check your search terms</span>
-												</div>
-												<div className={styles.featureItem}>
-													<img src="/images/arrow.png" alt="Notify" />
-													<span>Try a different location</span>
-												</div>
+											<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
+										</div>
+									)}
+								</div>
+							) : (
+								// MAP VIEW UI
+								<div className={styles.mapViewSection}>
+									{/* Map Placeholder */}
+									<div style={{
+										width: '100%',
+										minHeight: '220px',
+										background: '#f6f8fa',
+										border: '1.5px solid #e5e7eb',
+										borderRadius: '18px',
+										display: 'flex',
+										flexDirection: 'column',
+										alignItems: 'center',
+										justifyContent: 'center',
+										marginBottom: '32px',
+										marginTop: '8px',
+									}}>
+										<div style={{ textAlign: 'center', color: '#888' }}>
+											<div style={{ fontSize: 48, marginBottom: 8 }}>
+												<span role="img" aria-label="map-pin">📍</span>
+											</div>
+											<div style={{ fontWeight: 600, fontSize: '1.2rem', marginBottom: 4 }}>Map View</div>
+											<div style={{ fontSize: '1rem', color: '#aaa', marginBottom: 8 }}>
+												Interactive map showing provider locations would be displayed here
+											</div>
+											<div style={{ fontSize: '0.95rem', color: '#c0c0c0' }}>
+												Integration with Google Maps or similar service
 											</div>
 										</div>
-										<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
 									</div>
-								)}
-							</div>
+									{/* Providers List (vertical cards) */}
+									<div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+										{filteredServices.length > 0 ? (
+											filteredServices.map((service) => (
+												<ServiceCard
+													key={service.id}
+													service={service}
+													onBookNow={handleBookNow}
+													onMessage={handleMessage}
+													onProviderClick={providerId => handleProviderCardClick(providerId, service)}
+												/>
+											))
+										) : (
+											<div className={styles.noResults}>
+												<div className={styles.noResultsContent}>
+													<div className={styles.noResultsHeader}>
+														<h3>No Service Providers Found</h3>
+													</div>
+													<p>Try adjusting your search criteria or location to find available services.</p>
+													<div className={styles.featuresList}>
+														<div className={styles.featureItem}>
+															<img src="/images/arrow.png" alt="Check" />
+															<span>Check your search terms</span>
+														</div>
+														<div className={styles.featureItem}>
+															<img src="/images/arrow.png" alt="Notify" />
+															<span>Try a different location</span>
+														</div>
+													</div>
+												</div>
+												<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
+											</div>
+										)}
+									</div>
+								</div>
+							)}
 						</div>
 					)}
 					{activeTab === 'bookings' && (
