@@ -739,6 +739,7 @@
   	line-height: 32px;
   	background: linear-gradient(90deg, #059669, #2563eb);
   	-webkit-background-clip: text;
+	background-clip: text;
   	-webkit-text-fill-color: transparent;
 }
 .margin {
