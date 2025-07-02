@@ -1,10 +1,22 @@
 import styles from './HomepagePetOwner.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import ServiceCard from '../../components/ServiceCard';
 import BookingModal from '../../components/BookingModal';
 import ProviderProfile from './ProviderProfile';
+import Toast from '../../components/Toast';
+
+// Place timeAgo function here so it's defined before use
+function timeAgo(date) {
+	const now = new Date();
+	const then = new Date(date);
+	const diff = Math.floor((now - then) / 1000);
+	if (diff < 60) return `${diff}s ago`;
+	if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+	if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+	return then.toLocaleDateString();
+}
 
 const WPetOwnerDB = () => {
 	const navigate = useNavigate();
@@ -23,6 +35,22 @@ const WPetOwnerDB = () => {
 	const [bookings, setBookings] = useState([]);
 	const [selectedProviderId, setSelectedProviderId] = useState(null);
 	const [showProviderProfileModal, setShowProviderProfileModal] = useState(false);
+	const [toastMessage, setToastMessage] = useState('');
+	const [showToast, setShowToast] = useState(false);
+	const [showNotifPanel, setShowNotifPanel] = useState(false);
+	const [notifList, setNotifList] = useState([]);
+	const [notifRead, setNotifRead] = useState(false);
+	const [unreadCount, setUnreadCount] = useState(0);
+	const [highlightedBookingId, setHighlightedBookingId] = useState(null);
+	const prevNewIdsRef = useRef([]);
+
+	// Helper to get/set last seen notifs in localStorage
+	function getLastSeenNotifs() {
+		return JSON.parse(localStorage.getItem('petOwnerLastSeenNotifs') || '[]');
+	}
+	function setLastSeenNotifs(ids) {
+		localStorage.setItem('petOwnerLastSeenNotifs', JSON.stringify(ids));
+	}
 
 	// Sample data for pet owner dashboard
 	const stats = [
@@ -53,6 +81,45 @@ const WPetOwnerDB = () => {
 		});
 		setFilteredServices(filtered);
 	}, [services, searchQuery, locationQuery]);
+
+	// Polling for booking status changes every 10 seconds
+	useEffect(() => {
+		let intervalId;
+		const fetchNotifications = async () => {
+			const lastNotifIds = getLastSeenNotifs();
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) return;
+			const { data, error } = await supabase
+				.from('bookings')
+				.select('id, created_at, status, services(name), pet_name')
+				.eq('pet_owner_id', user.id)
+				.order('created_at', { ascending: false });
+			if (error) return;
+			const notifs = (data || []).filter(b => b.status === 'accepted' || b.status === 'declined');
+			setNotifList(notifs.map(b => ({
+				id: b.id,
+				created_at: b.created_at,
+				status: b.status,
+				serviceName: b.services?.name || 'A service',
+				petName: b.pet_name,
+			})));
+			const newIds = notifs.map(b => b.id + b.status);
+			const newNotifs = newIds.filter(id => !lastNotifIds.includes(id));
+			setUnreadCount(newNotifs.length);
+			// Only show toast if there are truly new notifications since the last poll
+			const prevNewIds = prevNewIdsRef.current;
+			const trulyNew = newNotifs.filter(id => !prevNewIds.includes(id));
+			if (lastNotifIds.length > 0 && trulyNew.length > 0) {
+				setShowToast(true);
+				setToastMessage('A booking was updated!');
+				setNotifRead(false);
+			}
+			prevNewIdsRef.current = newNotifs;
+		};
+		fetchNotifications();
+		intervalId = setInterval(fetchNotifications, 10000);
+		return () => clearInterval(intervalId);
+	}, []);
 
 	const fetchServices = async () => {
 		setIsLoading(true);
@@ -152,8 +219,15 @@ const WPetOwnerDB = () => {
 	};
 
 	const handleMyBookings = () => {
-		// Navigate to bookings page
-		alert('My Bookings feature coming soon!');
+		// Switch to bookings tab
+		setActiveTab('bookings');
+		// Scroll to bookings section after a short delay to ensure tab content is rendered
+		setTimeout(() => {
+			const bookingsSection = document.querySelector(`.${styles.bookingsSection}`);
+			if (bookingsSection) {
+				bookingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		}, 100);
 	};
 
 	const handleProfile = () => {
@@ -216,8 +290,59 @@ const WPetOwnerDB = () => {
 		setShowProviderProfileModal(true);
 	};
 
+	const handleNotifClick = () => {
+		setShowNotifPanel(v => !v);
+	};
+
+	const handleNotificationItemClick = (bookingId) => {
+		// Switch to bookings tab
+		setActiveTab('bookings');
+		// Close notification panel
+		setShowNotifPanel(false);
+		// Set the highlighted booking ID
+		setHighlightedBookingId(bookingId);
+		// Scroll to bookings section after a short delay to ensure tab content is rendered
+		setTimeout(() => {
+			const bookingsSection = document.querySelector(`.${styles.bookingsSection}`);
+			if (bookingsSection) {
+				bookingsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+			// Scroll to the specific booking item
+			setTimeout(() => {
+				const bookingElement = document.querySelector(`[data-booking-id="${bookingId}"]`);
+				if (bookingElement) {
+					bookingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					// Add a temporary highlight effect
+					bookingElement.style.backgroundColor = '#fef3c7';
+					bookingElement.style.border = '2px solid #f59e0b';
+					bookingElement.style.borderRadius = '8px';
+					bookingElement.style.transition = 'all 0.3s ease';
+					
+					// Remove highlight after 3 seconds
+					setTimeout(() => {
+						bookingElement.style.backgroundColor = '';
+						bookingElement.style.border = '';
+						bookingElement.style.borderRadius = '';
+						setHighlightedBookingId(null);
+					}, 3000);
+				}
+			}, 200);
+		}, 100);
+	};
+
+	const handleMarkAsRead = () => {
+		// Mark all current notifs as seen
+		const ids = notifList.map(n => n.id + n.status);
+		setLastSeenNotifs(ids);
+		setNotifRead(true);
+		setUnreadCount(0);
+	};
+
 	return (
 		<div className={styles.dashboard}>
+			{/* Toast Notification */}
+			<Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
+
 			{/* Header */}
 			<header className={styles.dashboardHeader}>
 				<div className={styles.logoContainer}>
@@ -226,10 +351,75 @@ const WPetOwnerDB = () => {
 				</div>
 				
 				<nav className={styles.navMenu}>
-					<button className={styles.navButton}>
-						<img src="/Icons/notification.svg" alt="Notifications" />
-						<span className={styles.badge}>2</span>
-					</button>
+					<div style={{ position: 'relative', display: 'inline-block' }}>
+						<button className={styles.navButton} onClick={handleNotifClick} style={{ position: 'relative' }}>
+							<img src="/Icons/notification.svg" alt="Notifications" />
+							{unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+						</button>
+						{showNotifPanel && (
+							<div style={{
+								position: 'absolute',
+								top: '48px',
+								left: '50%',
+								transform: 'translateX(-50%)',
+								width: '370px',
+								background: '#fff',
+								boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+								borderRadius: '18px',
+								zIndex: 9999,
+								padding: '0',
+								border: '1px solid #e5e7eb',
+							}}>
+								{/* Triangle pointer */}
+								<div style={{
+									position: 'absolute',
+									top: '-14px',
+									left: '50%',
+									transform: 'translateX(-50%)',
+									width: 0,
+									height: 0,
+									borderLeft: '12px solid transparent',
+									borderRight: '12px solid transparent',
+									borderBottom: '14px solid #fff',
+									zIndex: 9999,
+								}} />
+								<div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'1rem 1.25rem 0.5rem 1.25rem'}}>
+									<h4 style={{margin: 0, fontWeight:700, fontSize:'1.15rem'}}>Notification</h4>
+									<button onClick={handleMarkAsRead} style={{background:'none', border:'none', color:'#2563eb', fontWeight:500, cursor:'pointer', fontSize:'0.98rem'}}>Mark as read</button>
+								</div>
+								<div style={{maxHeight:'340px', overflowY:'auto', padding:'0.5rem 0'}}>
+								{notifList.length === 0 ? (
+									<p style={{ color: '#888', fontSize: '0.95rem', textAlign:'center', margin:'2rem 0' }}>No notifications yet.</p>
+								) : (
+									<ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+										{notifList.map((n, idx) => (
+											<li key={n.id + n.status} 
+												onClick={() => handleNotificationItemClick(n.id)}
+												onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
+												onMouseLeave={(e) => e.target.style.background = '#fff'}
+												style={{
+													display:'flex', alignItems:'center', gap:14, padding:'1rem 1.25rem', borderBottom: idx!==notifList.length-1?'1px solid #f3f4f6':'none', background:'#fff', transition:'background 0.2s', cursor:'pointer'
+												}}>
+												{/* Avatar/Icon */}
+												<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='accepted'?'#e0f7ef':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
+													{n.status === 'accepted' ? '✅' : '❌'}
+												</div>
+												<div style={{flex:1, minWidth:0}}>
+													<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>{n.status === 'accepted' ? 'Booking Approved' : 'Booking Declined'}</div>
+													<div style={{fontSize:'0.97rem', color:'#555', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{n.serviceName} {n.petName ? `for ${n.petName}` : ''}</div>
+												</div>
+												<div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4}}>
+													<span style={{fontSize:'0.92rem', color:'#888'}}>{timeAgo(n.created_at)}</span>
+													{!notifRead && idx === 0 && <span style={{width:9, height:9, background:'#2563eb', borderRadius:'50%', display:'inline-block', marginTop:2}}></span>}
+												</div>
+											</li>
+										))}
+									</ul>
+								)}
+								</div>
+							</div>
+						)}
+					</div>
 					<button className={styles.navButton} onClick={handleMessages}>
 						<img src="/Icons/chat.svg" alt="Messages" />
 						<span>Messages</span>
@@ -319,7 +509,6 @@ const WPetOwnerDB = () => {
 										<img src="/images/magnifying.png" alt="Search" />
 									</button>
 								</div>
-								
 								<div className={styles.locationInput}>
 									<input
 										type="text"
@@ -332,7 +521,6 @@ const WPetOwnerDB = () => {
 									/>
 									<img src="/images/gps.png" alt="Location" />
 								</div>
-
 								<div className={styles.searchControls}>
 									<button className={styles.filterButton} onClick={handleFilters}>
 										<img src="/images/arrow.png" alt="Filter" />
@@ -343,7 +531,6 @@ const WPetOwnerDB = () => {
 									</button>
 								</div>
 							</div>
-
 							{/* Search Results Header */}
 							<div className={styles.resultsHeader}>
 								<div className={styles.resultsInfo}>
@@ -370,7 +557,6 @@ const WPetOwnerDB = () => {
 									</div>
 								</div>
 							</div>
-
 							{/* Search Results */}
 							<div className={styles.searchResults}>
 								{isLoading ? (
@@ -414,14 +600,23 @@ const WPetOwnerDB = () => {
 							</div>
 						</div>
 					)}
-					
 					{activeTab === 'bookings' && (
 						<div className={styles.bookingsSection}>
 							<h3>My Bookings</h3>
 							{bookings.length > 0 ? (
 								<div className={styles.bookingsList}>
 									{bookings.map((booking) => (
-										<div key={booking.id} className={styles.bookingItem}>
+										<div 
+											key={booking.id} 
+											className={styles.bookingItem}
+											data-booking-id={booking.id}
+											style={{
+												backgroundColor: highlightedBookingId === booking.id ? '#fef3c7' : '',
+												border: highlightedBookingId === booking.id ? '2px solid #f59e0b' : '',
+												borderRadius: highlightedBookingId === booking.id ? '8px' : '',
+												transition: 'all 0.3s ease'
+											}}
+										>
 											<div className={styles.bookingInfo}>
 												<h4>{booking.services?.name || 'Service'}</h4>
 												<p>Date: {new Date(booking.service_date).toLocaleDateString()}</p>
@@ -440,14 +635,12 @@ const WPetOwnerDB = () => {
 							)}
 						</div>
 					)}
-					
 					{activeTab === 'favorites' && (
 						<div className={styles.favoritesSection}>
 							<h3>Favorite Providers</h3>
 							<p>No favorite providers yet. Start exploring to find your perfect match!</p>
 						</div>
 					)}
-					
 					{activeTab === 'history' && (
 						<div className={styles.historySection}>
 							<h3>Booking History</h3>

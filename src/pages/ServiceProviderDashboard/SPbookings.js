@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './SPbookings.css';
 import { supabase } from '../../lib/supabaseClient';
 
-const ServiceProviderBookings = () => {
+const ServiceProviderBookings = ({ highlightedBookingId }) => {
   const [bookings, setBookings] = useState([
     /*{
       id: 1,
@@ -143,7 +143,17 @@ const ServiceProviderBookings = () => {
       
       <div className="bookings-list">
         {bookings.map((booking) => (
-          <div key={booking.id} className="booking-card">
+          <div 
+            key={booking.id} 
+            className="booking-card"
+            data-booking-id={booking.id}
+            style={{
+              backgroundColor: highlightedBookingId === booking.id ? '#fef3c7' : '',
+              border: highlightedBookingId === booking.id ? '2px solid #f59e0b' : '',
+              borderRadius: highlightedBookingId === booking.id ? '8px' : '',
+              transition: 'all 0.3s ease'
+            }}
+          >
             <div className="booking-header">
               <div className="customer-avatar">{booking.initials}</div>
               <div className="customer-info">
