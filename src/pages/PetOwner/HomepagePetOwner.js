@@ -6,6 +6,7 @@ import ServiceCard from '../../components/ServiceCard';
 import BookingModal from '../../components/BookingModal';
 import ProviderProfile from './ProviderProfile';
 import Toast from '../../components/Toast';
+import ServiceMap from '../../components/ServiceMap';
 
 // Place timeAgo function here so it's defined before use
 function timeAgo(date) {
@@ -158,6 +159,8 @@ const WPetOwnerDB = () => {
 						id: service.id,
 						name: service.name,
 						location: service.location,
+						latitude: service.latitude,        // ✅ add this
+                        longitude: service.longitude,      // ✅ add this
 						serviceType: service.service_type,
 						contactNumber: service.contact_number,
 						price: service.price,
@@ -600,22 +603,24 @@ const WPetOwnerDB = () => {
 									)}
 								</div>
 							) : (
-								// MAP VIEW UI
-								<div className={styles.mapViewSection}>
-									{/* Map Placeholder */}
-									<div style={{
-										width: '100%',
-										minHeight: '220px',
-										background: '#f6f8fa',
-										border: '1.5px solid #e5e7eb',
-										borderRadius: '18px',
-										display: 'flex',
-										flexDirection: 'column',
-										alignItems: 'center',
-										justifyContent: 'center',
-										marginBottom: '32px',
-										marginTop: '8px',
-									}}>
+																	// MAP VIEW UI
+																	<div className={styles.mapViewSection}>
+									{/* 🌍 Actual Map */}
+									<ServiceMap services={filteredServices} />
+
+									{/* List Below Map (optional) */}
+									<div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '16px' }}>
+										{filteredServices.map((service) => (
+										<ServiceCard
+											key={service.id}
+											service={service}
+											onBookNow={handleBookNow}
+											onMessage={handleMessage}
+											onProviderClick={providerId => handleProviderCardClick(providerId, service)}
+										/>
+										))}
+
+
 										<div style={{ textAlign: 'center', color: '#888' }}>
 											<div style={{ fontSize: 48, marginBottom: 8 }}>
 												<span role="img" aria-label="map-pin">📍</span>

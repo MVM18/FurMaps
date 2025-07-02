@@ -1,6 +1,9 @@
 import React, { useEffect,useState } from 'react';
 import './SPservices.css';
 import { supabase } from '../../lib/supabaseClient'; // make sure this is correct
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+
 
 
 const ServiceOffered = () => {
@@ -11,7 +14,9 @@ const ServiceOffered = () => {
     location: '',
     serviceType: '',
     contactNumber: '',
-    price: ''
+    price: '',
+    latitude: null,
+  longitude: null
   });
 
   const handleInputChange = (e) => {
@@ -25,9 +30,15 @@ const ServiceOffered = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const { name, location, serviceType, contactNumber, price, id } = formData;
-  if (!name || !location || !serviceType || !contactNumber || !price) return;
+  const { name, location, serviceType, contactNumber, price, latitude, longitude, id } = formData;
 
+  // Make sure all required fields are present
+  if (!name || !location || !latitude || !longitude || !serviceType || !contactNumber || !price) {
+    alert("Please complete all fields and select a location on the map.");
+    return;
+  }
+
+  // Get current user
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error('User not found:', userError);
@@ -41,6 +52,8 @@ const handleSubmit = async (e) => {
       .update({
         name,
         location,
+        latitude,
+        longitude,
         service_type: serviceType,
         contact_number: contactNumber,
         price: parseFloat(price)
@@ -51,55 +64,59 @@ const handleSubmit = async (e) => {
       console.error('Error updating service:', updateError);
       return;
     }
-    setServices(prev => prev.map(service =>
-    service.id === id
-      ? { ...service, name, location, serviceType, contactNumber, price }
-      : service
-  ));
 
-    // Replace in local state (optional)
-    /*setServices(prev => [...prev, {
-      id,
-      name,
-      location,
-      serviceType,
-      contactNumber,
-      price,
-      createdAt: new Date().toLocaleDateString()
-    }]);*/
+    setServices(prev =>
+      prev.map(service =>
+        service.id === id
+          ? { ...service, name, location, latitude, longitude, serviceType, contactNumber, price }
+          : service
+      )
+    );
+
   } else {
     // ➕ Add new service
-    const { data: insertedService, error: insertError } = await supabase.from('services').insert([{
-      provider_id: user.id,
-      name,
-      location,
-      service_type: serviceType,
-      contact_number: contactNumber,
-      price: parseFloat(price)
-    }]).select();
+    const { data: insertedService, error: insertError } = await supabase
+      .from('services')
+      .insert([{
+        provider_id: user.id,
+        name,
+        location,
+        latitude,
+        longitude,
+        service_type: serviceType,
+        contact_number: contactNumber,
+        price: parseFloat(price)
+      }])
+      .select();
 
     if (insertError) {
       console.error('Error adding service:', insertError);
       return;
     }
 
-    // Optional: Add to local state temporarily
-    setServices(prev => [...prev, {
-  id: insertedService[0].id,
-  name,
-  location,
-  serviceType,
-  contactNumber,
-  price,
-  createdAt: new Date(insertedService[0].created_at).toLocaleDateString()
-}]);
+    setServices(prev => [
+      ...prev,
+      {
+        id: insertedService[0].id,
+        name,
+        location,
+        latitude,
+        longitude,
+        serviceType,
+        contactNumber,
+        price,
+        createdAt: new Date(insertedService[0].created_at).toLocaleDateString()
+      }
+    ]);
   }
 
   // Reset form
   setFormData({
-    id:'',
+    id: '',
     name: '',
     location: '',
+    latitude: null,
+    longitude: null,
     serviceType: '',
     contactNumber: '',
     price: ''
@@ -107,6 +124,16 @@ const handleSubmit = async (e) => {
   setShowForm(false);
 };
 
+
+const LocationPicker = ({ onSelect }) => {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      onSelect({ lat, lng });
+    }
+  });
+  return null;
+};
 
 useEffect(() => {
   const fetchServices = async () => {
@@ -246,8 +273,7 @@ useEffect(() => {
                   required
                 />
               </div>
-
-              <div className="form-group">
+               <div className="form-group">
                 <label htmlFor="location">Location *</label>
                 <input
                   type="text"
@@ -255,10 +281,44 @@ useEffect(() => {
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="e.g., Quezon City, Metro Manila"
+                  placeholder="e.g., Cebu City, Metro Manila"
                   required
                 />
               </div>
+
+             <div className="form-group">
+  <label>Pin Your Service Location *</label>
+  <div style={{ height: '250px', borderRadius: '8px', overflow: 'hidden', marginBottom: '1rem' }}>
+    <MapContainer
+      center={[10.3157, 123.8854]} // Cebu City
+      zoom={13}
+      style={{ height: '100%', width: '100%' }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {/* ✅ Add this to detect map click */}
+  <LocationPicker onSelect={({ lat, lng }) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+     // location: `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`
+    }));
+  }} />
+      {formData.latitude && formData.longitude && (
+        <Marker position={[formData.latitude, formData.longitude]} />
+      )}
+    </MapContainer>
+  </div>
+  {formData.location && (
+    <p style={{ fontSize: '0.9rem', color: '#555' }}>
+      Selected Location: {formData.location}
+    </p>
+  )}
+</div>
+
 
               <div className="form-group">
                 <label htmlFor="serviceType">Service Type *</label>
