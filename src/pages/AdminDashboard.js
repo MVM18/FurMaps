@@ -119,7 +119,7 @@ const AdminDashboard = () => {
   const handleLogoutConfirm = () => {
     setShowLogoutConfirm(false);
 
-    // Add actual logout logic here
+
     alert('Successfully logged out!');
     navigate('/');
   };
@@ -206,12 +206,12 @@ const AdminDashboard = () => {
             </span>
           </div>
           <div className="header-actions">
-            <button className="bell-btn" onClick={handleBellClick} style={{ background: 'none', border: 'none', position: 'relative', cursor: 'pointer', marginRight: 8, display: 'flex', alignItems: 'center' }}>
-              <img src="/Images/notification.svg" alt="Notifications" style={{ width: 20, height: 20, verticalAlign: 'middle' }} />
+            <button className="bell-btn" onClick={handleBellClick}>
+              <img src="/Images/notification.svg" alt="Notifications" />
               <span className="bell-badge">2</span>
             </button>
-            <button className="logout-btn" onClick={handleLogoutClick} style={{ background: 'none', border: 'none', color: '#222', fontWeight: 400, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <img src="/Images/log-out.svg" alt="Logout" style={{ width: 20, height: 20, marginRight: 6, verticalAlign: 'middle' }} />
+            <button className="logout-btn" onClick={handleLogoutClick}>
+              <img src="/Images/log-out.svg" alt="Logout" />
               Logout
             </button>
           </div>
@@ -230,7 +230,7 @@ const AdminDashboard = () => {
           {stats.map((stat) => (
             <div key={stat.label} className={`stat-card ${stat.color}`}>
               <div className="stat-label">
-                <img src={stat.icon.startsWith('/') ? stat.icon : `/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" style={{ width: 20, height: 20 }} />
+                <img src={stat.icon.startsWith('/') ? stat.icon : `/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" />
                 {stat.label}
               </div>
               <div className="stat-value">{stat.value}</div>
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
             >
               {tab.label}
               {tab.count !== undefined && (
-                <span style={{ marginLeft: 6, fontWeight: 'bold' }}>({tab.count})</span>
+                <span className="tab-count">({tab.count})</span>
               )}
             </button>
           ))}
@@ -262,25 +262,21 @@ const AdminDashboard = () => {
             {providersList.map((provider) => (
               <div className="provider-approval" key={provider.email}>
                 <div className="provider-header">
-                  <div className="avatar">{provider.initials}</div>
-                  <div className="provider-info">
+                  <div className="provider-avatar">{provider.initials}</div>
+                  <div className="provider-details">
                     <div className="provider-name">{provider.name}</div>
                     <div className="provider-email">{provider.email}</div>
                     <div className="provider-meta">Services: {provider.services}</div>
                     <div className="provider-meta">Location: {provider.location}</div>
                     <div className="provider-meta">Submitted: {provider.submitted}</div>
                   </div>
-                  <div className="status-badge" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <img src="/Images/pending_review.svg" alt="Pending Review" style={{ width: 18, height: 18 }} />
-                    Pending Review
-                  </div>
                 </div>
-                <div style={{ fontWeight: 500, marginTop: 18 }}>Submitted Documents:</div>
+                <div className="submitted-documents-title">Submitted Documents:</div>
                 <div className="documents-row">
                   {provider.documents.map((doc) => (
                     <div className={`document-card ${doc.color}`} key={doc.filename}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <img src={doc.icon.startsWith('/') ? doc.icon : `/Images/${doc.icon.replace(/^.*[\\/]/, '')}`} alt="doc" style={{ width: 18, height: 18 }} />
+                      <div className="document-header">
+                        <img src={doc.icon.startsWith('/') ? doc.icon : `/Images/${doc.icon.replace(/^.*[\\/]/, '')}`} alt="doc" />
                         <div className={`document-title${doc.color !== 'blue' ? ' ' + doc.color : ''}`}>{doc.type}</div>
                       </div>
                       <div className="document-filename">{doc.filename}</div>
@@ -310,33 +306,23 @@ const AdminDashboard = () => {
                   onChange={e => setSearch(e.target.value)}
                 />
               </div>
-              <div className="user-filter-box" style={{ position: 'relative' }}>
+              <div className="user-filter-box">
                 <button className="user-filter-btn" onClick={handleUserFilterClick}>
                   {userTypeFilter === 'All' ? 'Filter by type' : userTypeFilter}
-                  <img src="/Images/filter.svg" alt="dropdown" style={{ width: 16, height: 16, marginLeft: 8 }} />
+                  <img src="/Images/filter.svg" alt="dropdown" />
                 </button>
                 {userFilterOpen && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '110%',
-                    right: 0,
-                    background: '#fff',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 8,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                    zIndex: 10,
-                    minWidth: 140
-                  }}>
+                  <div className="user-filter-dropdown">
                     <div
-                      style={{ padding: '8px 16px', cursor: 'pointer', background: userTypeFilter === 'All' ? '#f3f4f6' : '#fff' }}
+                      className={`user-filter-dropdown-item ${userTypeFilter === 'All' ? 'active' : ''}`}
                       onClick={() => { setUserTypeFilter('All'); setUserFilterOpen(false); }}
                     >All</div>
                     <div
-                      style={{ padding: '8px 16px', cursor: 'pointer', background: userTypeFilter === 'Pet Owner' ? '#f3f4f6' : '#fff' }}
+                      className={`user-filter-dropdown-item ${userTypeFilter === 'Pet Owner' ? 'active' : ''}`}
                       onClick={() => { setUserTypeFilter('Pet Owner'); setUserFilterOpen(false); }}
                     >Pet Owner</div>
                     <div
-                      style={{ padding: '8px 16px', cursor: 'pointer', background: userTypeFilter === 'Service Provider' ? '#f3f4f6' : '#fff' }}
+                      className={`user-filter-dropdown-item ${userTypeFilter === 'Service Provider' ? 'active' : ''}`}
                       onClick={() => { setUserTypeFilter('Service Provider'); setUserFilterOpen(false); }}
                     >Service Provider</div>
                   </div>
@@ -374,54 +360,51 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 2 && (
-          <div className="card" style={{ background: 'transparent', boxShadow: 'none', padding: 0, maxWidth: 'none' }}>
-            <div style={{ padding: '32px 32px 0 32px', maxWidth: 1200, margin: '0 auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div className="card analytics-card-transparent">
+            <div className="analytics-container">
+              <div className="analytics-header">
                 <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '1.3rem', marginBottom: 2 }}>Platform Analytics</div>
-                  <div style={{ color: '#6b7280', fontSize: '1rem' }}>Monitor platform metrics and user activity</div>
+                  <div className="analytics-title">Platform Analytics</div>
+                  <div className="analytics-subtitle">Monitor platform metrics and user activity</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ position: 'relative' }}>
-                    <button className="user-filter-btn" onClick={() => setShowAnalyticsDropdown(open => !open)}>
-                      {analyticsPeriod} <img src="/Images/filter.svg" alt="dropdown" style={{ width: 16, height: 16, marginLeft: 8 }} />
+                <div className="analytics-controls">
+                  <div className="analytics-period-dropdown">
+                    <button className="user-filter-btn analytics-period-btn" onClick={() => setShowAnalyticsDropdown(open => !open)}>
+                      {analyticsPeriod} <img src="/Images/filter.svg" alt="dropdown" />
                     </button>
                     {showAnalyticsDropdown && (
-                      <div style={{
-                        position: 'absolute', right: 0, top: '110%',
-                        background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, zIndex: 10
-                      }}>
+                      <div className="analytics-dropdown">
                         {['Last 7 days', 'Last 30 days', 'Last 90 days'].map(period => (
                           <div
                             key={period}
-                            style={{ padding: '8px 16px', cursor: 'pointer', background: analyticsPeriod === period ? '#f3f4f6' : '#fff' }}
-                            onClick={() => { setAnalyticsPeriod(period); setShowAnalyticsDropdown(false); }}
+                            className={`analytics-dropdown-item ${analyticsPeriod === period ? 'active' : ''}`}
+                            onClick={() => { handleAnalyticsPeriodChange(period); setShowAnalyticsDropdown(false); }}
                           >{period}</div>
                         ))}
                       </div>
                     )}
                   </div>
-                  <button onClick={handleExport} className="user-filter-btn" style={{ color: '#2563eb', borderColor: '#2563eb' }}>Export</button>
+                  <button onClick={handleExport} className="user-filter-btn export-btn">Export</button>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 18, marginBottom: 24 }}>
+              <div className="analytics-stats-grid">
                 {analyticsStats.map(stat => (
-                  <div key={stat.label} style={{ flex: 1, background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 160 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <img src={`/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" style={{ width: 22, height: 22 }} />
-                      <span style={{ color: '#6b7280', fontSize: '1rem' }}>{stat.label}</span>
+                  <div key={stat.label} className="analytics-stat-card">
+                    <div className="analytics-stat-header">
+                      <img src={`/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" className="analytics-stat-icon" />
+                      <span className="analytics-stat-label">{stat.label}</span>
                     </div>
-                    <div style={{ fontWeight: 'bold', fontSize: '1.5rem', color: '#111', marginBottom: 2 }}>{stat.value}</div>
-                    <div style={{ color: '#16a34a', fontSize: '0.98rem', fontWeight: 500 }}>{stat.change} <span style={{ color: '#6b7280', fontWeight: 400 }}>{stat.desc}</span></div>
+                    <div className="analytics-stat-value">{stat.value}</div>
+                    <div className="analytics-stat-change">{stat.change} <span className="analytics-stat-desc">{stat.desc}</span></div>
                   </div>
                 ))}
               </div>
-              <div style={{ display: 'flex', gap: 18, marginBottom: 24 }}>
+              <div className="analytics-charts-grid">
                 {/* Platform Growth Card */}
-                <div style={{ flex: 2, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 24, minWidth: 320, minHeight: 260, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600, fontSize: '1.08rem' }}>Platform Growth</div>
-                    <button style={{ background: '#f3f4f6', border: 'none', borderRadius: 12, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <div className="platform-growth-card">
+                  <div className="platform-growth-header">
+                    <div className="platform-growth-title">Platform Growth</div>
+                    <button className="chart-toggle-btn">
                       <svg width="20" height="20" viewBox="0 0 20 20" fill="#2563eb"><rect x="3" y="12" width="3" height="5"/><rect x="8.5" y="8" width="3" height="9"/><rect x="14" y="4" width="3" height="13"/></svg>
                     </button>
                   </div>
@@ -472,9 +455,9 @@ const AdminDashboard = () => {
                   </svg>
                 </div>
                 {/* Service Distribution Card */}
-                <div style={{ flex: 1, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 24, minWidth: 200, minHeight: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
-                  <div style={{ fontWeight: 600, fontSize: '1.08rem', alignSelf: 'flex-start', marginBottom: 2 }}>Service Distribution</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.97rem', alignSelf: 'flex-start', marginBottom: 18 }}>Platform-wide service popularity</div>
+                <div className="service-distribution-card">
+                  <div className="service-distribution-title">Service Distribution</div>
+                  <div className="service-distribution-subtitle">Platform-wide service popularity</div>
                   {/* Pie Chart */}
                   <svg width="140" height="140" viewBox="0 0 140 140">
                     <circle r="60" cx="70" cy="70" fill="#f3f4f6" />
@@ -485,27 +468,27 @@ const AdminDashboard = () => {
                   </svg>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 18 }}>
-                <div style={{ flex: 1, background: '#fff', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: 24, minWidth: 320 }}>
-                  <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 2 }}>Top Performing Providers</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.97rem', marginBottom: 18 }}>Highest rated and most active service providers</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div className="analytics-charts-grid">
+                <div className="top-providers-card">
+                  <div className="top-providers-title">Top Performing Providers</div>
+                  <div className="top-providers-subtitle">Highest rated and most active service providers</div>
+                  <div className="top-providers-list">
                     {topProviders.map((prov, idx) => (
-                      <div key={prov.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.03)', padding: '14px 18px', gap: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#06b6d4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem' }}>{idx + 1}</div>
-                          <div>
-                            <div style={{ fontWeight: 600, color: '#111', fontSize: '1.05rem' }}>{prov.name}</div>
-                            <div style={{ color: '#6b7280', fontSize: '0.97rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div key={prov.name} className="provider-item">
+                        <div className="provider-info-section">
+                          <div className="provider-rank">{idx + 1}</div>
+                          <div className="provider-details">
+                            <div className="provider-name">{prov.name}</div>
+                            <div className="provider-stats">
                               {prov.bookings} bookings ·
-                              <svg width="16" height="16" viewBox="0 0 20 20" fill="#f59e42" style={{ marginBottom: -2 }}><path d="M10 15.27L16.18 18l-1.64-7.03L19 7.24l-7.19-.61L10 0 8.19 6.63 1 7.24l5.46 3.73L4.82 18z"/></svg>
+                              <svg width="16" height="16" viewBox="0 0 20 20" fill="#f59e42"><path d="M10 15.27L16.18 18l-1.64-7.03L19 7.24l-7.19-.61L10 0 8.19 6.63 1 7.24l5.46 3.73L4.82 18z"/></svg>
                               {prov.rating}
                             </div>
                           </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontWeight: 600, color: '#10b981', fontSize: '1.08rem' }}>${prov.revenue.toLocaleString()}</div>
-                          <div style={{ color: '#6b7280', fontSize: '0.93rem', fontWeight: 400 }}>revenue</div>
+                        <div className="provider-revenue-section">
+                          <div className="provider-revenue">${prov.revenue.toLocaleString()}</div>
+                          <div className="provider-revenue-label">revenue</div>
                         </div>
                       </div>
                     ))}
@@ -518,72 +501,66 @@ const AdminDashboard = () => {
       </div>
 
       {viewedDocument && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 300
-        }}>
-          <div style={{
-            background: '#fff',
-            padding: 32,
-            borderRadius: 12,
-            boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
-            minWidth: 320,
-            maxWidth: 400
-          }}>
-            <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 16 }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-title">
               {viewedDocument.doc.type}
             </div>
-            <div style={{ marginBottom: 12 }}>
+            <div className="modal-field">
               <strong>Filename:</strong> {viewedDocument.doc.filename}
             </div>
-            <div style={{ marginBottom: 12 }}>
+            <div className="modal-field">
               <strong>Provider:</strong> {viewedDocument.provider.name}
             </div>
-            {viewedDocument.doc.filename.endsWith('.jpg') || viewedDocument.doc.filename.endsWith('.png') ? (
-              <img src={`/path/to/docs/${viewedDocument.doc.filename}`} alt="Document Preview" style={{ maxWidth: '100%', marginBottom: 12 }} />
-            ) : null}
-            <button onClick={handleCloseDocument} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff' }}>Close</button>
+            <button onClick={handleCloseDocument} className="modal-close-btn">Close</button>
           </div>
         </div>
       )}
 
       {showLogoutConfirm && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 200
-        }}>
-          <div style={{
-            background: '#fff',
-            padding: 32,
-            borderRadius: 12,
-            boxShadow: '0 2px 16px rgba(0,0,0,0.12)',
-            minWidth: 320
-          }}>
-            <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: 16 }}>Confirm Logout</div>
-            <div style={{ color: '#6b7280', marginBottom: 24 }}>Are you sure you want to logout?</div>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-              <button onClick={handleLogoutCancel} style={{ padding: '8px 18px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#f3f4f6', color: '#222' }}>Cancel</button>
-              <button onClick={handleLogoutConfirm} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#2563eb', color: '#fff' }}>Logout</button>
+        <div className="logout-modal-overlay">
+          <div className="logout-modal-content">
+            <div className="logout-modal-title">Confirm Logout</div>
+            <div className="logout-modal-message">Are you sure you want to logout?</div>
+            <div className="logout-modal-actions">
+              <button onClick={handleLogoutCancel} className="logout-modal-cancel-btn">Cancel</button>
+              <button onClick={handleLogoutConfirm} className="logout-modal-confirm-btn">Logout</button>
             </div>
           </div>
         </div>
       )}
 
+      {viewedUser && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-title">
+              User Details
+            </div>
+            <div className="modal-field">
+              <strong>Name:</strong> {viewedUser.name}
+            </div>
+            <div className="modal-field">
+              <strong>Email:</strong> {viewedUser.email}
+            </div>
+            <div className="modal-field">
+              <strong>Role:</strong> {viewedUser.role}
+            </div>
+            <div className="modal-field">
+              <strong>Joined:</strong> {viewedUser.joined}
+            </div>
+            <div className="modal-field">
+              <strong>Bookings:</strong> {viewedUser.bookings}
+            </div>
+            <div className="modal-field">
+              <strong>Status:</strong> {viewedUser.status}
+            </div>
+            <button onClick={handleCloseUser} className="modal-close-btn">Close</button>
+          </div>
+        </div>
+      )}
+
       {showExportMsg && (
-        <div style={{
-          position: 'fixed', top: 20, right: 20, background: '#2563eb', color: '#fff',
-          padding: '12px 24px', borderRadius: 8, zIndex: 999
-        }}>
+        <div className="export-message">
           Exported!
         </div>
       )}

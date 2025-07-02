@@ -949,37 +949,45 @@
 .provider-header {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
+  gap: 14px;
+  margin-bottom: 0.5rem;
 }
-.avatar {
-  width: 56px;
-  height: 56px;
+.provider-avatar {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: #f3f4f6;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: #6b7280;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
 }
-.provider-info {
-  flex: 1;
+.provider-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
 }
 .provider-name {
-  font-weight: bold;
-  font-size: 1.1rem;
-  margin-bottom: 2px;
+  font-weight: 700;
+  font-size: 1.13rem;
+  color: #111827;
+  margin-bottom: 0.1rem;
 }
 .provider-email {
   color: #6b7280;
-  font-size: 0.98rem;
-  margin-bottom: 2px;
+  font-size: 1rem;
+  margin-bottom: 0.1rem;
 }
 .provider-meta {
   color: #6b7280;
   font-size: 0.97rem;
-  margin-bottom: 2px;
+  margin-bottom: 0.1rem;
+  line-height: 1.3;
 }
 .status-badge {
   position: absolute;
@@ -1312,5 +1320,535 @@
   font-weight: bold;
   line-height: 1;
   display: inline-block;
+}
+
+/* Inline styles moved from JavaScript */
+
+/* Bell button styles */
+.bell-btn {
+  background: none;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.bell-btn img {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+/* Logout button styles */
+.logout-btn {
+  background: none;
+  border: none;
+  color: #222;
+  font-weight: 400;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.logout-btn img {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* Status badge styles */
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge img {
+  width: 18px;
+  height: 18px;
+}
+
+/* Document card styles */
+.document-card img {
+  width: 18px;
+  height: 18px;
+}
+
+/* User filter dropdown styles */
+.user-filter-dropdown {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  z-index: 10;
+  min-width: 140px;
+}
+
+.user-filter-dropdown-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.user-filter-dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.user-filter-dropdown-item.active {
+  background: #f3f4f6;
+}
+
+/* Analytics section styles */
+.analytics-container {
+  padding: 32px 32px 0 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.analytics-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.analytics-title {
+  font-weight: bold;
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+
+.analytics-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.analytics-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analytics-period-dropdown {
+  position: relative;
+}
+
+.analytics-dropdown {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.analytics-dropdown-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.analytics-dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.analytics-dropdown-item.active {
+  background: #f3f4f6;
+}
+
+.export-btn {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+/* Analytics stats grid */
+.analytics-stats-grid {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.analytics-stat-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 160px;
+}
+
+.analytics-stat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.analytics-stat-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.analytics-stat-label {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.analytics-stat-value {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #111;
+  margin-bottom: 2px;
+}
+
+.analytics-stat-change {
+  color: #16a34a;
+  font-size: 0.98rem;
+  font-weight: 500;
+}
+
+.analytics-stat-desc {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Analytics charts section */
+.analytics-charts-grid {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.platform-growth-card {
+  flex: 2;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px;
+  min-width: 320px;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.platform-growth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.platform-growth-title {
+  font-weight: 600;
+  font-size: 1.08rem;
+}
+
+.chart-toggle-btn {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.service-distribution-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px;
+  min-width: 200px;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.service-distribution-title {
+  font-weight: 600;
+  font-size: 1.08rem;
+  align-self: flex-start;
+  margin-bottom: 2px;
+}
+
+.service-distribution-subtitle {
+  color: #6b7280;
+  font-size: 0.97rem;
+  align-self: flex-start;
+  margin-bottom: 18px;
+}
+
+/* Top providers section */
+.top-providers-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px;
+  min-width: 320px;
+}
+
+.top-providers-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.top-providers-subtitle {
+  color: #6b7280;
+  font-size: 0.97rem;
+  margin-bottom: 18px;
+}
+
+.top-providers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.provider-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  padding: 14px 18px;
+  gap: 16px;
+}
+
+.provider-info-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.provider-rank {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #06b6d4;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.provider-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.provider-name {
+  font-weight: 600;
+  color: #111;
+  font-size: 1.05rem;
+}
+
+.provider-stats {
+  color: #6b7280;
+  font-size: 0.97rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.provider-stats svg {
+  margin-bottom: -2px;
+}
+
+.provider-revenue-section {
+  text-align: right;
+}
+
+.provider-revenue {
+  font-weight: 600;
+  color: #10b981;
+  font-size: 1.08rem;
+}
+
+.provider-revenue-label {
+  color: #6b7280;
+  font-size: 0.93rem;
+  font-weight: 400;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  min-width: 320px;
+  max-width: 400px;
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.modal-field {
+  margin-bottom: 12px;
+}
+
+.modal-field strong {
+  font-weight: 600;
+}
+
+.modal-close-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Logout confirmation modal */
+.logout-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.logout-modal-content {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  min-width: 320px;
+}
+
+.logout-modal-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.logout-modal-message {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.logout-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.logout-modal-cancel-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #222;
+  cursor: pointer;
+}
+
+.logout-modal-confirm-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Export message */
+.export-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #2563eb;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  z-index: 999;
+}
+
+/* Analytics card transparent */
+.analytics-card-transparent {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  max-width: none;
+}
+
+/* User filter button with dropdown icon */
+.user-filter-btn img {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+}
+
+/* Analytics period button with dropdown icon */
+.analytics-period-btn img {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+}
+
+/* Document header styles */
+.document-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Submitted documents title */
+.submitted-documents-title {
+  font-weight: 500;
+  margin-top: 18px;
+}
+
+/* Document preview image */
+.document-preview {
+  max-width: 100%;
+  margin-bottom: 12px;
+}
+
+/* User filter box positioning */
+.user-filter-box {
+  position: relative;
 }
 
