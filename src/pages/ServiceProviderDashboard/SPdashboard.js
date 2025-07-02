@@ -7,6 +7,8 @@ import ProfileModal  from './SPprofile';
 import ServiceOffered from './SPservices';
 import { supabase } from '../../lib/supabaseClient';
 import Toast from '../../components/Toast';
+import ServiceGallery from './SPgallery';
+import MessagesModal from './SPmessages';
 
 
 const ProviderDashboard = () => {
@@ -20,6 +22,7 @@ const ProviderDashboard = () => {
   const [highlightedBookingId, setHighlightedBookingId] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
   
   // Sample data
   const stats = [
@@ -210,8 +213,8 @@ const ProviderDashboard = () => {
                 </div>
               </div>
             )}
-          </div>
-          <button className="nav-button">
+          </div>      
+          <button className="nav-button" onClick={() => setShowMessages(true)}>
             <img src="Icons/chat.svg" alt="Messages" />
             <span>Messages</span>
           </button>
@@ -237,12 +240,14 @@ const ProviderDashboard = () => {
         <div className="stats-grid">
           {stats.map((stat, index) => (
             <div key={index} className="stat-card" style={{ borderColor: stat.color }}>
-              <div className="stat-info">
-                <p className="stat-title">{stat.title}</p>
-                <h3 className="stat-value" style={{ color: stat.color }}>{stat.value}</h3>
-              </div>
-              <img src={`Icons/${stat.icon}`} alt={stat.title} className="stat-icon" />
-            </div>
+              <div className="stat-details">
+              <p className="stat-title">{stat.title}</p>
+              <div className="stat-value-container">
+               <h3 className="stat-value" style={{ color: stat.color }}>{stat.value}</h3>
+               <img src={`Icons/${stat.icon}`} alt={stat.title} className="stat-icon" />
+             </div>
+             </div>
+          </div>
           ))}
         </div>
 
@@ -285,13 +290,14 @@ const ProviderDashboard = () => {
     {activeTab === 'services' && <ServiceOffered />}
     {activeTab === 'bookings' && <ServiceProviderBookings highlightedBookingId={highlightedBookingId} />}
     {activeTab === 'reviews' && <CustomerReview/>}
-    {activeTab === 'gallery' && <p>Gallery content coming soon...</p>}
+    {activeTab === 'gallery' && <ServiceGallery/>}
     {activeTab === 'analytics' && <p>Analytics content coming soon...</p>}
   </div>
 
       </main>
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />} 
       <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
+      {showMessages && <MessagesModal onClose={() => setShowMessages(false)} />}
     </div>
   );
 };

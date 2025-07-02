@@ -6,6 +6,7 @@ import ServiceCard from '../../components/ServiceCard';
 import BookingModal from '../../components/BookingModal';
 import ProviderProfile from './ProviderProfile';
 import Toast from '../../components/Toast';
+import MessagesModal from '../ServiceProviderDashboard/SPmessages';
 
 // Place timeAgo function here so it's defined before use
 function timeAgo(date) {
@@ -17,6 +18,7 @@ function timeAgo(date) {
 	if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
 	return then.toLocaleDateString();
 }
+
 
 const WPetOwnerDB = () => {
 	const navigate = useNavigate();
@@ -52,6 +54,7 @@ const WPetOwnerDB = () => {
 	function setLastSeenNotifs(ids) {
 		localStorage.setItem('petOwnerLastSeenNotifs', JSON.stringify(ids));
 	}
+	const [showMessagesModal, setShowMessagesModal] = useState(false);
 
 	// Sample data for pet owner dashboard
 	const stats = [
@@ -215,8 +218,7 @@ const WPetOwnerDB = () => {
 	};
 
 	const handleMessages = () => {
-		// Navigate to messages page or show messages modal
-		alert('Messages feature coming soon!');
+		setShowMessagesModal(true);
 	};
 
 	const handleMyBookings = () => {
@@ -766,6 +768,9 @@ const WPetOwnerDB = () => {
 					onClose={() => { setShowBookingModal(false); setSelectedService(null); }}
 					onBookingSuccess={handleBookingSuccess}
 				/>
+			)}
+			{showMessagesModal && (
+				<MessagesModal onClose={() => setShowMessagesModal(false)} />
 			)}
 		</div>
 	);
