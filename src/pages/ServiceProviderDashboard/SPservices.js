@@ -2,7 +2,7 @@ import React, { useEffect,useState } from 'react';
 import './SPservices.css';
 import { supabase } from '../../lib/supabaseClient'; // make sure this is correct
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
+import customMarkerIcon from '../../components/customMarker';
 
 
 
@@ -308,15 +308,18 @@ useEffect(() => {
     }));
   }} />
       {formData.latitude && formData.longitude && (
-        <Marker position={[formData.latitude, formData.longitude]} />
+       <Marker 
+  position={[formData.latitude, formData.longitude]} 
+  icon={customMarkerIcon} // ✅ now it's used!
+/>
       )}
     </MapContainer>
   </div>
-  {formData.location && (
-    <p style={{ fontSize: '0.9rem', color: '#555' }}>
-      Selected Location: {formData.location}
-    </p>
-  )}
+  {formData.latitude !== null && formData.longitude !== null && (
+  <p style={{ fontSize: '0.9rem', color: '#555' }}>
+    Selected Location: {formData.latitude.toFixed(5)}, {formData.longitude.toFixed(5)}
+  </p>
+)}
 </div>
 
 

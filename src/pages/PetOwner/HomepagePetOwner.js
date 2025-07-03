@@ -607,70 +607,45 @@ const WPetOwnerDB = () => {
 							) : (
 																	// MAP VIEW UI
 																	<div className={styles.mapViewSection}>
-									{/* 🌍 Actual Map */}
-									<ServiceMap services={filteredServices} />
+										{/* 🌍 Actual Map */}
+										<ServiceMap services={filteredServices} />
 
-									{/* List Below Map (optional) */}
-									<div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '16px' }}>
-										{filteredServices.map((service) => (
-										<ServiceCard
-											key={service.id}
-											service={service}
-											onBookNow={handleBookNow}
-											onMessage={handleMessage}
-											onProviderClick={providerId => handleProviderCardClick(providerId, service)}
-										/>
-										))}
-
-
-										<div style={{ textAlign: 'center', color: '#888' }}>
-											<div style={{ fontSize: 48, marginBottom: 8 }}>
-												<span role="img" aria-label="map-pin">📍</span>
-											</div>
-											<div style={{ fontWeight: 600, fontSize: '1.2rem', marginBottom: 4 }}>Map View</div>
-											<div style={{ fontSize: '1rem', color: '#aaa', marginBottom: 8 }}>
-												Interactive map showing provider locations would be displayed here
-											</div>
-											<div style={{ fontSize: '0.95rem', color: '#c0c0c0' }}>
-												Integration with Google Maps or similar service
-											</div>
-										</div>
-									</div>
-									{/* Providers List (vertical cards) */}
-									<div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-										{filteredServices.length > 0 ? (
+										{/* List Below Map */}
+										<div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginTop: '16px' }}>
+											{filteredServices.length > 0 ? (
 											filteredServices.map((service) => (
 												<ServiceCard
-													key={service.id}
-													service={service}
-													onBookNow={handleBookNow}
-													onMessage={handleMessage}
-													onProviderClick={providerId => handleProviderCardClick(providerId, service)}
+												key={service.id}
+												service={service}
+												onBookNow={handleBookNow}
+												onMessage={handleMessage}
+												onProviderClick={providerId => handleProviderCardClick(providerId, service)}
 												/>
 											))
-										) : (
+											) : (
 											<div className={styles.noResults}>
 												<div className={styles.noResultsContent}>
-													<div className={styles.noResultsHeader}>
-														<h3>No Service Providers Found</h3>
+												<div className={styles.noResultsHeader}>
+													<h3>No Service Providers Found</h3>
+												</div>
+												<p>Try adjusting your search criteria or location to find available services.</p>
+												<div className={styles.featuresList}>
+													<div className={styles.featureItem}>
+													<img src="/images/arrow.png" alt="Check" />
+													<span>Check your search terms</span>
 													</div>
-													<p>Try adjusting your search criteria or location to find available services.</p>
-													<div className={styles.featuresList}>
-														<div className={styles.featureItem}>
-															<img src="/images/arrow.png" alt="Check" />
-															<span>Check your search terms</span>
-														</div>
-														<div className={styles.featureItem}>
-															<img src="/images/arrow.png" alt="Notify" />
-															<span>Try a different location</span>
-														</div>
+													<div className={styles.featureItem}>
+													<img src="/images/arrow.png" alt="Notify" />
+													<span>Try a different location</span>
 													</div>
+												</div>
 												</div>
 												<img className={styles.noResultsImage} src="/images/user.png" alt="User" />
 											</div>
-										)}
-									</div>
-								</div>
+											)}
+										</div>
+										</div>
+																	
 							)}
 						</div>
 					)}
