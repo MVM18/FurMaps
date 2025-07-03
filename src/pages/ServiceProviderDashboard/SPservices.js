@@ -158,6 +158,8 @@ useEffect(() => {
         serviceType: service.service_type,
         contactNumber: service.contact_number,
         price: service.price,
+         latitude: service.latitude,
+  longitude: service.longitude,
         createdAt: new Date(service.created_at).toLocaleDateString()
       })));
     }
@@ -189,7 +191,9 @@ useEffect(() => {
     location: service.location,
     serviceType: service.serviceType,
     contactNumber: service.contactNumber,
-    price: service.price
+    price: service.price,
+    latitude: service.latitude ?? null,
+    longitude: service.longitude ?? null
   });
   setShowForm(true);
 };
@@ -315,7 +319,7 @@ useEffect(() => {
       )}
     </MapContainer>
   </div>
-  {formData.latitude !== null && formData.longitude !== null && (
+ {typeof formData.latitude === 'number' && typeof formData.longitude === 'number' && (
   <p style={{ fontSize: '0.9rem', color: '#555' }}>
     Selected Location: {formData.latitude.toFixed(5)}, {formData.longitude.toFixed(5)}
   </p>
