@@ -23,6 +23,7 @@ const ProviderDashboard = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [providerId, setProviderId] = useState(null);
   
   // Sample data
   const stats = [
@@ -31,6 +32,14 @@ const ProviderDashboard = () => {
     { title: "This Month", value: "₱1,250", icon: "pesos.svg", color: "#d97706" },
     { title: "Active Clients", value: "23", icon: "user.svg", color: "#16a34a" }
   ];
+
+  useEffect(() => {
+  const getUserId = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) setProviderId(user.id);
+  };
+  getUserId();
+}, []);
 
    const handleLogout = () => {
     // You might want to add logout logic here (clear tokens, etc.)
@@ -297,7 +306,11 @@ const ProviderDashboard = () => {
       </main>
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />} 
       <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
-      {showMessages && <MessagesModal onClose={() => setShowMessages(false)} />}
+      {showMessages && 
+        <MessagesModal
+       onClose={() => setShowMessages(false)}
+      
+        />}
     </div>
   );
 };

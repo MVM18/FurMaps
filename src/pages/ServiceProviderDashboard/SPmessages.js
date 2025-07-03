@@ -1,118 +1,144 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './SPmessages.css';
+import { supabase } from '../../lib/supabaseClient'; 
+import { useMemo } from 'react';
 
-const MessagesModal = ({ onClose }) => {
-  const [selectedConversation, setSelectedConversation] = useState('sarah');
+
+
+const MessagesModal = ({ onClose, receiverId}) => {
+  const [allMessages, setAllMessages] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const [newMessage, setNewMessage] = useState('');
-  const [conversations, setConversations] = useState([
-    {
-      id: 'sarah',
-      name: 'Sarah Johnson',
-      lastMessage: "I'll be there at 10 AM tomorro…",
-      time: '2 min ago',
-      unread: 2,
-      online: true,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face'
-    },
-    {
-      id: 'mike',
-      name: 'Mike Chen',
-      lastMessage: 'Thanks for booking! Looking forwar…',
-      time: '1 hour ago',
-      unread: 0,
-      online: false,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face'
-    },
-    {
-      id: 'emma',
-      name: 'Emma Davis',
-      lastMessage: 'The checkup went great! Ma…',
-      time: 'Yesterday',
-      unread: 1,
-      online: false,
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face'
-    }
-  ]);
+  const [conversations, setConversations] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+   const [messages, setMessages] = useState([]);
 
-  const [allMessages, setAllMessages] = useState({
-    sarah: [
-      {
-        id: 1,
-        sender: 'sarah',
-        content: "Hi! I received your booking request for tomorrow. I'm excited to walk Max!",
-        time: '10:30 AM',
-        isOwn: false,
-        type: 'text'
-      },
-      {
-        id: 2,
-        sender: 'me',
-        content: "Great! Max is very friendly but gets excited around other dogs. Is that okay?",
-        time: '10:32 AM',
-        isOwn: true,
-        type: 'text'
-      },
-      {
-        id: 3,
-        sender: 'sarah',
-        content: "That's perfectly fine! I have experience with energetic dogs. I'll make sure he gets plenty of exercise.",
-        time: '10:35 AM',
-        isOwn: false,
-        type: 'text'
-      },
-      {
-        id: 4,
-        sender: 'me',
-        content: "Perfect! Should I leave his leash and treats by the door?",
-        time: '10:37 AM',
-        isOwn: true,
-        type: 'text'
-      },
-      {
-        id: 5,
-        sender: 'sarah',
-        content: "Yes, that would be great! I'll be there at 10 AM tomorrow!",
-        time: '10:40 AM',
-        isOwn: false,
-        type: 'text'
+  useEffect(() => {
+  if (receiverId) {
+    setSelectedConversation(receiverId);
+  }
+}, [receiverId]);
+  useEffect(() => {
+  const getUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !profile) {
+        console.error('Profile not found or error:', error);
+        return;
       }
-    ],
-    mike: [
+
+      setCurrentUserId(profile.user_id); // ✅ Use profiles.id (primary key) as sender_id
+    }
+  };
+  getUser();
+}, []);
+useEffect(() => {
+  const fetchConversations = async () => {
+    if (!currentUserId) return;
+
+  const { data, error } = await supabase
+  .from('messages')
+  .select(`
+    sender_id,
+    content,
+    created_at,
+    sender:profiles!messages_sender_id_fkey (
+      first_name,
+      last_name,
+      profile_picture
+    )
+  `)
+  .eq('receiver_id', currentUserId)
+  .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching conversations:', error);
+      return;
+    }
+
+    const uniqueSenders = [];
+    const seen = new Set();
+
+    for (const msg of data) {
+      if (!seen.has(msg.sender_id)) {
+        seen.add(msg.sender_id);
+        uniqueSenders.push({
+         id: msg.sender_id,
+  name: `${msg.sender?.first_name || 'Unknown'} ${msg.sender?.last_name || ''}`,
+  avatar: msg.sender?.profile_picture || '/default-avatar.png',
+  lastMessage: msg.content,
+  time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  unread: 1,
+        });
+      }
+    }
+
+    setConversations(uniqueSenders);
+  };
+
+  fetchConversations();
+}, [currentUserId]);
+useEffect(() => {
+  const fetchMessages = async () => {
+    if (!currentUserId || !selectedConversation) return; // ✅ Prevent query if IDs aren't loaded
+
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${selectedConversation}),and(sender_id.eq.${selectedConversation},receiver_id.eq.${currentUserId})`)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching messages:', error);
+    } else {
+      setAllMessages(data); // ✅ This should now be an array, not an object
+    }
+  };
+
+  fetchMessages();
+}, [selectedConversation, currentUserId]);
+
+useEffect(() => {
+  const messageListener = supabase
+    .channel('public:messages')
+    .on(
+      'postgres_changes',
       {
-        id: 1,
-        sender: 'mike',
-        content: "Thanks for booking my grooming service! When would be a good time?",
-        time: '9:15 AM',
-        isOwn: false,
-        type: 'text'
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_id=eq.${currentUserId}`,
       },
-      {
-        id: 2,
-        sender: 'me',
-        content: "How about this Friday afternoon?",
-        time: '9:20 AM',
-        isOwn: true,
-        type: 'text'
+      (payload) => {
+        const newMsg = payload.new;
+        if (
+          newMsg.sender_id === selectedConversation ||
+          newMsg.receiver_id === selectedConversation
+        ) {
+          setAllMessages(prev => [...prev, newMsg]);
+        }
       }
-    ],
-    emma: [
-      {
-        id: 1,
-        sender: 'emma',
-        content: "The checkup went great! Max is healthy and happy.",
-        time: '2:30 PM',
-        isOwn: false,
-        type: 'text'
-      }
-    ]
-  });
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(messageListener);
+  };
+}, [selectedConversation, currentUserId]);
+
+
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const currentConversation = conversations.find(conv => conv.id === selectedConversation);
-  const currentMessages = allMessages[selectedConversation] || [];
-
+ const currentMessages = allMessages;
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -121,139 +147,66 @@ const MessagesModal = ({ onClose }) => {
     scrollToBottom();
   }, [currentMessages]);
 
-  const formatTime = () => {
+  /*const formatTime = () => {
     const now = new Date();
     return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  };*/
+  
+const handleSendMessage = async (e) => {
+  e.preventDefault();
+  if (!newMessage.trim()) return;
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (newMessage.trim()) {
-      const messageId = Date.now();
-      const newMsg = {
-        id: messageId,
-        sender: 'me',
-        content: newMessage.trim(),
-        time: formatTime(),
-        isOwn: true,
-        type: 'text'
-      };
+  const { error } = await supabase.from('messages').insert({
+    sender_id: currentUserId,
+    receiver_id: selectedConversation,
+    content: newMessage.trim(),
+    type: 'text',
+  });
 
-      // Add message to current conversation
-      setAllMessages(prev => ({
-        ...prev,
-        [selectedConversation]: [...(prev[selectedConversation] || []), newMsg]
-      }));
+  if (error) console.error('Send failed:', error);
+  else setNewMessage('');
+};
 
-      // Update conversation preview
-      setConversations(prev => prev.map(conv => 
-        conv.id === selectedConversation 
-          ? { ...conv, lastMessage: newMessage.substring(0, 25) + '…', time: 'now' }
-          : conv
-      ));
 
-      setNewMessage('');
+ const handleImageUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
 
-      // Simulate response after 2 seconds
-      setTimeout(() => {
-        const responses = [
-          "That sounds great!",
-          "Perfect, looking forward to it!",
-          "Thanks for letting me know!",
-          "Got it, I'll be ready!",
-          "Awesome, see you then!",
-          "No problem at all!",
-          "That works for me!"
-        ];
-        
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        const responseMsg = {
-          id: Date.now() + 1,
-          sender: selectedConversation,
-          content: randomResponse,
-          time: formatTime(),
-          isOwn: false,
-          type: 'text'
-        };
+  const fileName = `${Date.now()}_${file.name}`;
+  const { error: uploadError } = await supabase
+    .storage
+    .from('chat-images') // make sure this bucket exists
+    .upload(fileName, file);
 
-        setAllMessages(prev => ({
-          ...prev,
-          [selectedConversation]: [...(prev[selectedConversation] || []), responseMsg]
-        }));
+  if (uploadError) {
+    console.error('Image upload failed:', uploadError);
+    return;
+  }
 
-        setConversations(prev => prev.map(conv => 
-          conv.id === selectedConversation 
-            ? { ...conv, lastMessage: randomResponse.substring(0, 25) + '…', time: 'now', unread: conv.unread + 1 }
-            : conv
-        ));
-      }, 2000);
-    }
-  };
+  // Get public URL of uploaded image
+  const { data: publicUrlData } = supabase
+    .storage
+    .from('chat-images')
+    .getPublicUrl(fileName);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const messageId = Date.now();
-        const imageMsg = {
-          id: messageId,
-          sender: 'me',
-          content: event.target.result,
-          time: formatTime(),
-          isOwn: true,
-          type: 'image',
-          fileName: file.name
-        };
+  const imageUrl = publicUrlData.publicUrl;
 
-        setAllMessages(prev => ({
-          ...prev,
-          [selectedConversation]: [...(prev[selectedConversation] || []), imageMsg]
-        }));
+  // Insert message with image URL
+  const { error: insertError } = await supabase.from('messages').insert({
+    sender_id: currentUserId,
+    receiver_id: selectedConversation,
+    type: 'image',
+    image_url: imageUrl,
+  });
 
-        setConversations(prev => prev.map(conv => 
-          conv.id === selectedConversation 
-            ? { ...conv, lastMessage: '📷 Photo', time: 'now' }
-            : conv
-        ));
+  if (insertError) {
+    console.error('Error saving image message:', insertError);
+  }
 
-        // Simulate response to image
-        setTimeout(() => {
-          const imageResponses = [
-            "Great photo!",
-            "That's a beautiful picture!",
-            "Love it!",
-            "Thanks for sharing!",
-            "Wow, that's nice!"
-          ];
-          
-          const randomResponse = imageResponses[Math.floor(Math.random() * imageResponses.length)];
-          const responseMsg = {
-            id: Date.now() + 1,
-            sender: selectedConversation,
-            content: randomResponse,
-            time: formatTime(),
-            isOwn: false,
-            type: 'text'
-          };
+  // Reset input
+  e.target.value = '';
+};
 
-          setAllMessages(prev => ({
-            ...prev,
-            [selectedConversation]: [...(prev[selectedConversation] || []), responseMsg]
-          }));
-
-          setConversations(prev => prev.map(conv => 
-            conv.id === selectedConversation 
-              ? { ...conv, lastMessage: randomResponse.substring(0, 25) + '…', time: 'now', unread: conv.unread + 1 }
-              : conv
-          ));
-        }, 1500);
-      };
-      reader.readAsDataURL(file);
-    }
-    // Reset file input
-    e.target.value = '';
-  };
 
   const markAsRead = (conversationId) => {
     setConversations(prev => prev.map(conv => 
@@ -330,23 +283,19 @@ const MessagesModal = ({ onClose }) => {
 
             {/* Messages */}
             <div className="messages-area">
-              {currentMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`message ${message.isOwn ? 'own-message' : 'other-message'}`}
-                >
+             {currentMessages.map((message) => (
+                <div key={message.id} className={`message ${message.sender_id === currentUserId ? 'own-message' : 'other-message'}`}>
                   <div className="message-bubble">
                     {message.type === 'image' ? (
                       <div className="message-image">
-                        <img 
-                          src={message.content} 
-                          alt="Shared image" 
-                        />
+                        <img src={message.image_url} alt="Sent" />
                       </div>
                     ) : (
                       <div className="message-content">{message.content}</div>
                     )}
-                    <div className="message-time">{message.time}</div>
+                    <div className="message-time">
+                      {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
                 </div>
               ))}

@@ -262,11 +262,18 @@ const WPetOwnerDB = () => {
 		setShowBookingModal(true);
 	};
 
-	const handleMessage = (service) => {
-		// Navigate to messaging or show message modal
-		alert(`Messaging feature for ${service.name} coming soon!`);
-	};
+const handleMessage = async (service) => {
+  const providerId = service.provider_user_id;
+   const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    console.error('User not found');
+    return;
+  }
+  // Open the modal (if you use one)
+  setSelectedProviderId(providerId);
+  setShowMessagesModal(true);
 
+};
 	const handleBookingSuccess = (booking) => {
 		// Refresh bookings after successful booking
 		fetchBookings();
@@ -749,8 +756,11 @@ const WPetOwnerDB = () => {
 					onBookingSuccess={handleBookingSuccess}
 				/>
 			)}
-			{showMessagesModal && (
-				<MessagesModal onClose={() => setShowMessagesModal(false)} />
+			{showMessagesModal && selectedProviderId && (
+  <MessagesModal
+    onClose={() => setShowMessagesModal(false)}
+    receiverId={selectedProviderId}
+  />
 			)}
 		</div>
 	);
