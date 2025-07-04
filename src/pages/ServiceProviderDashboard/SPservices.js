@@ -8,7 +8,9 @@ import customMarkerIcon from '../../components/customMarker';
 
 const ServiceOffered = () => {
   const [services, setServices] = useState([]);
+  const [inactiveServices, setInactiveServices] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showInactiveServices, setShowInactiveServices] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -143,23 +145,48 @@ useEffect(() => {
       return;
     }
 
-    const { data, error } = await supabase
+    // Fetch active services
+    const { data: activeData, error: activeError } = await supabase
       .from('services')
       .select('*')
-      .eq('provider_id', user.id); // ✅ Only fetch current user's services
+      .eq('provider_id', user.id)
+      .eq('is_active', true);
 
-    if (error) {
-      console.error('Error loading services:', error);
+    if (activeError) {
+      console.error('Error loading active services:', activeError);
     } else {
-      setServices(data.map(service => ({
+      setServices(activeData.map(service => ({
         id: service.id,
         name: service.name,
         location: service.location,
         serviceType: service.service_type,
         contactNumber: service.contact_number,
         price: service.price,
-         latitude: service.latitude,
-  longitude: service.longitude,
+        latitude: service.latitude,
+        longitude: service.longitude,
+        createdAt: new Date(service.created_at).toLocaleDateString()
+      })));
+    }
+
+    // Fetch inactive services
+    const { data: inactiveData, error: inactiveError } = await supabase
+      .from('services')
+      .select('*')
+      .eq('provider_id', user.id)
+      .eq('is_active', false);
+
+    if (inactiveError) {
+      console.error('Error loading inactive services:', inactiveError);
+    } else {
+      setInactiveServices(inactiveData.map(service => ({
+        id: service.id,
+        name: service.name,
+        location: service.location,
+        serviceType: service.service_type,
+        contactNumber: service.contact_number,
+        price: service.price,
+        latitude: service.latitude,
+        longitude: service.longitude,
         createdAt: new Date(service.created_at).toLocaleDateString()
       })));
     }
@@ -170,17 +197,77 @@ useEffect(() => {
 
 
  const handleDelete = async (id) => {
+  // First check if there are any bookings for this service
+  const { data: bookings, error: bookingsError } = await supabase
+    .from('bookings')
+    .select('id, status')
+    .eq('service_id', id);
+
+  if (bookingsError) {
+    console.error('Error checking bookings:', bookingsError);
+    return;
+  }
+
+  if (bookings && bookings.length > 0) {
+    // Show warning to user
+    const hasActiveBookings = bookings.some(booking => 
+      ['pending', 'confirmed', 'in_progress'].includes(booking.status)
+    );
+    
+    if (hasActiveBookings) {
+      alert(`Cannot delete this service because it has active bookings. Please complete or cancel all bookings first.`);
+      return;
+    } else {
+      const confirmed = window.confirm(
+        `This service has ${bookings.length} completed/cancelled booking(s). Are you sure you want to deactivate it? (This will hide it from customers but preserve booking history)`
+      );
+      if (!confirmed) return;
+    }
+  } else {
+    // No bookings exist, ask for confirmation
+    const confirmed = window.confirm('Are you sure you want to deactivate this service?');
+    if (!confirmed) return;
+  }
+
+  // Soft delete - mark as inactive instead of hard delete
   const { error } = await supabase
     .from('services')
-    .delete()
+    .update({ is_active: false })
     .eq('id', id);
 
   if (error) {
-    console.error('Error deleting service:', error);
+    console.error('Error deactivating service:', error);
+    alert('Error deactivating service. Please try again.');
     return;
   }
 
   setServices(prev => prev.filter(service => service.id !== id));
+  alert('Service deactivated successfully!');
+};
+
+const handleReactivate = async (id) => {
+  const confirmed = window.confirm('Are you sure you want to reactivate this service?');
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from('services')
+    .update({ is_active: true })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error reactivating service:', error);
+    alert('Error reactivating service. Please try again.');
+    return;
+  }
+
+  // Move service from inactive to active list
+  const serviceToReactivate = inactiveServices.find(service => service.id === id);
+  if (serviceToReactivate) {
+    setServices(prev => [...prev, serviceToReactivate]);
+    setInactiveServices(prev => prev.filter(service => service.id !== id));
+  }
+
+  alert('Service reactivated successfully!');
 };
 
 
@@ -203,9 +290,22 @@ useEffect(() => {
       <div className="services-header">
         <h3>Services Offered</h3>
         <p>Manage your pet care services and offerings</p>
-        <button 
-          className="add-service-btn"
-          onClick={async () => {
+        <div className="services-controls">
+          <button 
+            className={`toggle-btn ${!showInactiveServices ? 'active' : ''}`}
+            onClick={() => setShowInactiveServices(false)}
+          >
+            Active Services ({services.length})
+          </button>
+          <button 
+            className={`toggle-btn ${showInactiveServices ? 'active' : ''}`}
+            onClick={() => setShowInactiveServices(true)}
+          >
+            Inactive Services ({inactiveServices.length})
+          </button>
+          <button 
+            className="add-service-btn"
+            onClick={async () => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error("User fetch failed:", userError);
@@ -235,10 +335,11 @@ useEffect(() => {
 
   setShowForm(true);
 }}
-        >
-          <img src="Icons/check.svg" alt="Add" />
-          Add New Service
-        </button>
+          >
+            <img src="Icons/check.svg" alt="Add" />
+            Add New Service
+          </button>
+        </div>
       </div>
 
       {/* Add/Edit Service Form */}
@@ -407,14 +508,16 @@ useEffect(() => {
 
       {/* Services List */}
       <div className="services-list">
-        {services.length === 0 ? (
-          <div className="empty-state">
-            <img src="Images/dog-cat.png" alt="No services" />
-            <h4>No services added yet</h4>
-            <p>Start by adding your first service offering</p>
-            <button 
-              className="add-first-service-btn"
-              onClick={async () => {
+        {!showInactiveServices ? (
+          // Active Services
+          services.length === 0 ? (
+            <div className="empty-state">
+              <img src="Images/dog-cat.png" alt="No services" />
+              <h4>No active services</h4>
+              <p>Start by adding your first service offering</p>
+              <button 
+                className="add-first-service-btn"
+                onClick={async () => {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error("User fetch failed:", userError);
@@ -443,60 +546,119 @@ useEffect(() => {
   setShowForm(true);
 }}
 
-            >
-              Add Your First Service
-            </button>
-          </div>
+              >
+                Add Your First Service
+              </button>
+            </div>
+          ) : (
+            <div className="services-grid">
+              {services.map(service => (
+                <div key={service.id} className="service-card">
+                  <div className="service-header">
+                    <h4>{service.name}</h4>
+                    <div className="service-actions">
+                      <button 
+                        className="edit-btn"
+                        onClick={() => handleEdit(service)}
+                      >
+                        <img src="Icons/edit.svg" alt="Edit" />
+                      </button>
+                      <button 
+                        className="delete-btn"
+                        onClick={() => handleDelete(service.id)}
+                        title="Deactivate Service"
+                      >
+                        <img src="Icons/decline.svg" alt="Deactivate" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="service-details">
+                    <div className="service-info">
+                      <div className="info-item">
+                        <img src="Icons/location.svg" alt="Location" />
+                        <span>{service.location}</span>
+                      </div>
+                      <div className="info-item">
+                        <img src="Icons/calendar.svg" alt="Type" />
+                        <span>{service.serviceType}</span>
+                      </div>
+                      <div className="info-item">
+                        <img src="Icons/chat.svg" alt="Contact" />
+                        <span>{service.contactNumber}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="service-price">
+                      <span className="price-label">Price:</span>
+                      <span className="price-value">₱{parseFloat(service.price).toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="service-date">
+                      <span>Added: {service.createdAt}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         ) : (
-          <div className="services-grid">
-            {services.map(service => (
-              <div key={service.id} className="service-card">
-                <div className="service-header">
-                  <h4>{service.name}</h4>
-                  <div className="service-actions">
-                    <button 
-                      className="edit-btn"
-                      onClick={() => handleEdit(service)}
-                    >
-                      <img src="Icons/edit.svg" alt="Edit" />
-                    </button>
-                    <button 
-                      className="delete-btn"
-                      onClick={() => handleDelete(service.id)}
-                    >
-                      <img src="Icons/decline.svg" alt="Delete" />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="service-details">
-                  <div className="service-info">
-                    <div className="info-item">
-                      <img src="Icons/location.svg" alt="Location" />
-                      <span>{service.location}</span>
-                    </div>
-                    <div className="info-item">
-                      <img src="Icons/calendar.svg" alt="Type" />
-                      <span>{service.serviceType}</span>
-                    </div>
-                    <div className="info-item">
-                      <img src="Icons/chat.svg" alt="Contact" />
-                      <span>{service.contactNumber}</span>
+          // Inactive Services
+          inactiveServices.length === 0 ? (
+            <div className="empty-state">
+              <img src="Images/dog-cat.png" alt="No inactive services" />
+              <h4>No inactive services</h4>
+              <p>All your services are currently active</p>
+            </div>
+          ) : (
+            <div className="services-grid">
+              {inactiveServices.map(service => (
+                <div key={service.id} className="service-card inactive">
+                  <div className="service-header">
+                    <h4>{service.name}</h4>
+                    <div className="service-actions">
+                      <button 
+                        className="reactivate-btn"
+                        onClick={() => handleReactivate(service.id)}
+                        title="Reactivate Service"
+                      >
+                        <img src="Icons/check.svg" alt="Reactivate" />
+                      </button>
                     </div>
                   </div>
                   
-                  <div className="service-price">
-                    <span className="price-label">Price:</span>
-                    <span className="price-value">₱{parseFloat(service.price).toLocaleString()}</span>
-                  </div>
-                  
-                  <div className="service-date">
-                    <span>Added: {service.createdAt}</span>
+                  <div className="service-details">
+                    <div className="service-info">
+                      <div className="info-item">
+                        <img src="Icons/location.svg" alt="Location" />
+                        <span>{service.location}</span>
+                      </div>
+                      <div className="info-item">
+                        <img src="Icons/calendar.svg" alt="Type" />
+                        <span>{service.serviceType}</span>
+                      </div>
+                      <div className="info-item">
+                        <img src="Icons/chat.svg" alt="Contact" />
+                        <span>{service.contactNumber}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="service-price">
+                      <span className="price-label">Price:</span>
+                      <span className="price-value">₱{parseFloat(service.price).toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="service-date">
+                      <span>Added: {service.createdAt}</span>
+                    </div>
+                    <div className="service-status">
+                      <span className="status-inactive">Inactive</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

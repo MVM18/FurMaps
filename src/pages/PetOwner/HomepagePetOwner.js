@@ -129,10 +129,11 @@ const WPetOwnerDB = () => {
 	const fetchServices = async () => {
 		setIsLoading(true);
 		try {
-			// 1. Fetch all services
+			// 1. Fetch all active services only
 			const { data: services, error: servicesError } = await supabase
 				.from('services')
 				.select('*')
+				.eq('is_active', true)
 				.order('created_at', { ascending: false });
 
 			if (servicesError) {
