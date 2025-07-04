@@ -13,6 +13,7 @@ const MessagesModal = ({ onClose, receiverId}) => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const [lastMessageCheck, setLastMessageCheck] = useState(new Date());
 
   useEffect(() => {
   if (receiverId) {
@@ -37,7 +38,23 @@ const MessagesModal = ({ onClose, receiverId}) => {
         return;
       }
 
+      console.log('Current user set to:', profile.user_id);
       setCurrentUserId(profile.user_id); // Use profiles.user_id for messages table
+      
+      // Test real-time connection
+      const testChannel = supabase
+        .channel('test-connection')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (payload) => {
+          console.log('Test real-time event received:', payload);
+        })
+        .subscribe((status) => {
+          console.log('Test real-time connection status:', status);
+        });
+        
+      // Clean up test channel after 5 seconds
+      setTimeout(() => {
+        supabase.removeChannel(testChannel);
+      }, 5000);
     }
   };
   getUser();
@@ -156,8 +173,11 @@ useEffect(() => {
 useEffect(() => {
   if (!currentUserId) return;
 
+  console.log('Setting up real-time listener for user:', currentUserId);
+
+  // Create a more robust real-time subscription
   const messageListener = supabase
-    .channel('public:messages')
+    .channel(`messages-${currentUserId}-${Date.now()}`) // Unique channel name
     .on(
       'postgres_changes',
       {
@@ -167,14 +187,38 @@ useEffect(() => {
         filter: `or(sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId})`,
       },
       (payload) => {
+        console.log('Real-time message received:', payload);
         const newMsg = payload.new;
+        
+        // Don't add optimistic messages again
+        if (newMsg.isOptimistic) {
+          console.log('Skipping optimistic message');
+          return;
+        }
+        
+        console.log('Processing new message:', newMsg);
+        console.log('Current conversation:', selectedConversation);
+        console.log('Message sender:', newMsg.sender_id);
+        console.log('Message receiver:', newMsg.receiver_id);
         
         // Add new message to messages list if it's in the current conversation
         if (
           newMsg.sender_id === selectedConversation ||
           newMsg.receiver_id === selectedConversation
         ) {
-          setAllMessages(prev => [...prev, newMsg]);
+          console.log('Adding message to current conversation:', newMsg);
+          setAllMessages(prev => {
+            // Check if message already exists (to avoid duplicates)
+            const exists = prev.some(msg => msg.id === newMsg.id);
+            if (exists) {
+              console.log('Message already exists, skipping');
+              return prev;
+            }
+            console.log('Adding new message to chat');
+            return [...prev, newMsg];
+          });
+        } else {
+          console.log('Message not for current conversation, updating conversation list only');
         }
 
         // Update conversations list with new message
@@ -192,9 +236,11 @@ useEffect(() => {
               lastMessageTime: new Date(newMsg.created_at),
               unread: newMsg.sender_id === currentUserId ? 0 : (updatedConversations[conversationIndex].unread || 0) + 1
             };
+            console.log('Updated existing conversation');
           } else {
             // Add new conversation if it doesn't exist
             const otherUserId = newMsg.sender_id === currentUserId ? newMsg.receiver_id : newMsg.sender_id;
+            console.log('Fetching profile for new conversation:', otherUserId);
             // Fetch the other user's profile to add them to conversations
             fetchUserProfile(otherUserId).then(profile => {
               if (profile) {
@@ -208,6 +254,7 @@ useEffect(() => {
                   lastMessageTime: new Date(newMsg.created_at)
                 };
                 setConversations(prev => [newConversation, ...prev]);
+                console.log('Added new conversation');
               }
             });
           }
@@ -217,12 +264,55 @@ useEffect(() => {
         });
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log('Real-time subscription status:', status);
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Real-time subscription successful');
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error('❌ Real-time subscription failed');
+      }
+    });
 
   return () => {
+    console.log('Cleaning up real-time listener');
     supabase.removeChannel(messageListener);
   };
 }, [selectedConversation, currentUserId]);
+
+// Fallback: Poll for new messages every 5 seconds if real-time fails
+useEffect(() => {
+  if (!currentUserId || !selectedConversation) return;
+
+  const pollInterval = setInterval(async () => {
+    try {
+      const { data: newMessages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${selectedConversation}),and(sender_id.eq.${selectedConversation},receiver_id.eq.${currentUserId})`)
+        .gt('created_at', lastMessageCheck.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Polling error:', error);
+        return;
+      }
+
+      if (newMessages && newMessages.length > 0) {
+        console.log('Found new messages via polling:', newMessages);
+        setAllMessages(prev => {
+          const existingIds = new Set(prev.map(msg => msg.id));
+          const uniqueNewMessages = newMessages.filter(msg => !existingIds.has(msg.id));
+          return [...prev, ...uniqueNewMessages];
+        });
+        setLastMessageCheck(new Date());
+      }
+    } catch (error) {
+      console.error('Polling failed:', error);
+    }
+  }, 5000);
+
+  return () => clearInterval(pollInterval);
+}, [currentUserId, selectedConversation, lastMessageCheck]);
 
 // Typing indicator listener
 useEffect(() => {
@@ -412,6 +502,28 @@ const handleSendMessage = async (e) => {
     }
   };
 
+  // Test function to verify real-time is working
+  const testRealtime = async () => {
+    if (!currentUserId || !selectedConversation) {
+      console.log('Cannot test real-time: missing currentUserId or selectedConversation');
+      return;
+    }
+    
+    console.log('Testing real-time with test message...');
+    const { data, error } = await supabase.from('messages').insert({
+      sender_id: currentUserId,
+      receiver_id: selectedConversation,
+      content: `Test message at ${new Date().toLocaleTimeString()}`,
+      type: 'text',
+    }).select().single();
+    
+    if (error) {
+      console.error('Test message failed:', error);
+    } else {
+      console.log('Test message sent successfully:', data);
+    }
+  };
+
   // Typing indicator functionality
   const handleTyping = (e) => {
     if (!isTyping) {
@@ -503,6 +615,23 @@ const handleSendMessage = async (e) => {
           <div className="conversations-panel">
             <div className="conversations-header">
               <h3>Messages</h3>
+              {selectedConversation && (
+                <button 
+                  onClick={testRealtime}
+                  style={{
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    marginLeft: '8px'
+                  }}
+                >
+                  Test RT
+                </button>
+              )}
             </div>
             <div className="conversations-list">
               {conversations.map((conv) => (
