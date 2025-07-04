@@ -221,6 +221,7 @@ const WPetOwnerDB = () => {
 	};
 
 	const handleMessages = () => {
+		setSelectedProviderId(null); // Clear any previous selection
 		setShowMessagesModal(true);
 	};
 
@@ -263,7 +264,7 @@ const WPetOwnerDB = () => {
 	};
 
 const handleMessage = async (service) => {
-  const providerId = service.provider_user_id;
+  const providerId = service.provider_user_id; // Use profiles.user_id for messaging
    const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error('User not found');
@@ -756,7 +757,7 @@ const handleMessage = async (service) => {
 					onBookingSuccess={handleBookingSuccess}
 				/>
 			)}
-			{showMessagesModal && selectedProviderId && (
+			{showMessagesModal && (
   <MessagesModal
     onClose={() => setShowMessagesModal(false)}
     receiverId={selectedProviderId}
