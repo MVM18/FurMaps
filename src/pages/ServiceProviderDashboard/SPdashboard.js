@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabaseClient';
 import Toast from '../../components/Toast';
 import ServiceGallery from './SPgallery';
 import MessagesModal from './SPmessages';
+import SPAnalytics from './SPanalytics';
 
 
 const ProviderDashboard = () => {
@@ -454,7 +455,7 @@ const ProviderDashboard = () => {
     {activeTab === 'bookings' && <ServiceProviderBookings highlightedBookingId={highlightedBookingId} onMessageClick={handleMessageClick} onShowToast={(message) => { setToastMessage(message); setShowToast(true); }} />}
     {activeTab === 'reviews' && <CustomerReview/>}
     {activeTab === 'gallery' && <ServiceGallery/>}
-    {activeTab === 'analytics' && <p>Analytics content coming soon...</p>}
+    {activeTab === 'analytics' && <SPAnalytics/>}
   </div>
 
       </main>
