@@ -8,7 +8,8 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
     serviceEndDatetime: '',
     petType: '',
     petName: '',
-    specialInstructions: ''
+    specialInstructions: '',
+    modeOfPayment: 'Cash', // Default to Cash
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,6 +17,8 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   const [galleryImages, setGalleryImages] = useState([]);
   const [loadingProvider, setLoadingProvider] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [showGcashModal, setShowGcashModal] = useState(false);
+  const [lastBookingProvider, setLastBookingProvider] = useState(null);
 
   // Fetch provider details and gallery images
   useEffect(() => {
@@ -111,7 +114,8 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
           contact_number: profile.phone,
           address: profile.address,
           status: 'pending',
-          total_price: service.price
+          total_price: service.price,
+          mode_of_payment: bookingData.modeOfPayment,
         }])
         .select();
 
@@ -121,8 +125,16 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
         return;
       }
 
-      onBookingSuccess(booking[0]);
-      onClose();
+      // Show GCASH modal if payment is GCASH
+      if (bookingData.modeOfPayment === 'GCASH' && provider?.gcash_details) {
+        console.log('Should show GCASH modal', provider);
+        setLastBookingProvider(provider);
+        setShowGcashModal(true);
+        // DO NOT call onClose() here!
+      } else {
+        onBookingSuccess(booking[0]);
+        onClose();
+      }
     } catch (err) {
       console.error('Booking error:', err);
       setError('An unexpected error occurred. Please try again.');
@@ -158,224 +170,285 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   };
 
   return (
-    <div className="booking-modal-overlay">
-      <div className="booking-modal">
-        <div className="booking-modal-header">
-          <h3>Book Service</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
-        </div>
-
-        {/* Service Summary with Enhanced UI */}
-        <div className="service-summary">
-          <div className="service-header">
-            <div className="service-icon">
-              <img src={getServiceIcon(service.serviceType)} alt={service.serviceType} />
-            </div>
-            <div className="service-details">
-              <h4 className="service-name">{service.name}</h4>
-              <span className="service-type-badge">{service.serviceType}</span>
-            </div>
-            <div className="service-price">
-              <span className="price-amount">₱{service.price}</span>
-              <span className="price-label">/service</span>
-            </div>
-          </div>
-          
-          <div className="service-info-grid">
-            <div className="info-item">
-              <span className="info-label">Provider:</span>
-              <span className="info-value">{service.provider_name || 'Service Provider'}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Location:</span>
-              <span className="info-value">{service.location}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Contact:</span>
-              <span className="info-value">{service.contactNumber || 'N/A'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Provider Profile Section */}
-        {loadingProvider ? (
-          <div className="provider-section loading">
-            <div className="loading-spinner"></div>
-            <p>Loading provider information...</p>
-          </div>
-        ) : provider && (
-          <div className="provider-section">
-            <div className="provider-header">
-              <h4>About the Provider</h4>
-            </div>
-            <div className="provider-profile">
-              <div className="provider-avatar">
-                <img 
-                  src={provider.profile_picture || '/images/user.png'} 
-                  alt={`${provider.first_name} ${provider.last_name}`}
-                  onError={(e) => {
-                    e.target.src = '/images/user.png';
-                  }}
-                />
-              </div>
-              <div className="provider-info">
-                <h5>{provider.first_name} {provider.last_name}</h5>
-                <div className="provider-rating">
-                  <span className="stars">★★★★★</span>
-                  <span className="rating-text">4.9 (89 reviews)</span>
-                </div>
-                {provider.bio && (
-                  <p className="provider-bio">{provider.bio}</p>
+    isOpen && (
+      <div className="booking-modal-overlay">
+        <div className="booking-modal">
+          {showGcashModal && lastBookingProvider ? (
+            <div className="gcash-modal">
+              <h3>GCASH Payment Details</h3>
+              <p>Please use the following details to pay your provider via GCASH:</p>
+              <div className="gcash-details-box">
+                <div><strong>GCASH Details:</strong> {lastBookingProvider.gcash_details}</div>
+                {lastBookingProvider.gcash_qr_url && (
+                  <div style={{ marginTop: 8 }}>
+                    <img src={lastBookingProvider.gcash_qr_url} alt="GCASH QR Code" style={{ maxWidth: 180, maxHeight: 180, borderRadius: 8, border: '1px solid #eee' }} />
+                  </div>
                 )}
               </div>
+              <button className="confirm-btn" onClick={() => {
+                setShowGcashModal(false);
+                onBookingSuccess({ mode_of_payment: 'GCASH' });
+                onClose();
+              }}>
+                Done
+              </button>
             </div>
-          </div>
-        )}
+          ) : (
+            <>
+              <div className="booking-modal-header">
+                <h3>Book Service</h3>
+                <button className="close-btn" onClick={onClose}>×</button>
+              </div>
 
-        {/* Gallery Section */}
-        {galleryImages.length > 0 && (
-          <div className="gallery-section">
-            <div className="gallery-header">
-              <h4>Provider Gallery</h4>
-              <p>See their work and experience</p>
-            </div>
-            <div className="gallery-grid">
-              {galleryImages.slice(0, 4).map((image, index) => (
-                <div 
-                  key={image.id} 
-                  className="gallery-item"
-                  onClick={() => setSelectedImage(image)}
-                >
-                  <img 
-                    src={image.image_url} 
-                    alt={`Gallery ${index + 1}`}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                  {index === 3 && galleryImages.length > 4 && (
-                    <div className="gallery-overlay">
-                      <span>+{galleryImages.length - 4} more</span>
-                    </div>
-                  )}
+              {/* Service Summary with Enhanced UI */}
+              <div className="service-summary">
+                <div className="service-header">
+                  <div className="service-icon">
+                    <img src={getServiceIcon(service.serviceType)} alt={service.serviceType} />
+                  </div>
+                  <div className="service-details">
+                    <h4 className="service-name">{service.name}</h4>
+                    <span className="service-type-badge">{service.serviceType}</span>
+                  </div>
+                  <div className="service-price">
+                    <span className="price-amount">₱{service.price}</span>
+                    <span className="price-label">/service</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Image Modal */}
-        {selectedImage && (
-          <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
-            <div className="image-modal" onClick={(e) => e.stopPropagation()}>
-              <button className="image-close-btn" onClick={() => setSelectedImage(null)}>×</button>
-              <img src={selectedImage.image_url} alt="Gallery" />
-            </div>
-          </div>
-        )}
-
-        {/* Booking Form */}
-        <form onSubmit={handleSubmit} className="booking-form">
-          {error && <div className="error-message">{error}</div>}
-
-          <div className="form-section">
-            <h4>Service Details</h4>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="serviceStartDatetime">Service Start Date & Time *</label>
-                <input
-                  type="datetime-local"
-                  id="serviceStartDatetime"
-                  name="serviceStartDatetime"
-                  value={bookingData.serviceStartDatetime}
-                  onChange={handleInputChange}
-                  required
-                  min={getTomorrowDateTime()}
-                />
+                
+                <div className="service-info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Provider:</span>
+                    <span className="info-value">{service.provider_name || 'Service Provider'}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Location:</span>
+                    <span className="info-value">{service.location}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">Contact:</span>
+                    <span className="info-value">{service.contactNumber || 'N/A'}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="serviceEndDatetime">Service End Date & Time *</label>
-                <input
-                  type="datetime-local"
-                  id="serviceEndDatetime"
-                  name="serviceEndDatetime"
-                  value={bookingData.serviceEndDatetime}
-                  onChange={handleInputChange}
-                  required
-                  min={bookingData.serviceStartDatetime}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h4>Pet Information</h4>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="petType">Pet Type *</label>
-                <select
-                  id="petType"
-                  name="petType"
-                  value={bookingData.petType}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Select pet type</option>
-                  <option value="Dog">Dog</option>
-                  <option value="Cat">Cat</option>
-                  <option value="Bird">Bird</option>
-                  <option value="Fish">Fish</option>
-                  <option value="Rabbit">Rabbit</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="petName">Pet Name *</label>
-                <input
-                  type="text"
-                  id="petName"
-                  name="petName"
-                  value={bookingData.petName}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter your pet's name"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="specialInstructions">Special Instructions</label>
-              <textarea
-                id="specialInstructions"
-                name="specialInstructions"
-                value={bookingData.specialInstructions}
-                onChange={handleInputChange}
-                placeholder="Any special requirements, dietary needs, medical conditions, or specific instructions for your pet..."
-                rows="3"
-              />
-            </div>
-          </div>
-
-          <div className="booking-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="confirm-btn" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <span className="loading-spinner-small"></span>
-                  Booking...
-                </>
-              ) : (
-                'Confirm Booking'
+              {/* Provider Profile Section */}
+              {loadingProvider ? (
+                <div className="provider-section loading">
+                  <div className="loading-spinner"></div>
+                  <p>Loading provider information...</p>
+                </div>
+              ) : provider && (
+                <div className="provider-section">
+                  <div className="provider-header">
+                    <h4>About the Provider</h4>
+                  </div>
+                  <div className="provider-profile">
+                    <div className="provider-avatar">
+                      <img 
+                        src={provider.profile_picture || '/images/user.png'} 
+                        alt={`${provider.first_name} ${provider.last_name}`}
+                        onError={(e) => {
+                          e.target.src = '/images/user.png';
+                        }}
+                      />
+                    </div>
+                    <div className="provider-info">
+                      <h5>{provider.first_name} {provider.last_name}</h5>
+                      <div className="provider-rating">
+                        <span className="stars">★★★★★</span>
+                        <span className="rating-text">4.9 (89 reviews)</span>
+                      </div>
+                      {provider.bio && (
+                        <p className="provider-bio">{provider.bio}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
-            </button>
-          </div>
-        </form>
+
+              {/* Gallery Section */}
+              {galleryImages.length > 0 && (
+                <div className="gallery-section">
+                  <div className="gallery-header">
+                    <h4>Provider Gallery</h4>
+                    <p>See their work and experience</p>
+                  </div>
+                  <div className="gallery-grid">
+                    {galleryImages.slice(0, 4).map((image, index) => (
+                      <div 
+                        key={image.id} 
+                        className="gallery-item"
+                        onClick={() => setSelectedImage(image)}
+                      >
+                        <img 
+                          src={image.image_url} 
+                          alt={`Gallery ${index + 1}`}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                        {index === 3 && galleryImages.length > 4 && (
+                          <div className="gallery-overlay">
+                            <span>+{galleryImages.length - 4} more</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Image Modal */}
+              {selectedImage && (
+                <div className="image-modal-overlay" onClick={() => setSelectedImage(null)}>
+                  <div className="image-modal" onClick={(e) => e.stopPropagation()}>
+                    <button className="image-close-btn" onClick={() => setSelectedImage(null)}>×</button>
+                    <img src={selectedImage.image_url} alt="Gallery" />
+                  </div>
+                </div>
+              )}
+
+              {/* Booking Form */}
+              <form onSubmit={handleSubmit} className="booking-form">
+                {error && <div className="error-message">{error}</div>}
+
+                <div className="form-section">
+                  <h4>Service Details</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="serviceStartDatetime">Service Start Date & Time *</label>
+                      <input
+                        type="datetime-local"
+                        id="serviceStartDatetime"
+                        name="serviceStartDatetime"
+                        value={bookingData.serviceStartDatetime}
+                        onChange={handleInputChange}
+                        required
+                        min={getTomorrowDateTime()}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="serviceEndDatetime">Service End Date & Time *</label>
+                      <input
+                        type="datetime-local"
+                        id="serviceEndDatetime"
+                        name="serviceEndDatetime"
+                        value={bookingData.serviceEndDatetime}
+                        onChange={handleInputChange}
+                        required
+                        min={bookingData.serviceStartDatetime}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>Pet Information</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="petType">Pet Type *</label>
+                      <select
+                        id="petType"
+                        name="petType"
+                        value={bookingData.petType}
+                        onChange={handleInputChange}
+                        required
+                      >
+                        <option value="">Select pet type</option>
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Bird">Bird</option>
+                        <option value="Fish">Fish</option>
+                        <option value="Rabbit">Rabbit</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="petName">Pet Name *</label>
+                      <input
+                        type="text"
+                        id="petName"
+                        name="petName"
+                        value={bookingData.petName}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter your pet's name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="specialInstructions">Special Instructions</label>
+                    <textarea
+                      id="specialInstructions"
+                      name="specialInstructions"
+                      value={bookingData.specialInstructions}
+                      onChange={handleInputChange}
+                      placeholder="Any special requirements, dietary needs, medical conditions, or specific instructions for your pet..."
+                      rows="3"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4>Payment Method</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Mode of Payment *</label>
+                      <div className="payment-options">
+                        <label>
+                          <input
+                            type="radio"
+                            name="modeOfPayment"
+                            value="Cash"
+                            checked={bookingData.modeOfPayment === 'Cash'}
+                            onChange={handleInputChange}
+                            required
+                          />
+                          Cash
+                        </label>
+                        {provider?.gcash_details && (
+                          <label>
+                            <input
+                              type="radio"
+                              name="modeOfPayment"
+                              value="GCASH"
+                              checked={bookingData.modeOfPayment === 'GCASH'}
+                              onChange={handleInputChange}
+                              required
+                            />
+                            GCASH (Online)
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="booking-actions">
+                  <button type="button" className="cancel-btn" onClick={onClose}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="confirm-btn" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <span className="loading-spinner-small"></span>
+                        Booking...
+                      </>
+                    ) : (
+                      'Confirm Booking'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    )
   );
 };
 

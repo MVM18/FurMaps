@@ -362,9 +362,9 @@ const handleMessage = async (service) => {
 
 };
 	const handleBookingSuccess = (booking) => {
-		// Refresh bookings after successful booking
+		// Only refresh bookings or show a toast here. Do NOT close the modal.
 		fetchBookings();
-		alert('Booking created successfully! The service provider will contact you soon.');
+		// Optionally show a toast or alert, but do NOT call setShowBookingModal(false) or setSelectedService(null) here.
 	};
 
 	const handleSearch = (e) => {

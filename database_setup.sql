@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     contact_number VARCHAR(20) NOT NULL,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
     total_price DECIMAL(10,2) NOT NULL,
+    mode_of_payment VARCHAR(20) NOT NULL CHECK (mode_of_payment IN ('Cash', 'GCASH')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -68,3 +69,4 @@ COMMENT ON COLUMN bookings.service_id IS 'Reference to the service being booked'
 COMMENT ON COLUMN bookings.pet_owner_id IS 'Reference to the pet owner making the booking';
 COMMENT ON COLUMN bookings.service_provider_id IS 'Reference to the service provider';
 COMMENT ON COLUMN bookings.status IS 'Booking status: pending, confirmed, completed, or cancelled'; 
+COMMENT ON COLUMN bookings.mode_of_payment IS 'Payment method chosen by the pet owner: Cash or GCASH.'; 

@@ -12,11 +12,14 @@ const ProfileModal = ({ onClose }) => {
     address: '',
     experience: '',       // Not stored in DB
     certifications: '',   // Not stored in DB
-    bio: ''
+    bio: '',
+    gcashDetails: '',
+    gcashQrUrl: '',
   });
 
   const [profilePhoto, setProfilePhoto] = useState('https://via.placeholder.com/120x120/e5e7eb/6b7280?text=Profile');
   const fileInputRef = useRef(null);
+  const gcashQrInputRef = useRef(null);
 
   const [petSpecialties, setPetSpecialties] = useState({
     dogs: true,
@@ -50,6 +53,8 @@ const ProfileModal = ({ onClose }) => {
           experience: '',       // Blank
           certifications: '',   // Blank
           bio: data.bio || '',
+          gcashDetails: data.gcash_details || '',
+          gcashQrUrl: data.gcash_qr_url || '',
         });
 
         if (data.profile_picture) setProfilePhoto(data.profile_picture);
@@ -71,7 +76,9 @@ const ProfileModal = ({ onClose }) => {
         phone: profileData.phone,
         address: profileData.address,
         bio: profileData.bio,
-        profile_picture: profilePhoto
+        profile_picture: profilePhoto,
+        gcash_details: profileData.gcashDetails,
+        gcash_qr_url: profileData.gcashQrUrl,
         // experience and certifications are NOT included here
       })
       .eq('user_id', user.id);
@@ -117,6 +124,29 @@ const ProfileModal = ({ onClose }) => {
 
     if (publicUrlData?.publicUrl) {
       setProfilePhoto(publicUrlData.publicUrl);
+    }
+  };
+
+  const handleGcashQrChange = () => gcashQrInputRef.current?.click();
+  const handleGcashQrFileSelect = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) return console.error('User fetch error:', userError);
+    const fileExt = file.name.split('.').pop();
+    const filePath = `gcash-qr/${user.id}-${Date.now()}.${fileExt}`;
+    const { error: uploadError } = await supabase
+      .storage
+      .from('avatars')
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+    if (uploadError) return console.error('Upload error:', uploadError);
+    const { data: publicUrlData, error: urlError } = supabase
+      .storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+    if (urlError) return console.error('URL error:', urlError);
+    if (publicUrlData?.publicUrl) {
+      setProfileData(prev => ({ ...prev, gcashQrUrl: publicUrlData.publicUrl }));
     }
   };
 
@@ -271,6 +301,38 @@ const ProfileModal = ({ onClose }) => {
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   disabled={!isEditing}
                 />
+              </div>
+              <div className="info-item full-width">
+                <label>GCASH Details (optional)</label>
+                <input
+                  type="text"
+                  value={profileData.gcashDetails}
+                  onChange={e => handleInputChange('gcashDetails', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="GCASH number or account name"
+                />
+              </div>
+              <div className="info-item full-width">
+                <label>GCASH QR Code (optional)</label>
+                {profileData.gcashQrUrl && (
+                  <div style={{ marginBottom: 8 }}>
+                    <img src={profileData.gcashQrUrl} alt="GCASH QR Code" style={{ maxWidth: 160, maxHeight: 160, borderRadius: 8, border: '1px solid #eee' }} />
+                  </div>
+                )}
+                {isEditing && (
+                  <>
+                    <button className="change-photo-btn" type="button" onClick={handleGcashQrChange}>
+                      {profileData.gcashQrUrl ? 'Change QR Code' : 'Upload QR Code'}
+                    </button>
+                    <input
+                      type="file"
+                      ref={gcashQrInputRef}
+                      onChange={handleGcashQrFileSelect}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>

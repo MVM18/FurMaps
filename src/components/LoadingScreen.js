@@ -9,9 +9,7 @@ const LoadingScreen = () => {
           <img src="/Images/paw-logo.png" alt="FurMaps Logo" />
           <span className="logo-text">FurMaps</span>
         </div>
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-        </div>
+        {/* Spinner removed as requested */}
         <div className="loading-text">Loading...</div>
         <div className="loading-paws">
           <span className="paw">🐾</span>
