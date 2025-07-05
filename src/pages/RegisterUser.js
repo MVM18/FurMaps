@@ -130,6 +130,7 @@ if (userId) {
     certificate: formData.role === 'provider' ? formData.certificate?.name : null,
     valid_id: formData.role === 'provider' ? formData.valid_id?.name : null,
     proof_of_address: formData.role === 'provider' ? formData.proof_of_address?.name : null,
+    status: formData.role === 'provider' ? 'Pending' : 'Approved', // <-- Always "Pending" for providers
   };
 
   const { error: insertError } = await supabase.from('profiles').insert([profileData]);
