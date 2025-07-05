@@ -100,7 +100,7 @@ const WPetOwnerDB = () => {
 				.eq('pet_owner_id', user.id)
 				.order('created_at', { ascending: false });
 			if (error) return;
-			const notifs = (data || []).filter(b => b.status === 'accepted' || b.status === 'declined');
+			const notifs = (data || []).filter(b => b.status === 'confirmed' || b.status === 'cancelled');
 			setNotifList(notifs.map(b => ({
 				id: b.id,
 				created_at: b.created_at,
@@ -196,18 +196,54 @@ const WPetOwnerDB = () => {
 					services (
 						name,
 						service_type,
-						price
+						provider_id
 					)
 				`)
 				.eq('pet_owner_id', user.id)
 				.order('created_at', { ascending: false });
+
+			console.log('Bookings:', data, 'Error:', error);
 
 			if (error) {
 				console.error('Error fetching bookings:', error);
 				return;
 			}
 
-			setBookings(data || []);
+			// Format the bookings data to include provider name and service info
+			const formattedBookings = data?.map(booking => ({
+				...booking,
+				service_name: booking.services?.name || 'Service',
+				service_type: booking.services?.service_type || '',
+				service_provider_id: booking.services?.provider_id || booking.service_provider_id, // Use provider_id from service
+				provider_name: 'Provider' // We'll get this from the service provider's profile
+			})) || [];
+
+			// Get provider details for each booking
+			const providerIds = [...new Set(formattedBookings.map(booking => booking.service_provider_id).filter(Boolean))];
+			
+			if (providerIds.length > 0) {
+				const { data: providers, error: providersError } = await supabase
+					.from('profiles')
+					.select('user_id, first_name, last_name, phone, address')
+					.in('user_id', providerIds);
+
+				if (!providersError && providers) {
+					// Update bookings with provider details
+					const updatedBookings = formattedBookings.map(booking => {
+						const provider = providers.find(p => p.user_id === booking.service_provider_id);
+						return {
+							...booking,
+							provider_name: provider ? `${provider.first_name} ${provider.last_name}`.trim() : 'Provider',
+							contact_number: provider?.phone || booking.contact_number,
+							address: provider?.address || booking.address
+						};
+					});
+					setBookings(updatedBookings);
+					return;
+				}
+			}
+
+			setBookings(formattedBookings);
 		} catch (error) {
 			console.error('Error fetching bookings:', error);
 		}
@@ -344,11 +380,57 @@ const handleMessage = async (service) => {
 	};
 
 	const handleMarkAsRead = () => {
-		// Mark all current notifs as seen
-		const ids = notifList.map(n => n.id + n.status);
-		setLastSeenNotifs(ids);
-		setNotifRead(true);
+		const notifIds = notifList.map(n => n.id + n.status);
+		setLastSeenNotifs(notifIds);
 		setUnreadCount(0);
+		setNotifRead(true);
+	};
+
+	// Add cancel booking function
+	const handleCancelBooking = async (bookingId) => {
+		if (!window.confirm('Are you sure you want to cancel this booking?')) {
+			return;
+		}
+
+		try {
+			const { error } = await supabase
+				.from('bookings')
+				.update({ 
+					status: 'cancelled', 
+					updated_at: new Date().toISOString() 
+				})
+				.eq('id', bookingId);
+
+			if (error) {
+				console.error('Error cancelling booking:', error);
+				setToastMessage('Failed to cancel booking. Please try again.');
+				setShowToast(true);
+				return;
+			}
+
+			// Update local state
+			setBookings(prev => prev.map(booking => 
+				booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
+			));
+
+			setToastMessage('Booking cancelled successfully!');
+			setShowToast(true);
+		} catch (error) {
+			console.error('Error cancelling booking:', error);
+			setToastMessage('Failed to cancel booking. Please try again.');
+			setShowToast(true);
+		}
+	};
+
+	// Add message provider function for bookings
+	const handleMessageProvider = (booking) => {
+		if (booking.service_provider_id) {
+			setSelectedProviderId(booking.service_provider_id);
+			setShowMessagesModal(true);
+		} else {
+			setToastMessage('Provider information not available.');
+			setShowToast(true);
+		}
 	};
 
 	return (
@@ -414,11 +496,11 @@ const handleMessage = async (service) => {
 													display:'flex', alignItems:'center', gap:14, padding:'1rem 1.25rem', borderBottom: idx!==notifList.length-1?'1px solid #f3f4f6':'none', background:'#fff', transition:'background 0.2s', cursor:'pointer'
 												}}>
 												{/* Avatar/Icon */}
-												<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='accepted'?'#e0f7ef':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
-													{n.status === 'accepted' ? '✅' : '❌'}
+												<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='confirmed'?'#e0f7ef':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
+													{n.status === 'confirmed' ? '✅' : '❌'}
 												</div>
 												<div style={{flex:1, minWidth:0}}>
-													<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>{n.status === 'accepted' ? 'Booking Approved' : 'Booking Declined'}</div>
+													<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>{n.status === 'confirmed' ? 'Booking Confirmed' : 'Booking Cancelled'}</div>
 													<div style={{fontSize:'0.97rem', color:'#555', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{n.serviceName} {n.petName ? `for ${n.petName}` : ''}</div>
 												</div>
 												<div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4}}>
@@ -662,30 +744,140 @@ const handleMessage = async (service) => {
 							<h3>My Bookings</h3>
 							{bookings.length > 0 ? (
 								<div className={styles.bookingsList}>
-									{bookings.map((booking) => (
-										<div 
-											key={booking.id} 
-											className={styles.bookingItem}
-											data-booking-id={booking.id}
-											style={{
-												backgroundColor: highlightedBookingId === booking.id ? '#fef3c7' : '',
-												border: highlightedBookingId === booking.id ? '2px solid #f59e0b' : '',
-												borderRadius: highlightedBookingId === booking.id ? '8px' : '',
-												transition: 'all 0.3s ease'
-											}}
-										>
-											<div className={styles.bookingInfo}>
-												<h4>{booking.services?.name || 'Service'}</h4>
-												<p>Date: {new Date(booking.service_date).toLocaleDateString()}</p>
-												<p>Time: {booking.service_time}</p>
-												<p>Status: <span className={`status-${booking.status}`}>{booking.status}</span></p>
-												<p>Pet: {booking.pet_name} ({booking.pet_type})</p>
+									{bookings.map((booking) => {
+										let serviceType = booking.service_type || '';
+										let serviceIcon = '/images/dogies.png';
+										if (serviceType) {
+											switch (serviceType.toLowerCase()) {
+												case 'dog walking':
+													serviceIcon = '/images/dog-leash.png'; break;
+												case 'pet grooming':
+													serviceIcon = '/images/dog-cat.png'; break;
+												case 'pet sitting':
+													serviceIcon = '/images/dog-human.png'; break;
+												case 'veterinary':
+													serviceIcon = '/images/dog-background.png'; break;
+												default:
+													serviceIcon = '/images/dogies.png';
+											}
+										}
+										// Determine the actual status based on booking status and service end time
+										let actualStatus = booking.status;
+										let statusClass = `status-${actualStatus}`;
+										
+										// Check if service has ended based on service_end_datetime
+										const now = new Date();
+										const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+										
+										if (booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime) {
+											actualStatus = 'ended';
+											statusClass = 'status-ended';
+										} else if (booking.status === 'confirmed') {
+											actualStatus = 'ongoing';
+											statusClass = 'status-ongoing';
+										}
+										
+										let statusLabel = actualStatus;
+										if (statusLabel) statusLabel = statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1);
+										// Format dates/times
+										const startDate = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleDateString() : '-';
+										const startTime = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+										const endDate = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleDateString() : '-';
+										const endTime = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+										return (
+											<div
+												key={booking.id}
+												className={styles.bookingCard}
+												data-booking-id={booking.id}
+												style={{
+													...(highlightedBookingId === booking.id ? {
+														background: '#fef3c7',
+														boxShadow: '0 4px 16px rgba(251,191,36,0.10)',
+														border: '2px solid #f59e0b',
+													} : {})
+												}}
+											>
+												{/* Header Section */}
+												<div className={styles.bookingHeader}>
+													<div className={styles.serviceInfo}>
+														<div className={styles.serviceIcon}>
+															<img src={serviceIcon} alt={serviceType} />
+														</div>
+														<div className={styles.serviceDetails}>
+															<h3 className={styles.serviceName}>{booking.service_name || 'Service'}</h3>
+															{booking.service_type && (
+																<span className={styles.serviceType}>{booking.service_type}</span>
+															)}
+														</div>
+													</div>
+													<div className={styles.bookingStatus}>
+														<span className={`${styles.statusBadge} ${styles[statusClass]}`}>
+															{statusLabel}
+														</span>
+													</div>
+												</div>
+
+												{/* Content Section */}
+												<div className={styles.bookingContent}>
+													<div className={styles.bookingDetails}>
+														<div className={styles.detailRow}>
+															<span className={styles.detailLabel}>👤 Provider:</span>
+															<span className={styles.detailValue}>{booking.provider_name || 'Provider'}</span>
+														</div>
+														<div className={styles.detailRow}>
+															<span className={styles.detailLabel}>📞 Contact:</span>
+															<span className={styles.detailValue}>{booking.contact_number || 'Not provided'}</span>
+														</div>
+														<div className={styles.detailRow}>
+															<span className={styles.detailLabel}>📍 Location:</span>
+															<span className={styles.detailValue}>{booking.address || 'Not provided'}</span>
+														</div>
+														<div className={styles.detailRow}>
+															<span className={styles.detailLabel}>🐾 Pet:</span>
+															<span className={styles.detailValue}>{booking.pet_name} ({booking.pet_type})</span>
+														</div>
+														<div className={styles.detailRow}>
+															<span className={styles.detailLabel}>📅 Date:</span>
+															<span className={styles.detailValue}>
+																{startDate} {startTime} - {endTime}
+															</span>
+														</div>
+														{booking.special_instructions && (
+															<div className={styles.detailRow}>
+																<span className={styles.detailLabel}>📝 Notes:</span>
+																<span className={styles.detailValue}>{booking.special_instructions}</span>
+															</div>
+														)}
+													</div>
+													
+													<div className={styles.bookingPrice}>
+														<span className={styles.priceAmount}>₱{booking.total_price}</span>
+														<span className={styles.priceLabel}>Total</span>
+													</div>
+												</div>
+
+												{/* Actions Section */}
+												<div className={styles.bookingActions}>
+													<button
+														onClick={() => handleMessageProvider(booking)}
+														className={styles.messageProviderBtn}
+													>
+														<img src="/Icons/chat.svg" alt="Message" />
+														Message Provider
+													</button>
+													{actualStatus === 'pending' && (
+														<button
+															onClick={() => handleCancelBooking(booking.id)}
+															className={styles.cancelBookingBtn}
+														>
+															<img src="/Icons/decline.svg" alt="Cancel" />
+															Cancel Booking
+														</button>
+													)}
+												</div>
 											</div>
-											<div className={styles.bookingPrice}>
-												₱{booking.total_price}
-											</div>
-										</div>
-									))}
+										);
+									})}
 								</div>
 							) : (
 								<p>No active bookings found. Start by searching for pet services!</p>

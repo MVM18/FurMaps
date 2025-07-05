@@ -96,30 +96,30 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
   const handleAccept = async (bookingId) => {
     await supabase
     .from('bookings')
-    .update({ status: 'accepted', updated_at: new Date().toISOString() })
+    .update({ status: 'confirmed', updated_at: new Date().toISOString() })
     .eq('id', bookingId);
 
   setBookings(prev => prev.map(booking => 
-    booking.id === bookingId ? { ...booking, status: 'accepted' } : booking
+    booking.id === bookingId ? { ...booking, status: 'confirmed' } : booking
   ));
   };
 
   const handleDecline = async (bookingId) => {
   await supabase
     .from('bookings')
-    .update({ status: 'declined', updated_at: new Date().toISOString() })
+    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
     .eq('id', bookingId);
 
   setBookings(prev => prev.map(booking => 
-    booking.id === bookingId ? { ...booking, status: 'declined' } : booking
+    booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
   ));
 };
 
   const renderActionButtons = (booking) => {
-    if (booking.status === 'accepted') {
-      return <div className="status-accepted"><CheckIcon /> Accepted</div>;
-    } else if (booking.status === 'declined') {
-      return <div className="status-declined"><XIcon /> Declined</div>;
+    if (booking.status === 'confirmed') {
+      return <div className="status-accepted"><CheckIcon /> Confirmed</div>;
+    } else if (booking.status === 'cancelled') {
+      return <div className="status-declined"><XIcon /> Cancelled</div>;
     } else {
       return (
         <div className="action-buttons">
