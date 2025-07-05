@@ -79,9 +79,9 @@ const WPetOwnerDB = () => {
 	// Sample data for pet owner dashboard
 	const stats = [
 		{ title: "Total Bookings", value: bookings.length.toString(), icon: "bookings.svg", color: "#059669" },
-		{ title: "Favorite Providers", value: "8", icon: "star.svg", color: "#2563eb" },
-		{ title: "This Month", value: "₱2,450", icon: "pesos.svg", color: "#d97706" },
-		{ title: "Active Services", value: activeBookings.length.toString(), icon: "user.svg", color: "#16a34a" }
+		{ title: "Ongoing Bookings", value: "8", icon: "ongoing.svg", color: "#2563eb" },
+		{ title: "Total Spent", value: "₱2,450", icon: "pesos.svg", color: "#d97706" },
+		{ title: "Completed Bookings", value: activeBookings.length.toString(), icon: "done.svg", color: "#16a34a" }
 	];
 
 	// Fetch services from database
@@ -502,7 +502,7 @@ const handleMessage = async (service) => {
 			{/* Header */}
 			<header className={styles.dashboardHeader}>
 				<div className={styles.logoContainer}>
-					<img className={styles.logoIcon} src="/images/paw-logo.png" alt="Logo" />
+					<img className={styles.logoIcon} src="/images/gps.png" alt="Logo" />
 					<h1 className={styles.logoText}>FurMaps</h1>
 				</div>
 				
@@ -580,10 +580,6 @@ const handleMessage = async (service) => {
 						<img src="/Icons/chat.svg" alt="Messages" />
 						<span>Messages</span>
 					</button>
-					<button className={styles.navButton} onClick={handleMyBookings}>
-						<img src="/Icons/bookings.svg" alt="Bookings" />
-						<span>My Bookings</span>
-					</button>
 					<button className={styles.navButton} onClick={handleProfile}>
 						<img src="/Icons/simpleUser.svg" alt="Profile" />
 						<span>Profile</span>
@@ -630,12 +626,6 @@ const handleMessage = async (service) => {
 						My Bookings
 					</button>
 					<button 
-						className={`${styles.tabButton} ${activeTab === 'favorites' ? styles.active : ''}`}
-						onClick={() => setActiveTab('favorites')}
-					>
-						Favorites
-					</button>
-					<button 
 						className={`${styles.tabButton} ${activeTab === 'history' ? styles.active : ''}`}
 						onClick={() => setActiveTab('history')}
 					>
@@ -677,15 +667,7 @@ const handleMessage = async (service) => {
 									/>
 									<img src="/images/gps.png" alt="Location" />
 								</div>
-								<div className={styles.searchControls}>
-									<button className={styles.filterButton} onClick={handleFilters}>
-										<img src="/images/arrow.png" alt="Filter" />
-										<span>Filters</span>
-									</button>
-									<button className={styles.clearButton} onClick={handleClearFilters}>
-										Clear all filters
-									</button>
-								</div>
+								
 							</div>
 							{/* Search Results Header */}
 							<div className={styles.resultsHeader}>
@@ -693,10 +675,7 @@ const handleMessage = async (service) => {
 									<h3>{filteredServices.length} providers found</h3>
 								</div>
 								<div className={styles.viewControls}>
-									<div className={styles.sortDropdown}>
-										<span>Relevance</span>
-										<img src="/images/arrow.png" alt="Sort" />
-									</div>
+									
 									<div className={styles.viewToggle}>
 										<button 
 											className={styles.viewButton + (viewMode === 'list' ? ' ' + styles.activeView : '')}
@@ -801,8 +780,9 @@ const handleMessage = async (service) => {
 						</div>
 					)}
 					{activeTab === 'bookings' && (
+					
 						<div className={styles.bookingsSection}>
-							<h3>My Bookings</h3>
+							<h3 className = {styles.leftAlign}>My Bookings</h3>
 							{(() => {
 								// Filter out completed/ended bookings from active bookings
 								const activeBookings = bookings.filter(booking => {
