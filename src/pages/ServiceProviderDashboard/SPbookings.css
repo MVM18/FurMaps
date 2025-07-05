@@ -189,6 +189,18 @@
   border-color: #cbd5e0;
 }
 
+.message-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f7fafc;
+  color: #a0aec0;
+}
+
+.message-button.disabled:hover {
+  background-color: #f7fafc;
+  border-color: #e2e8f0;
+}
+
 .action-buttons {
   display: flex;
   gap: 8px;

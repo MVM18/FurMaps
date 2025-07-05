@@ -56,26 +56,33 @@
 }
 
 .add-photos-button {
-  border-radius: 6px;
-  background: linear-gradient(90deg, #10b981, #3b82f6);
-  height: 40px;
-  display: flex;
-  flex-direction: row;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
-  box-sizing: border-box;
   gap: 8px;
-  text-align: center;
-  font-size: 14px;
-  color: #fafafa;
+  background: linear-gradient(90deg, #10b981, #3b82f6);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 16px;
 }
 
-.add-photos-button:hover {
+.add-photos-button:hover:not(.uploading) {
   background: linear-gradient(90deg, #059669, #2563eb);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+
+.add-photos-button.uploading {
+  background: #6b7280;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.add-photos-button.uploading:hover {
+  background: #6b7280;
+  transform: none;
 }
 
 .add-photos-button span {

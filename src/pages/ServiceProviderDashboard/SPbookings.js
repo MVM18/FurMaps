@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './SPbookings.css';
 import { supabase } from '../../lib/supabaseClient';
 
-const ServiceProviderBookings = ({ highlightedBookingId }) => {
+const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick }) => {
   const [bookings, setBookings] = useState([
     /*{
       id: 1,
@@ -45,11 +45,7 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
     total_price,
     status,
     created_at,
-    profiles!fk_bookings_pet_owner (
-      first_name,
-      last_name,
-      address
-    ),
+    pet_owner_id,
     services (
       name,
       service_type
@@ -62,14 +58,41 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
       return;
     }
 
+    // Fetch profiles for all pet owners
+    const petOwnerIds = data.map(b => b.pet_owner_id).filter(id => id);
+    let profiles = {};
+    
+    if (petOwnerIds.length > 0) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, address')
+        .in('user_id', petOwnerIds);
+      
+      if (!profileError && profileData) {
+        profiles = profileData.reduce((acc, profile) => {
+          acc[profile.user_id] = profile;
+          return acc;
+        }, {});
+      }
+    }
+
     const formatted = data.map(b => {
+  // Format the datetime for display
   const startDate = new Date(b.service_start_datetime);
   const endDate = new Date(b.service_end_datetime);
+  
+  // Get profile data for this booking
+  const profile = profiles[b.pet_owner_id];
+  
+  // Format the date and time for display
+  const formattedDate = startDate.toLocaleDateString();
+  const formattedTime = `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
   return {
     id: b.id,
-    name: `${b.profiles?.first_name || ''} ${b.profiles?.last_name || ''}`,
-    initials: `${b.profiles?.first_name?.[0] || ''}${b.profiles?.last_name?.[0] || ''}`,
+    petOwnerId: b.pet_owner_id, // Add pet owner's user ID
+    name: `${profile?.first_name || ''} ${profile?.last_name || ''}`,
+    initials: `${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`,
     service: b.services?.name || "Unknown",
     serviceType: b.services?.service_type || "Unknown",
     pet: {
@@ -78,8 +101,9 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
       age: '', // If you want to calculate based on DOB, you can add logic later
       description: b.special_instructions
     },
-    date: `${startDate.toLocaleDateString()} ${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-    location: b.profiles?.address || 'No address provided',
+    date: formattedDate,
+    time: formattedTime,
+    location: profile?.address || 'No address provided',
     price: `₱${b.total_price?.toFixed(2)}`,
     specialRequests: b.special_instructions,
     status: b.status
@@ -114,6 +138,17 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
     booking.id === bookingId ? { ...booking, status: 'declined' } : booking
   ));
 };
+
+  const handleMessage = (petOwnerId, petOwnerName) => {
+    if (!petOwnerId) {
+      console.error('No pet owner ID available for messaging');
+      return;
+    }
+    
+    if (onMessageClick) {
+      onMessageClick(petOwnerId, petOwnerName);
+    }
+  };
 
   const renderActionButtons = (booking) => {
     if (booking.status === 'accepted') {
@@ -168,7 +203,7 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
             <div className="booking-details">
               <div className="detail-item">
                 <CalendarIcon />
-                {booking.date} {booking.time}
+                {booking.date} at {booking.time}
               </div>
               <div className="detail-item">
                 <LocationIcon />
@@ -190,7 +225,12 @@ const ServiceProviderBookings = ({ highlightedBookingId }) => {
             </div>
             
             <div className="booking-footer">
-              <button className="message-button">
+              <button 
+                className={`message-button ${!booking.petOwnerId ? 'disabled' : ''}`}
+                onClick={() => handleMessage(booking.petOwnerId, booking.name)}
+                disabled={!booking.petOwnerId}
+                title={!booking.petOwnerId ? 'Pet owner information not available' : 'Send message to pet owner'}
+              >
                 <MessageIcon /> Message
               </button>
               {renderActionButtons(booking)}

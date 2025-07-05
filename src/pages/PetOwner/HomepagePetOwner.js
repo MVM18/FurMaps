@@ -8,6 +8,7 @@ import ProviderProfile from './ProviderProfile';
 import Toast from '../../components/Toast';
 import MessagesModal from '../ServiceProviderDashboard/SPmessages';
 import ServiceMap from '../../components/ServiceMap';
+import ReviewModal from '../../components/ReviewModal';
 
 // Place timeAgo function here so it's defined before use
 function timeAgo(date) {
@@ -56,6 +57,9 @@ const WPetOwnerDB = () => {
 		localStorage.setItem('petOwnerLastSeenNotifs', JSON.stringify(ids));
 	}
 	const [showMessagesModal, setShowMessagesModal] = useState(false);
+	const [showReviewModal, setShowReviewModal] = useState(false);
+	const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
+	const [reviews, setReviews] = useState([]);
 
 	// Sample data for pet owner dashboard
 	const stats = [
@@ -69,6 +73,7 @@ const WPetOwnerDB = () => {
 	useEffect(() => {
 		fetchServices();
 		fetchBookings();
+		fetchReviews();
 	}, []);
 
 	// Filter services based on search query
@@ -214,6 +219,35 @@ const WPetOwnerDB = () => {
 		}
 	};
 
+	const fetchReviews = async () => {
+		try {
+			const { data: { user }, error: userError } = await supabase.auth.getUser();
+			if (userError || !user) return;
+
+			const { data, error } = await supabase
+				.from('reviews')
+				.select(`
+					*,
+					bookings (
+						services (
+							name
+						)
+					)
+				`)
+				.eq('pet_owner_id', user.id)
+				.order('created_at', { ascending: false });
+
+			if (error) {
+				console.error('Error fetching reviews:', error);
+				return;
+			}
+
+			setReviews(data || []);
+		} catch (error) {
+			console.error('Error fetching reviews:', error);
+		}
+	};
+
 	const handleLogout = () => {
 		localStorage.clear();
 		// If using supabase, you can also sign out here
@@ -350,6 +384,17 @@ const handleMessage = async (service) => {
 		setLastSeenNotifs(ids);
 		setNotifRead(true);
 		setUnreadCount(0);
+	};
+
+	const handleLeaveReview = (booking) => {
+		setSelectedBookingForReview(booking);
+		setShowReviewModal(true);
+	};
+
+	const handleReviewSubmitted = () => {
+		fetchReviews();
+		setToastMessage('Review submitted successfully!');
+		setShowToast(true);
 	};
 
 	return (
@@ -702,7 +747,54 @@ const handleMessage = async (service) => {
 					{activeTab === 'history' && (
 						<div className={styles.historySection}>
 							<h3>Booking History</h3>
-							<p>Your past bookings will appear here once you start using our services.</p>
+							{bookings.length > 0 ? (
+								<div className={styles.historyList}>
+									{bookings.map((booking) => {
+										// Check if this booking has been reviewed
+										const hasReview = reviews.some(review => review.booking_id === booking.id);
+										
+										return (
+											<div 
+												key={booking.id} 
+												className={styles.historyItem}
+												data-booking-id={booking.id}
+												style={{
+													backgroundColor: highlightedBookingId === booking.id ? '#fef3c7' : '',
+													border: highlightedBookingId === booking.id ? '2px solid #f59e0b' : '',
+													borderRadius: highlightedBookingId === booking.id ? '8px' : '',
+													transition: 'all 0.3s ease'
+												}}
+											>
+												<div className={styles.historyInfo}>
+													<h4>{booking.services?.name || 'Service'}</h4>
+													<p>Date: {new Date(booking.service_date).toLocaleDateString()}</p>
+													<p>Time: {booking.service_time}</p>
+													<p>Status: <span className={`status-${booking.status}`}>{booking.status}</span></p>
+													<p>Pet: {booking.pet_name} ({booking.pet_type})</p>
+													<p>Price: ₱{booking.total_price}</p>
+												</div>
+												<div className={styles.historyActions}>
+													{booking.status === 'completed' && !hasReview && (
+														<button 
+															className={styles.reviewButton}
+															onClick={() => handleLeaveReview(booking)}
+														>
+															Leave Review
+														</button>
+													)}
+													{booking.status === 'completed' && hasReview && (
+														<span className={styles.reviewedBadge}>
+															✓ Reviewed
+														</span>
+													)}
+												</div>
+											</div>
+										);
+									})}
+								</div>
+							) : (
+								<p>No booking history found. Start by searching for pet services!</p>
+							)}
 						</div>
 					)}
 				</div>
@@ -759,10 +851,21 @@ const handleMessage = async (service) => {
 				/>
 			)}
 			{showMessagesModal && (
-  <MessagesModal
-    onClose={() => setShowMessagesModal(false)}
-    receiverId={selectedProviderId}
-  />
+				<MessagesModal
+					onClose={() => setShowMessagesModal(false)}
+					receiverId={selectedProviderId}
+				/>
+			)}
+			{showReviewModal && selectedBookingForReview && (
+				<ReviewModal
+					booking={selectedBookingForReview}
+					isOpen={showReviewModal}
+					onClose={() => {
+						setShowReviewModal(false);
+						setSelectedBookingForReview(null);
+					}}
+					onReviewSubmitted={handleReviewSubmitted}
+				/>
 			)}
 		</div>
 	);

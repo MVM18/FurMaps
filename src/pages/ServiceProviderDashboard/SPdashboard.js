@@ -24,19 +24,23 @@ const ProviderDashboard = () => {
   const [showToast, setShowToast] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [providerId, setProviderId] = useState(null);
+  const [selectedReceiverId, setSelectedReceiverId] = useState(null);
+  const [selectedReceiverName, setSelectedReceiverName] = useState('');
+  const [stats, setStats] = useState([
+    { title: "Total Bookings", value: "0", icon: "bookings.svg", color: "#059669" },
+    { title: "Average Rating", value: "0.0", icon: "star.svg", color: "#2563eb" },
+    { title: "This Month", value: "₱0", icon: "pesos.svg", color: "#d97706" },
+    { title: "Active Clients", value: "0", icon: "user.svg", color: "#16a34a" }
+  ]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   
-  // Sample data
-  const stats = [
-    { title: "Total Bookings", value: "127", icon: "bookings.svg", color: "#059669" },
-    { title: "Average Rating", value: "4.9", icon: "star.svg", color: "#2563eb" },
-    { title: "This Month", value: "₱1,250", icon: "pesos.svg", color: "#d97706" },
-    { title: "Active Clients", value: "23", icon: "user.svg", color: "#16a34a" }
-  ];
-
   useEffect(() => {
   const getUserId = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) setProviderId(user.id);
+    if (user) {
+      setProviderId(user.id);
+      fetchStats(user.id);
+    }
   };
   getUserId();
 }, []);
@@ -98,6 +102,10 @@ const ProviderDashboard = () => {
     setShowNotifPanel(false);
     // Set the highlighted booking ID
     setHighlightedBookingId(bookingId);
+    // Refresh stats after handling notification
+    if (providerId) {
+      fetchStats(providerId);
+    }
     // Scroll to bookings section after a short delay to ensure tab content is rendered
     setTimeout(() => {
       const bookingsSection = document.querySelector('.bookings-container');
@@ -134,6 +142,15 @@ const ProviderDashboard = () => {
     setNotifRead(true);
     setUnreadCount(0);
   };
+
+  // Refresh stats when switching to bookings tab
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'bookings' && providerId) {
+      fetchStats(providerId);
+    }
+  };
+
   function timeAgo(date) {
     const now = new Date();
     const then = new Date(date);
@@ -143,6 +160,103 @@ const ProviderDashboard = () => {
     if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
     return then.toLocaleDateString();
   }
+
+  const handleMessageClick = (receiverId, receiverName) => {
+    setSelectedReceiverId(receiverId);
+    setSelectedReceiverName(receiverName);
+    setShowMessages(true);
+  };
+
+  const fetchStats = async (userId) => {
+    try {
+      setIsLoadingStats(true);
+      
+      // Fetch all bookings for this provider
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('id, status, total_price, created_at, pet_owner_id')
+        .eq('service_provider_id', userId);
+
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        return;
+      }
+
+      // Calculate statistics
+      const totalBookings = bookings.length;
+      
+      // Calculate this month's revenue (from accepted, confirmed, and completed bookings)
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const thisMonthBookings = bookings.filter(booking => {
+        const bookingDate = new Date(booking.created_at);
+        const isThisMonth = bookingDate >= firstDayOfMonth;
+        const isRevenueGenerating = ['accepted', 'confirmed', 'completed'].includes(booking.status);
+        return isThisMonth && isRevenueGenerating;
+      });
+      
+      const thisMonthRevenue = thisMonthBookings.reduce((sum, booking) => 
+        sum + (parseFloat(booking.total_price) || 0), 0
+      );
+
+      // Calculate unique active clients (pet owners with accepted, confirmed, or completed bookings)
+      const activeClientIds = new Set();
+      bookings.forEach(booking => {
+        if (['accepted', 'confirmed', 'completed'].includes(booking.status)) {
+          activeClientIds.add(booking.pet_owner_id);
+        }
+      });
+      const activeClients = activeClientIds.size;
+
+      // Calculate average rating from reviews
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('service_provider_id', userId);
+
+      let averageRating = "0.0";
+      if (!reviewsError && reviewsData && reviewsData.length > 0) {
+        const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+        averageRating = (totalRating / reviewsData.length).toFixed(1);
+      }
+
+      // Update stats with proper formatting
+      setStats([
+        { 
+          title: "Total Bookings", 
+          value: totalBookings.toString(), 
+          icon: "bookings.svg", 
+          color: "#059669" 
+        },
+        { 
+          title: "Average Rating", 
+          value: averageRating, 
+          icon: "star.svg", 
+          color: "#2563eb" 
+        },
+        { 
+          title: "This Month", 
+          value: thisMonthRevenue > 0 ? `₱${thisMonthRevenue.toFixed(2)}` : "₱0", 
+          icon: "pesos.svg", 
+          color: "#d97706" 
+        },
+        { 
+          title: "Active Clients", 
+          value: activeClients.toString(), 
+          icon: "user.svg", 
+          color: "#16a34a" 
+        }
+      ]);
+
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      // Show error toast
+      setToastMessage('Failed to load statistics. Please try again.');
+      setShowToast(true);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
 
   return (
     <div className="dashboard">
@@ -223,7 +337,11 @@ const ProviderDashboard = () => {
               </div>
             )}
           </div>      
-          <button className="nav-button" onClick={() => setShowMessages(true)}>
+          <button className="nav-button" onClick={() => {
+            setSelectedReceiverId(null);
+            setSelectedReceiverName('');
+            setShowMessages(true);
+          }}>
             <img src="Icons/chat.svg" alt="Messages" />
             <span>Messages</span>
           </button>
@@ -241,8 +359,36 @@ const ProviderDashboard = () => {
       {/* Main Content */}
       <main className="dashboard-content">
         <div className="dashboard-header-section">
-          <h2>Provider Dashboard</h2>
-          <p>Manage your services and bookings</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <h2>Provider Dashboard</h2>
+              <p>Manage your services and bookings</p>
+            </div>
+            <button 
+              onClick={() => providerId && fetchStats(providerId)}
+              disabled={isLoadingStats}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                background: 'linear-gradient(90deg, #10b981, #3b82f6)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                opacity: isLoadingStats ? 0.6 : 1,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+              </svg>
+              {isLoadingStats ? 'Refreshing...' : 'Refresh Stats'}
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -250,13 +396,21 @@ const ProviderDashboard = () => {
           {stats.map((stat, index) => (
             <div key={index} className="stat-card" style={{ borderColor: stat.color }}>
               <div className="stat-details">
-              <p className="stat-title">{stat.title}</p>
-              <div className="stat-value-container">
-               <h3 className="stat-value" style={{ color: stat.color }}>{stat.value}</h3>
-               <img src={`Icons/${stat.icon}`} alt={stat.title} className="stat-icon" />
-             </div>
-             </div>
-          </div>
+                <p className="stat-title">{stat.title}</p>
+                <div className="stat-value-container">
+                  {isLoadingStats ? (
+                    <div className="stat-loading">
+                      <div className="loading-spinner"></div>
+                    </div>
+                  ) : (
+                    <h3 className="stat-value" style={{ color: stat.color }}>
+                      {stat.title === "This Month" && stat.value === "₱0.00" ? "₱0" : stat.value}
+                    </h3>
+                  )}
+                  <img src={`Icons/${stat.icon}`} alt={stat.title} className="stat-icon" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -264,31 +418,31 @@ const ProviderDashboard = () => {
         <div className="dashboard-tabs">
           <button 
             className={`tab-button ${activeTab === 'services' ? 'active' : ''}`}
-            onClick={() => setActiveTab('services')}
+            onClick={() => handleTabChange('services')}
           >
             Service Offered
           </button>
           <button 
             className={`tab-button ${activeTab === 'bookings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('bookings')}
+            onClick={() => handleTabChange('bookings')}
           >
             Bookings
           </button>
           <button 
             className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reviews')}
+            onClick={() => handleTabChange('reviews')}
           >
             Reviews
           </button>
           <button 
             className={`tab-button ${activeTab === 'gallery' ? 'active' : ''}`}
-            onClick={() => setActiveTab('gallery')}
+            onClick={() => handleTabChange('gallery')}
           >
             Gallery
           </button>
           <button 
             className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
-            onClick={() => setActiveTab('analytics')}
+            onClick={() => handleTabChange('analytics')}
           >
             Analytics
           </button>
@@ -297,7 +451,7 @@ const ProviderDashboard = () => {
         {/* Dynamic Tab Content */}
   <div className="tab-content">
     {activeTab === 'services' && <ServiceOffered />}
-    {activeTab === 'bookings' && <ServiceProviderBookings highlightedBookingId={highlightedBookingId} />}
+    {activeTab === 'bookings' && <ServiceProviderBookings highlightedBookingId={highlightedBookingId} onMessageClick={handleMessageClick} />}
     {activeTab === 'reviews' && <CustomerReview/>}
     {activeTab === 'gallery' && <ServiceGallery/>}
     {activeTab === 'analytics' && <p>Analytics content coming soon...</p>}
@@ -308,8 +462,12 @@ const ProviderDashboard = () => {
       <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
       {showMessages && 
         <MessagesModal
-       onClose={() => setShowMessages(false)}
-      
+          onClose={() => {
+            setShowMessages(false);
+            setSelectedReceiverId(null);
+            setSelectedReceiverName('');
+          }}
+          receiverId={selectedReceiverId}
         />}
     </div>
   );
