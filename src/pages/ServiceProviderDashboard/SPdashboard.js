@@ -452,7 +452,7 @@ const ProviderDashboard = () => {
         {/* Dynamic Tab Content */}
   <div className="tab-content">
     {activeTab === 'services' && <ServiceOffered />}
-    {activeTab === 'bookings' && <ServiceProviderBookings highlightedBookingId={highlightedBookingId} onMessageClick={handleMessageClick} />}
+    {activeTab === 'bookings' && <ServiceProviderBookings highlightedBookingId={highlightedBookingId} onMessageClick={handleMessageClick} onShowToast={(message) => { setToastMessage(message); setShowToast(true); }} />}
     {activeTab === 'reviews' && <CustomerReview/>}
     {activeTab === 'gallery' && <ServiceGallery/>}
     {activeTab === 'analytics' && <SPAnalytics/>}

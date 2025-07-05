@@ -66,14 +66,16 @@ const WPetOwnerDB = () => {
 		const now = new Date();
 		const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
 		const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
-		return booking.status !== 'cancelled' && !isServiceCompleted;
+		const isCompletedByProvider = booking.status === 'completed';
+		return booking.status !== 'cancelled' && !isServiceCompleted && !isCompletedByProvider;
 	});
 
 	const completedBookings = bookings.filter(booking => {
 		const now = new Date();
 		const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
 		const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
-		return booking.status === 'cancelled' || isServiceCompleted;
+		const isCompletedByProvider = booking.status === 'completed';
+		return booking.status === 'cancelled' || isServiceCompleted || isCompletedByProvider;
 	});
 
 	// Sample data for pet owner dashboard
@@ -120,7 +122,7 @@ const WPetOwnerDB = () => {
 				.eq('pet_owner_id', user.id)
 				.order('created_at', { ascending: false });
 			if (error) return;
-			const notifs = (data || []).filter(b => b.status === 'confirmed' || b.status === 'cancelled');
+			const notifs = (data || []).filter(b => b.status === 'confirmed' || b.status === 'cancelled' || b.status === 'completed');
 			setNotifList(notifs.map(b => ({
 				id: b.id,
 				created_at: b.created_at,
@@ -298,6 +300,41 @@ const WPetOwnerDB = () => {
 			console.error('Error fetching reviews:', error);
 		}
 	};
+
+	// Real-time booking status monitoring
+	useEffect(() => {
+		let intervalId;
+		const checkBookingStatus = async () => {
+			// Check if any bookings have been completed
+			const currentBookings = bookings;
+			const now = new Date();
+			
+			let hasStatusChanges = false;
+			const updatedBookings = currentBookings.map(booking => {
+				const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+				const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+				
+				// If a booking has been completed by time, update its status
+				if (isServiceCompleted && booking.status === 'confirmed') {
+					hasStatusChanges = true;
+					return { ...booking, status: 'completed' };
+				}
+				return booking;
+			});
+			
+			if (hasStatusChanges) {
+				setBookings(updatedBookings);
+				setToastMessage('Some bookings have been completed and moved to history!');
+				setShowToast(true);
+			}
+		};
+		
+		// Check every minute for completed bookings
+		intervalId = setInterval(checkBookingStatus, 60000);
+		checkBookingStatus(); // Run immediately on mount
+		
+		return () => clearInterval(intervalId);
+	}, [bookings]);
 
 	const handleLogout = () => {
 		localStorage.clear();
@@ -557,11 +594,13 @@ const handleMessage = async (service) => {
 													display:'flex', alignItems:'center', gap:14, padding:'1rem 1.25rem', borderBottom: idx!==notifList.length-1?'1px solid #f3f4f6':'none', background:'#fff', transition:'background 0.2s', cursor:'pointer'
 												}}>
 												{/* Avatar/Icon */}
-												<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='confirmed'?'#e0f7ef':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
-													{n.status === 'confirmed' ? '✅' : '❌'}
+												<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='confirmed'?'#e0f7ef':n.status==='completed'?'#d1fae5':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
+													{n.status === 'confirmed' ? '✅' : n.status === 'completed' ? '🎉' : '❌'}
 												</div>
 												<div style={{flex:1, minWidth:0}}>
-													<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>{n.status === 'confirmed' ? 'Booking Confirmed' : 'Booking Cancelled'}</div>
+													<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>
+														{n.status === 'confirmed' ? 'Booking Confirmed' : n.status === 'completed' ? 'Service Completed' : 'Booking Cancelled'}
+													</div>
 													<div style={{fontSize:'0.97rem', color:'#555', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{n.serviceName} {n.petName ? `for ${n.petName}` : ''}</div>
 												</div>
 												<div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4}}>
@@ -789,9 +828,10 @@ const handleMessage = async (service) => {
 									const now = new Date();
 									const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
 									const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+									const isCompletedByProvider = booking.status === 'completed';
 									
-									// Only show bookings that are not completed/ended and not cancelled
-									return booking.status !== 'cancelled' && !isServiceCompleted;
+									// Only show bookings that are not completed/ended, not cancelled, and not marked as completed by provider
+									return booking.status !== 'cancelled' && !isServiceCompleted && !isCompletedByProvider;
 								});
 								
 								return activeBookings.length > 0 ? (
@@ -955,9 +995,10 @@ const handleMessage = async (service) => {
 									const now = new Date();
 									const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
 									const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+									const isCompletedByProvider = booking.status === 'completed';
 									
-									// Show cancelled bookings and completed/ended bookings
-									return booking.status === 'cancelled' || isServiceCompleted;
+									// Show cancelled bookings, time-based completed bookings, and provider-marked completed bookings
+									return booking.status === 'cancelled' || isServiceCompleted || isCompletedByProvider;
 								});
 								
 								return historyBookings.length > 0 ? (
@@ -970,7 +1011,9 @@ const handleMessage = async (service) => {
 										const now = new Date();
 										const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
 										const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
-										const canReview = isServiceCompleted && !hasReview;
+										const isCompletedByProvider = booking.status === 'completed';
+										const isCompleted = isServiceCompleted || isCompletedByProvider;
+										const canReview = isCompleted && !hasReview;
 										
 										// Get service icon based on service type
 										let serviceType = booking.service_type || '';
@@ -1044,8 +1087,8 @@ const handleMessage = async (service) => {
 													</div>
 													<div className={styles.detailRow}>
 														<span className={styles.detailLabel}>📊 Status:</span>
-														<span className={`${styles.statusBadge} ${styles[`status-${booking.status}`]}`}>
-															{booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+														<span className={`${styles.statusBadge} ${styles[`status-${isCompleted ? 'completed' : booking.status}`]}`}>
+															{isCompleted ? 'Completed' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
 														</span>
 													</div>
 												</div>
@@ -1078,7 +1121,7 @@ const handleMessage = async (service) => {
 															</div>
 														</div>
 													)}
-													{!canReview && !hasReview && isServiceCompleted && (
+													{!canReview && !hasReview && isCompleted && (
 														<div className={styles.reviewPrompt}>
 															<div className={styles.reviewPromptContent}>
 																<span className={styles.reviewIcon}>⏰</span>
