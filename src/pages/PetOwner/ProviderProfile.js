@@ -10,35 +10,47 @@ const ProviderProfile = ({ userId }) => {
 
   useEffect(() => {
     if (!userId) return;
-    const fetchProvider = async () => {
+    
+    const fetchProviderAndGallery = async () => {
       setLoading(true);
       setError(null);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-      if (error) {
-        setError('Provider not found.');
-        setProvider(null);
-      } else {
-        setProvider(data);
-      }
-      setLoading(false);
-    };
-    fetchProvider();
-    setGalleryImages([]); // No placeholder images, only real images should be set here
-  }, [userId]);
+      
+      try {
+        // Fetch provider details
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (error) {
+          setError('Provider not found.');
+          setProvider(null);
+        } else {
+          setProvider(data);
+        }
 
-  const fetchGalleryImages = async () => {
-    // Placeholder gallery logic; replace with real fetch if available
-    setGalleryImages([
-      '/images/dog-human.png',
-      '/images/dog-cat.png',
-      '/images/dog-leash.png',
-      '/images/dog-background.png',
-    ]);
-  };
+        // Fetch gallery images
+        const { data: galleryData, error: galleryError } = await supabase
+          .from('gallery_images')
+          .select('*')
+          .eq('provider_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(8);
+
+        if (!galleryError && galleryData) {
+          setGalleryImages(galleryData);
+        }
+      } catch (error) {
+        console.error('Error fetching provider data:', error);
+        setError('Failed to load provider information.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProviderAndGallery();
+  }, [userId]);
 
   if (!userId) return null;
   if (loading) return <div style={{ padding: 32 }}>Loading provider profile...</div>;
@@ -49,9 +61,12 @@ const ProviderProfile = ({ userId }) => {
     <div className={styles['provider-profile-card']}>
       <div className={styles['profile-info-row']}>
         <img
-          src={provider.profile_picture || 'https://via.placeholder.com/120x120/e5e7eb/6b7280?text=Profile'}
+          src={provider.profile_picture || '/images/user.png'}
           alt="Profile"
           className={styles['profile-photo']}
+          onError={(e) => {
+            e.target.src = '/images/user.png';
+          }}
         />
         <div className={styles['profile-details']}>
           <h2 className={styles['profile-name']}>
@@ -87,9 +102,15 @@ const ProviderProfile = ({ userId }) => {
         </div>
         {galleryImages.length > 0 ? (
           <div className={styles['gallery-grid']}>
-            {galleryImages.map((image, idx) => (
-              <div key={idx} className={styles['gallery-item']}>
-                <img src={image} alt={`Gallery ${idx + 1}`} />
+            {galleryImages.map((image) => (
+              <div key={image.id} className={styles['gallery-item']}>
+                <img 
+                  src={image.image_url} 
+                  alt={`Gallery ${image.file_name}`}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
               </div>
             ))}
           </div>

@@ -61,12 +61,27 @@ const WPetOwnerDB = () => {
 	const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
 	const [reviews, setReviews] = useState([]);
 
+	// Calculate stats based on booking status and completion
+	const activeBookings = bookings.filter(booking => {
+		const now = new Date();
+		const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+		const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+		return booking.status !== 'cancelled' && !isServiceCompleted;
+	});
+
+	const completedBookings = bookings.filter(booking => {
+		const now = new Date();
+		const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+		const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+		return booking.status === 'cancelled' || isServiceCompleted;
+	});
+
 	// Sample data for pet owner dashboard
 	const stats = [
 		{ title: "Total Bookings", value: bookings.length.toString(), icon: "bookings.svg", color: "#059669" },
 		{ title: "Favorite Providers", value: "8", icon: "star.svg", color: "#2563eb" },
 		{ title: "This Month", value: "₱2,450", icon: "pesos.svg", color: "#d97706" },
-		{ title: "Active Services", value: bookings.filter(b => b.status === 'confirmed').length.toString(), icon: "user.svg", color: "#16a34a" }
+		{ title: "Active Services", value: activeBookings.length.toString(), icon: "user.svg", color: "#16a34a" }
 	];
 
 	// Fetch services from database
@@ -788,9 +803,20 @@ const handleMessage = async (service) => {
 					{activeTab === 'bookings' && (
 						<div className={styles.bookingsSection}>
 							<h3>My Bookings</h3>
-							{bookings.length > 0 ? (
-								<div className={styles.bookingsList}>
-									{bookings.map((booking) => {
+							{(() => {
+								// Filter out completed/ended bookings from active bookings
+								const activeBookings = bookings.filter(booking => {
+									const now = new Date();
+									const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+									const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+									
+									// Only show bookings that are not completed/ended and not cancelled
+									return booking.status !== 'cancelled' && !isServiceCompleted;
+								});
+								
+								return activeBookings.length > 0 ? (
+									<div className={styles.bookingsList}>
+										{activeBookings.map((booking) => {
 										let serviceType = booking.service_type || '';
 										let serviceIcon = '/images/dogies.png';
 										if (serviceType) {
@@ -927,7 +953,8 @@ const handleMessage = async (service) => {
 								</div>
 							) : (
 								<p>No active bookings found. Start by searching for pet services!</p>
-							)}
+							);
+							})()}
 						</div>
 					)}
 					{activeTab === 'favorites' && (
@@ -938,12 +965,56 @@ const handleMessage = async (service) => {
 					)}
 					{activeTab === 'history' && (
 						<div className={styles.historySection}>
-							<h3>Booking History</h3>
-							{bookings.length > 0 ? (
-								<div className={styles.historyList}>
-									{bookings.map((booking) => {
+							<div className={styles.historyHeader}>
+								<h3>Booking History</h3>
+								<p>View your past bookings and leave reviews for completed services</p>
+							</div>
+							{(() => {
+								// Filter to show only completed/ended bookings and cancelled bookings in history
+								const historyBookings = bookings.filter(booking => {
+									const now = new Date();
+									const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+									const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+									
+									// Show cancelled bookings and completed/ended bookings
+									return booking.status === 'cancelled' || isServiceCompleted;
+								});
+								
+								return historyBookings.length > 0 ? (
+									<div className={styles.historyList}>
+										{historyBookings.map((booking) => {
 										// Check if this booking has been reviewed
 										const hasReview = reviews.some(review => review.booking_id === booking.id);
+										
+										// Determine if service is completed based on status and end time
+										const now = new Date();
+										const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
+										const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
+										const canReview = isServiceCompleted && !hasReview;
+										
+										// Get service icon based on service type
+										let serviceType = booking.service_type || '';
+										let serviceIcon = '/images/dogies.png';
+										if (serviceType) {
+											switch (serviceType.toLowerCase()) {
+												case 'dog walking':
+													serviceIcon = '/images/dog-leash.png'; break;
+												case 'pet grooming':
+													serviceIcon = '/images/dog-cat.png'; break;
+												case 'pet sitting':
+													serviceIcon = '/images/dog-human.png'; break;
+												case 'veterinary':
+													serviceIcon = '/images/dog-background.png'; break;
+												default:
+													serviceIcon = '/images/dogies.png';
+											}
+										}
+										
+										// Format dates and times
+										const startDate = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleDateString() : '-';
+										const startTime = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+										const endDate = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleDateString() : '-';
+										const endTime = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 										
 										return (
 											<div 
@@ -957,27 +1028,86 @@ const handleMessage = async (service) => {
 													transition: 'all 0.3s ease'
 												}}
 											>
-												<div className={styles.historyInfo}>
-													<h4>{booking.services?.name || 'Service'}</h4>
-													<p>Date: {new Date(booking.service_date).toLocaleDateString()}</p>
-													<p>Time: {booking.service_time}</p>
-													<p>Status: <span className={`status-${booking.status}`}>{booking.status}</span></p>
-													<p>Pet: {booking.pet_name} ({booking.pet_type})</p>
-													<p>Price: ₱{booking.total_price}</p>
+												{/* Service Icon and Basic Info */}
+												<div className={styles.historyServiceInfo}>
+													<div className={styles.serviceIconContainer}>
+														<img src={serviceIcon} alt={serviceType} className={styles.serviceIcon} />
+													</div>
+													<div className={styles.serviceDetails}>
+														<h4 className={styles.serviceName}>{booking.service_name || 'Service'}</h4>
+														{booking.service_type && (
+															<span className={styles.serviceType}>{booking.service_type}</span>
+														)}
+														<div className={styles.providerInfo}>
+															<span className={styles.providerName}>👤 {booking.provider_name || 'Provider'}</span>
+														</div>
+													</div>
 												</div>
-												<div className={styles.historyActions}>
-													{booking.status === 'completed' && !hasReview && (
-														<button 
-															className={styles.reviewButton}
-															onClick={() => handleLeaveReview(booking)}
-														>
-															Leave Review
-														</button>
-													)}
-													{booking.status === 'completed' && hasReview && (
-														<span className={styles.reviewedBadge}>
-															✓ Reviewed
+												
+												{/* Booking Details */}
+												<div className={styles.historyDetails}>
+													<div className={styles.detailRow}>
+														<span className={styles.detailLabel}>🐾 Pet:</span>
+														<span className={styles.detailValue}>{booking.pet_name} ({booking.pet_type})</span>
+													</div>
+													<div className={styles.detailRow}>
+														<span className={styles.detailLabel}>📅 Date:</span>
+														<span className={styles.detailValue}>{startDate}</span>
+													</div>
+													<div className={styles.detailRow}>
+														<span className={styles.detailLabel}>⏰ Time:</span>
+														<span className={styles.detailValue}>{startTime} - {endTime}</span>
+													</div>
+													<div className={styles.detailRow}>
+														<span className={styles.detailLabel}>💰 Price:</span>
+														<span className={styles.detailValue}>₱{booking.total_price}</span>
+													</div>
+													<div className={styles.detailRow}>
+														<span className={styles.detailLabel}>📊 Status:</span>
+														<span className={`${styles.statusBadge} ${styles[`status-${booking.status}`]}`}>
+															{booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
 														</span>
+													</div>
+												</div>
+												
+												{/* Review Section */}
+												<div className={styles.historyReviewSection}>
+													{canReview && (
+														<div className={styles.reviewPrompt}>
+															<div className={styles.reviewPromptContent}>
+																<span className={styles.reviewIcon}>⭐</span>
+																<div className={styles.reviewText}>
+																	<h5>How was your experience?</h5>
+																	<p>Share your feedback to help other pet owners</p>
+																</div>
+															</div>
+															<button 
+																className={styles.reviewButton}
+																onClick={() => handleLeaveReview(booking)}
+															>
+																Leave Review
+															</button>
+														</div>
+													)}
+													{hasReview && (
+														<div className={styles.reviewedStatus}>
+															<span className={styles.reviewedIcon}>✅</span>
+															<div className={styles.reviewedText}>
+																<span className={styles.reviewedBadge}>Review Submitted</span>
+																<p>Thank you for your feedback!</p>
+															</div>
+														</div>
+													)}
+													{!canReview && !hasReview && isServiceCompleted && (
+														<div className={styles.reviewPrompt}>
+															<div className={styles.reviewPromptContent}>
+																<span className={styles.reviewIcon}>⏰</span>
+																<div className={styles.reviewText}>
+																	<h5>Service Completed</h5>
+																	<p>Your service has been completed</p>
+																</div>
+															</div>
+														</div>
 													)}
 												</div>
 											</div>
@@ -985,8 +1115,21 @@ const handleMessage = async (service) => {
 									})}
 								</div>
 							) : (
-								<p>No booking history found. Start by searching for pet services!</p>
-							)}
+								<div className={styles.emptyHistory}>
+									<div className={styles.emptyHistoryContent}>
+										<img src="/images/dog-hug.png" alt="No History" className={styles.emptyHistoryImage} />
+										<h4>No Booking History Yet</h4>
+										<p>Start by booking your first pet service to see your history here!</p>
+										<button 
+											className={styles.bookFirstServiceBtn}
+											onClick={() => setActiveTab('search')}
+										>
+											Book Your First Service
+										</button>
+									</div>
+								</div>
+							);
+							})()}
 						</div>
 					)}
 				</div>
