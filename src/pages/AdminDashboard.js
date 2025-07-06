@@ -29,6 +29,14 @@ const AdminDashboard = () => {
   const [providerSortOpen, setProviderSortOpen] = useState(false);
   const [userSort, setUserSort] = useState('A-Z');
   const [userSortOpen, setUserSortOpen] = useState(false);
+
+  // Notification state
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+
+  // Chart tooltip state
+  const [tooltip, setTooltip] = useState({ show: false, content: '', x: 0, y: 0 });
   const [stats, setStats] = useState([
     { label: 'Total Users', value: '0', color: 'green', icon: 'total-users.svg' },
     { label: 'Active Providers', value: '0', color: 'blue', icon: 'active-providers.svg' },
@@ -36,86 +44,532 @@ const AdminDashboard = () => {
     { label: 'Suspended', value: '0', color: 'red', icon: 'suspended_acc.svg' },
   ]);
 
+  // Analytics state
+  const [analyticsStats, setAnalyticsStats] = useState([]);
+  const [topProviders, setTopProviders] = useState([]);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState({
+    bookings: [],
+    revenue: [],
+    serviceDistribution: [],
+    platformGrowth: []
+  });
+
   // Fetch profiles from Supabase on mount
   const fetchProfiles = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*');
-    if (error) {
-      console.error('Error fetching profiles:', error);
-      return;
-    }
-    // Map data to expected format
-    const mappedUsers = data.map(profile => {
-      const firstName = profile.first_name || '';
-      const lastName = profile.last_name || '';
-      const name = `${firstName} ${lastName}`.trim() || 'Unknown User';
+    try {
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
       
-      return {
-        user_id: profile.user_id,
-        name: name,
-        email: profile.email || profile.user_id || 'No email',
-        role: profile.role || 'owner',
-        status: profile.status || 'Active',
-        joined: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
-        bookings: 0,
-        initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U',
-        services: profile.services_offered || '',
-        location: profile.address || '',
-        submitted: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
-        documents: [
-          ...(profile.certificate ? [{ 
-            type: 'Certificate', 
-            filename: profile.certificate.split('/').pop() || 'certificate.pdf', 
-            url: profile.certificate,
-            color: 'blue', 
-            icon: 'certificate.svg' 
-          }] : []),
-          ...(profile.valid_id ? [{ 
-            type: 'Valid ID', 
-            filename: profile.valid_id.split('/').pop() || 'valid-id.pdf', 
-            url: profile.valid_id,
-            color: 'green', 
-            icon: 'id-card.svg' 
-          }] : []),
-          ...(profile.proof_of_address ? [{ 
-            type: 'Proof of Address', 
-            filename: profile.proof_of_address.split('/').pop() || 'proof-of-address.pdf', 
-            url: profile.proof_of_address,
-            color: 'yellow', 
-            icon: 'address.svg' 
-          }] : []),
-        ],
-      };
-    });
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
 
-    setUsersList(mappedUsers.filter(profile => profile.role === 'owner' || profile.role === 'provider'));
-    setProvidersList(mappedUsers.filter(profile => profile.role === 'provider'));
-    recalculateStats(mappedUsers);
+      // Fetch booking counts for all users (only completed bookings)
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('pet_owner_id, service_provider_id')
+        .eq('status', 'completed');
+
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        return;
+      }
+
+      // Create a map of user_id to booking count
+      const bookingCounts = {};
+      
+      // Count bookings for pet owners (as customers)
+      bookingsData.forEach(booking => {
+        if (booking.pet_owner_id) {
+          bookingCounts[booking.pet_owner_id] = (bookingCounts[booking.pet_owner_id] || 0) + 1;
+        }
+      });
+
+      // Count bookings for service providers (as providers)
+      bookingsData.forEach(booking => {
+        if (booking.service_provider_id) {
+          bookingCounts[booking.service_provider_id] = (bookingCounts[booking.service_provider_id] || 0) + 1;
+        }
+      });
+
+      console.log('Completed booking counts:', bookingCounts);
+
+      // Map data to expected format
+      const mappedUsers = profilesData.map(profile => {
+        const firstName = profile.first_name || '';
+        const lastName = profile.last_name || '';
+        const name = `${firstName} ${lastName}`.trim() || 'Unknown User';
+        
+        return {
+          user_id: profile.user_id,
+          name: name,
+          email: profile.email || profile.user_id || 'No email',
+          role: profile.role || 'owner',
+          status: profile.status || 'Active',
+          joined: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
+          bookings: bookingCounts[profile.user_id] || 0,
+          initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U',
+          services: profile.services_offered || '',
+          location: profile.address || '',
+          submitted: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
+          documents: [
+            ...(profile.certificate ? [{ 
+              type: 'Certificate', 
+              filename: profile.certificate.split('/').pop() || 'certificate.pdf', 
+              url: profile.certificate,
+              color: 'blue', 
+              icon: 'certificate.svg' 
+            }] : []),
+            ...(profile.valid_id ? [{ 
+              type: 'Valid ID', 
+              filename: profile.valid_id.split('/').pop() || 'valid-id.pdf', 
+              url: profile.valid_id,
+              color: 'green', 
+              icon: 'id-card.svg' 
+            }] : []),
+            ...(profile.proof_of_address ? [{ 
+              type: 'Proof of Address', 
+              filename: profile.proof_of_address.split('/').pop() || 'proof-of-address.pdf', 
+              url: profile.proof_of_address,
+              color: 'yellow', 
+              icon: 'address.svg' 
+            }] : []),
+          ],
+        };
+      });
+
+      console.log('Fetched profiles:', profilesData);
+      console.log('Mapped users with booking counts:', mappedUsers);
+      
+      setUsersList(mappedUsers.filter(profile => profile.role === 'owner' || profile.role === 'provider'));
+      setProvidersList(mappedUsers.filter(profile => profile.role === 'provider'));
+      recalculateStats(mappedUsers);
+    } catch (error) {
+      console.error('Error in fetchProfiles:', error);
+    }
   };
 
   useEffect(() => {
     fetchProfiles();
+    const subscription = setupRealtimeSubscriptions();
+    handleNotificationPermission();
+    
+    // Cleanup subscription on unmount
+    return () => {
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
+    };
   }, []);
+
+  // Setup real-time subscriptions for notifications
+  const setupRealtimeSubscriptions = () => {
+    // Subscribe to new provider registrations
+    const profilesSubscription = supabase
+      .channel('profiles_changes')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'profiles',
+          filter: 'role=eq.provider'
+        }, 
+        (payload) => {
+          console.log('New provider registered:', payload.new);
+          handleNewProviderNotification(payload.new);
+        }
+      )
+      .on('postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: 'role=eq.provider'
+        },
+        (payload) => {
+          console.log('Provider status updated:', payload.new);
+          handleProviderStatusChange(payload.old, payload.new);
+        }
+      )
+      .subscribe();
+
+    return profilesSubscription;
+  };
+
+  // Handle new provider notification
+  const handleNewProviderNotification = (newProvider) => {
+    const firstName = newProvider.first_name || '';
+    const lastName = newProvider.last_name || '';
+    const providerName = `${firstName} ${lastName}`.trim() || 'Unknown Provider';
+    
+    const newNotification = {
+      id: Date.now(),
+      type: 'new_provider',
+      title: 'New Provider Registration',
+      message: `${providerName} has registered as a service provider and is pending approval.`,
+      timestamp: new Date().toISOString(),
+      read: false,
+      providerId: newProvider.user_id
+    };
+
+    setNotifications(prev => [newNotification, ...prev]);
+    setUnreadCount(prev => prev + 1);
+    
+    // Show browser notification if permission granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('New Provider Registration', {
+        body: `${providerName} has registered and is pending approval.`,
+        icon: '/Images/paw-logo.png'
+      });
+    }
+  };
+
+  // Handle provider status change notification
+  const handleProviderStatusChange = (oldProvider, newProvider) => {
+    const firstName = newProvider.first_name || '';
+    const lastName = newProvider.last_name || '';
+    const providerName = `${firstName} ${lastName}`.trim() || 'Unknown Provider';
+    
+    let notificationTitle = '';
+    let notificationMessage = '';
+    
+    if (oldProvider.status === 'Pending' && newProvider.status === 'Approved') {
+      notificationTitle = 'Provider Approved';
+      notificationMessage = `${providerName} has been approved and is now active.`;
+    } else if (oldProvider.status === 'Pending' && newProvider.status === 'Rejected') {
+      notificationTitle = 'Provider Rejected';
+      notificationMessage = `${providerName} has been rejected.`;
+    } else if (newProvider.status === 'Suspended') {
+      notificationTitle = 'Provider Suspended';
+      notificationMessage = `${providerName} has been suspended.`;
+    } else if (oldProvider.status === 'Suspended' && newProvider.status === 'Active') {
+      notificationTitle = 'Provider Reactivated';
+      notificationMessage = `${providerName} has been reactivated.`;
+    }
+
+    if (notificationTitle) {
+      const newNotification = {
+        id: Date.now(),
+        type: 'status_change',
+        title: notificationTitle,
+        message: notificationMessage,
+        timestamp: new Date().toISOString(),
+        read: false,
+        providerId: newProvider.user_id
+      };
+
+      setNotifications(prev => [newNotification, ...prev]);
+      setUnreadCount(prev => prev + 1);
+      
+      // Show browser notification if permission granted
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(notificationTitle, {
+          body: notificationMessage,
+          icon: '/Images/paw-logo.png'
+        });
+      }
+    }
+  };
+
+  // Fetch analytics data when period changes
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [analyticsPeriod]);
+
+  // Function to fetch analytics data from database
+  const fetchAnalyticsData = async () => {
+    setIsLoadingAnalytics(true);
+    try {
+      const periodDays = analyticsPeriod === 'Last 7 days' ? 7 : 
+                        analyticsPeriod === 'Last 30 days' ? 30 : 90;
+      
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - periodDays);
+
+      // Fetch bookings data (only completed bookings)
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select(`
+          id,
+          total_price,
+          status,
+          created_at,
+          service_provider_id,
+          services (
+            name,
+            service_type
+          )
+        `)
+        .eq('status', 'completed')
+        .gte('created_at', startDate.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        return;
+      }
+
+      // Fetch reviews data for ratings
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select(`
+          id,
+          rating,
+          service_provider_id,
+          created_at
+        `)
+        .gte('created_at', startDate.toISOString());
+
+      if (reviewsError) {
+        console.error('Error fetching reviews:', reviewsError);
+        return;
+      }
+
+      // Fetch provider profiles for names
+      const { data: providersData, error: providersError } = await supabase
+        .from('profiles')
+        .select(`
+          user_id,
+          first_name,
+          last_name,
+          role,
+          status
+        `)
+        .eq('role', 'provider');
+
+      if (providersError) {
+        console.error('Error fetching providers:', providersError);
+        return;
+      }
+
+      // Calculate analytics stats (all bookings are now completed)
+      const totalBookings = bookingsData.length;
+      const totalRevenue = bookingsData.reduce((sum, b) => sum + (parseFloat(b.total_price) || 0), 0);
+      
+      const previousPeriodDays = periodDays * 2;
+      const previousStartDate = new Date();
+      previousStartDate.setDate(previousStartDate.getDate() - previousPeriodDays);
+      const previousEndDate = new Date();
+      previousEndDate.setDate(previousEndDate.getDate() - periodDays);
+
+      // Fetch previous period data for comparison (only completed bookings)
+      const { data: previousBookingsData } = await supabase
+        .from('bookings')
+        .select('total_price, status')
+        .eq('status', 'completed')
+        .gte('created_at', previousStartDate.toISOString())
+        .lt('created_at', previousEndDate.toISOString());
+
+      const previousTotalBookings = previousBookingsData?.length || 0;
+      const previousRevenue = previousBookingsData?.reduce((sum, b) => sum + (parseFloat(b.total_price) || 0), 0) || 0;
+
+      // Calculate percentage changes
+      const bookingChange = previousTotalBookings > 0 
+        ? ((totalBookings - previousTotalBookings) / previousTotalBookings) * 100 
+        : totalBookings > 0 ? 100 : 0;
+      
+      const revenueChange = previousRevenue > 0 
+        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100 
+        : totalRevenue > 0 ? 100 : 0;
+
+      // Set analytics stats (all bookings are completed)
+      setAnalyticsStats([
+        { 
+          label: 'Completed Bookings', 
+          value: totalBookings.toString(), 
+          change: `${bookingChange >= 0 ? '+' : ''}${bookingChange.toFixed(1)}%`, 
+          desc: 'vs previous period', 
+          icon: 'bookings.svg' 
+        },
+        { 
+          label: 'Revenue', 
+          value: `₱${totalRevenue.toLocaleString()}`, 
+          change: `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(1)}%`, 
+          desc: 'vs previous period', 
+          icon: 'pesos.svg' 
+        },
+        { 
+          label: 'Average Revenue', 
+          value: totalBookings > 0 ? `₱${(totalRevenue / totalBookings).toFixed(0)}` : '₱0', 
+          change: `${reviewsData.length}`, 
+          desc: 'per booking', 
+          icon: 'done.svg' 
+        },
+        { 
+          label: 'Active Providers', 
+          value: providersData.filter(p => p.role === 'provider' && (p.status === 'Active' || p.status === 'Approved')).length.toString(), 
+          change: `${reviewsData.length}`, 
+          desc: 'total reviews', 
+          icon: 'star.svg' 
+        }
+      ]);
+
+      // Debug analytics provider count
+      const activeProvidersAnalytics = providersData.filter(p => p.role === 'provider' && (p.status === 'Active' || p.status === 'Approved')).length;
+      console.log('Analytics Active Providers:', {
+        totalProviders: providersData.filter(p => p.role === 'provider').length,
+        activeProviders: activeProvidersAnalytics,
+        providerStatuses: [...new Set(providersData.map(p => p.status))]
+      });
+
+      // Calculate top performing providers
+      const providerStats = {};
+      
+      // Initialize provider stats (only for active/approved providers)
+      providersData.forEach(provider => {
+        if (provider.role === 'provider' && (provider.status === 'Active' || provider.status === 'Approved')) {
+          providerStats[provider.user_id] = {
+            name: `${provider.first_name} ${provider.last_name}`.trim(),
+            bookings: 0,
+            revenue: 0,
+            ratings: []
+          };
+        }
+      });
+
+      // Calculate provider stats from bookings (all are completed)
+      bookingsData.forEach(booking => {
+        if (booking.service_provider_id && providerStats[booking.service_provider_id]) {
+          providerStats[booking.service_provider_id].bookings++;
+          providerStats[booking.service_provider_id].revenue += parseFloat(booking.total_price) || 0;
+        }
+      });
+
+      // Calculate provider stats from reviews
+      reviewsData.forEach(review => {
+        if (review.service_provider_id && providerStats[review.service_provider_id]) {
+          providerStats[review.service_provider_id].ratings.push(review.rating);
+        }
+      });
+
+      // Convert to array and calculate averages
+      const topProvidersList = Object.entries(providerStats)
+        .map(([userId, stats]) => ({
+          name: stats.name,
+          bookings: stats.bookings,
+          revenue: stats.revenue,
+          rating: stats.ratings.length > 0 
+            ? (stats.ratings.reduce((sum, r) => sum + r, 0) / stats.ratings.length).toFixed(1)
+            : '0.0'
+        }))
+        .filter(provider => provider.bookings > 0 || provider.revenue > 0)
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      setTopProviders(topProvidersList);
+
+      // Calculate service distribution
+      const serviceTypes = {};
+      bookingsData.forEach(booking => {
+        const serviceType = booking.services?.service_type || 'Unknown';
+        serviceTypes[serviceType] = (serviceTypes[serviceType] || 0) + 1;
+      });
+
+      const serviceDistribution = Object.entries(serviceTypes)
+        .map(([type, count]) => ({
+          type,
+          count,
+          percentage: (count / totalBookings) * 100
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      setAnalyticsData({
+        bookings: bookingsData,
+        revenue: bookingsData.filter(b => b.status === 'completed'),
+        serviceDistribution,
+        platformGrowth: generatePlatformGrowthData(bookingsData, periodDays)
+      });
+
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
+  // Generate platform growth data for charts
+  const generatePlatformGrowthData = (bookingsData, periodDays) => {
+    const growthData = [];
+    const now = new Date();
+    
+    for (let i = periodDays - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      const dayBookings = bookingsData.filter(booking => 
+        booking.created_at.startsWith(dateStr)
+      );
+      
+      const dayRevenue = dayBookings
+        .filter(b => b.status === 'completed')
+        .reduce((sum, b) => sum + (parseFloat(b.total_price) || 0), 0);
+      
+      growthData.push({
+        date: dateStr,
+        bookings: dayBookings.length,
+        revenue: dayRevenue
+      });
+    }
+    
+    return growthData;
+  };
 
   function recalculateStats(users) {
     const totalUsers = users.length;
-    const activeProviders = users.filter(u => u.role === 'provider' && u.status === 'Active').length;
+    // Check for both 'Active' and 'Approved' status for active providers
+    const activeProviders = users.filter(u => u.role === 'provider' && (u.status === 'Active' || u.status === 'Approved')).length;
     const pendingApproval = users.filter(u => u.role === 'provider' && u.status === 'Pending').length;
     const suspended = users.filter(u => u.status === 'Suspended').length;
 
+    console.log('Stats calculation:', {
+      totalUsers,
+      activeProviders,
+      pendingApproval,
+      suspended,
+      statuses: [...new Set(users.map(u => u.status))]
+    });
+
     setStats([
-      { label: 'Total Users', value: totalUsers, color: 'green', icon: 'total-users.svg' },
-      { label: 'Active Providers', value: activeProviders, color: 'blue', icon: 'active-providers.svg' },
-      { label: 'Pending Approval', value: pendingApproval, color: 'yellow', icon: 'pending_approval.svg' },
-      { label: 'Suspended', value: suspended, color: 'red', icon: 'suspended_acc.svg' },
+      { label: 'Total Users', value: totalUsers.toString(), color: 'green', icon: 'total-users.svg' },
+      { label: 'Active Providers', value: activeProviders.toString(), color: 'blue', icon: 'active-providers.svg' },
+      { label: 'Pending Approval', value: pendingApproval.toString(), color: 'yellow', icon: 'pending_approval.svg' },
+      { label: 'Suspended', value: suspended.toString(), color: 'red', icon: 'suspended_acc.svg' },
     ]);
   }
 
   // Handler functions
   const handleBellClick = () => {
-    setShowNotification(!showNotification);
-    console.log('Notifications clicked');
+    setShowNotificationPanel(!showNotificationPanel);
+    // Mark all notifications as read when opening panel
+    if (!showNotificationPanel) {
+      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+      setUnreadCount(0);
+    }
+  };
+
+  const handleNotificationPermission = async () => {
+    if ('Notification' in window) {
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          console.log('Notification permission granted');
+        }
+      }
+    }
+  };
+
+  // Tooltip handlers
+  const showTooltip = (content, x, y) => {
+    setTooltip({ show: true, content, x, y });
+  };
+
+  const hideTooltip = () => {
+    setTooltip({ show: false, content: '', x: 0, y: 0 });
   };
 
   const handleLogoutClick = () => {
@@ -226,7 +680,56 @@ const AdminDashboard = () => {
   const handleExport = () => {
     setShowExportMsg(true);
     setTimeout(() => setShowExportMsg(false), 2000);
-    console.log('Exporting analytics data...');
+    
+    // Create CSV data for export
+    const csvData = [
+      // Headers
+      ['Metric', 'Value', 'Change', 'Description'],
+      // Analytics stats
+      ...analyticsStats.map(stat => [
+        stat.label,
+        stat.value,
+        stat.change,
+        stat.desc
+      ]),
+      // Empty row
+      [],
+      // Top providers
+      ['Top Performing Providers'],
+      ['Name', 'Bookings', 'Rating', 'Revenue'],
+      ...topProviders.map(prov => [
+        prov.name,
+        prov.bookings.toString(),
+        prov.rating,
+        `₱${prov.revenue.toLocaleString()}`
+      ]),
+      // Empty row
+      [],
+      // Service distribution
+      ['Service Distribution'],
+      ['Service Type', 'Count', 'Percentage'],
+      ...analyticsData.serviceDistribution.map(service => [
+        service.type,
+        service.count.toString(),
+        `${service.percentage.toFixed(1)}%`
+      ])
+    ];
+    
+    // Convert to CSV string
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `furmaps-analytics-${analyticsPeriod.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('Analytics data exported successfully');
   };
 
   const filteredUsers = sortList(
@@ -268,7 +771,7 @@ const AdminDashboard = () => {
           <div className="header-actions">
             <button className="bell-btn" onClick={handleBellClick}>
               <img src="/Images/notification.svg" alt="Notifications" />
-              <span className="bell-badge">2</span>
+              {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
             </button>
             <button className="logout-btn" onClick={handleLogoutClick}>
               <img src="/Images/log-out.svg" alt="Logout" />
@@ -277,6 +780,46 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification Panel */}
+      {showNotificationPanel && (
+        <div className="notification-panel">
+          <div className="notification-header">
+            <h3>Notifications</h3>
+            <button 
+              className="notification-close-btn"
+              onClick={() => setShowNotificationPanel(false)}
+            >
+              ×
+            </button>
+          </div>
+          <div className="notification-list">
+            {notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <div 
+                  key={notification.id} 
+                  className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                >
+                  <div className="notification-icon">
+                    {notification.type === 'new_provider' ? '👤' : '📋'}
+                  </div>
+                  <div className="notification-content">
+                    <div className="notification-title">{notification.title}</div>
+                    <div className="notification-message">{notification.message}</div>
+                    <div className="notification-time">
+                      {new Date(notification.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-notifications">
+                <p>No notifications yet</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="admin-dashboard-main">
         {/* Title */}
@@ -290,7 +833,7 @@ const AdminDashboard = () => {
           {stats.map((stat) => (
             <div key={stat.label} className={`stat-card ${stat.color}`}>
               <div className="stat-label">
-                <img src={stat.icon.startsWith('/') ? stat.icon : `/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" />
+                <img src={`/Images/${stat.icon}`} alt="icon" />
                 {stat.label}
               </div>
               <div className="stat-value">{stat.value}</div>
@@ -519,16 +1062,30 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <div className="analytics-stats-grid">
-                {analyticsStats.map(stat => (
-                  <div key={stat.label} className="analytics-stat-card">
-                    <div className="analytics-stat-header">
-                      <img src={`/Images/${stat.icon.replace(/^.*[\\/]/, '')}`} alt="icon" className="analytics-stat-icon" />
-                      <span className="analytics-stat-label">{stat.label}</span>
+                {isLoadingAnalytics ? (
+                  // Loading skeleton
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="analytics-stat-card">
+                      <div className="analytics-stat-header">
+                        <div className="analytics-stat-icon-skeleton"></div>
+                        <div className="analytics-stat-label-skeleton"></div>
+                      </div>
+                      <div className="analytics-stat-value-skeleton"></div>
+                      <div className="analytics-stat-change-skeleton"></div>
                     </div>
-                    <div className="analytics-stat-value">{stat.value}</div>
-                    <div className="analytics-stat-change">{stat.change} <span className="analytics-stat-desc">{stat.desc}</span></div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  analyticsStats.map(stat => (
+                    <div key={stat.label} className="analytics-stat-card">
+                      <div className="analytics-stat-header">
+                        <img src={`/Icons/${stat.icon}`} alt="icon" className="analytics-stat-icon" />
+                        <span className="analytics-stat-label">{stat.label}</span>
+                      </div>
+                      <div className="analytics-stat-value">{stat.value}</div>
+                      <div className="analytics-stat-change">{stat.change} <span className="analytics-stat-desc">{stat.desc}</span></div>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="analytics-charts-grid">
                 {/* Platform Growth Card */}
@@ -539,9 +1096,12 @@ const AdminDashboard = () => {
                       <svg width="20" height="20" viewBox="0 0 20 20" fill="#2563eb"><rect x="3" y="12" width="3" height="5"/><rect x="8.5" y="8" width="3" height="9"/><rect x="14" y="4" width="3" height="13"/></svg>
                     </button>
                   </div>
-                  {/* Bar Chart: Only render bars if analyticsStats has data */}
-                  {analyticsStats.length > 0 ? (
-                    <svg width="100%" height="180" viewBox="0 0 380 180">
+                  {/* Bar Chart: Dynamic chart based on real data */}
+                  {isLoadingAnalytics ? (
+                    <div className="chart-loading-placeholder">Loading chart data...</div>
+                  ) : analyticsData.platformGrowth.length > 0 ? (
+                    <div>
+                      <svg width="100%" height="180" viewBox="0 0 380 180">
                       {/* Grid lines */}
                       <g stroke="#e5e7eb" strokeWidth="1">
                         <line x1="50" y1="30" x2="350" y2="30" />
@@ -550,41 +1110,112 @@ const AdminDashboard = () => {
                         <line x1="50" y1="120" x2="350" y2="120" />
                         <line x1="50" y1="150" x2="350" y2="150" />
                       </g>
-                      {/* Y axis labels */}
-                      <text x="38" y="35" fontSize="11" fill="#6b7280">80</text>
-                      <text x="38" y="65" fontSize="11" fill="#6b7280">60</text>
-                      <text x="38" y="95" fontSize="11" fill="#6b7280">40</text>
-                      <text x="38" y="125" fontSize="11" fill="#6b7280">20</text>
-                      <text x="38" y="155" fontSize="11" fill="#6b7280">0</text>
-                      {/* Bars: for each month, two bars side by side */}
-                      <g>
-                        {/* Jan */}
-                        <rect x="65" y="100" width="14" height="50" fill="#2563eb" rx="3" />
-                        <rect x="81" y="80" width="14" height="70" fill="#10b981" rx="3" />
-                        {/* Feb */}
-                        <rect x="115" y="70" width="14" height="80" fill="#2563eb" rx="3" />
-                        <rect x="131" y="50" width="14" height="100" fill="#10b981" rx="3" />
-                        {/* Mar */}
-                        <rect x="165" y="80" width="14" height="70" fill="#2563eb" rx="3" />
-                        <rect x="181" y="60" width="14" height="90" fill="#10b981" rx="3" />
-                        {/* Apr */}
-                        <rect x="215" y="90" width="14" height="60" fill="#2563eb" rx="3" />
-                        <rect x="231" y="70" width="14" height="80" fill="#10b981" rx="3" />
-                        {/* May */}
-                        <rect x="265" y="110" width="14" height="40" fill="#2563eb" rx="3" />
-                        <rect x="281" y="90" width="14" height="60" fill="#10b981" rx="3" />
-                        {/* Jun */}
-                        <rect x="315" y="130" width="14" height="20" fill="#2563eb" rx="3" />
-                        <rect x="331" y="110" width="14" height="40" fill="#10b981" rx="3" />
-                      </g>
-                      {/* X axis labels */}
-                      <text x="73" y="170" fontSize="12" fill="#6b7280">Jan</text>
-                      <text x="123" y="170" fontSize="12" fill="#6b7280">Feb</text>
-                      <text x="173" y="170" fontSize="12" fill="#6b7280">Mar</text>
-                      <text x="223" y="170" fontSize="12" fill="#6b7280">Apr</text>
-                      <text x="273" y="170" fontSize="12" fill="#6b7280">May</text>
-                      <text x="323" y="170" fontSize="12" fill="#6b7280">Jun</text>
+                      
+                      {/* Calculate max values for scaling */}
+                      {(() => {
+                        const maxBookings = Math.max(...analyticsData.platformGrowth.map(d => d.bookings), 1);
+                        const maxRevenue = Math.max(...analyticsData.platformGrowth.map(d => d.revenue), 1);
+                        const maxValue = Math.max(maxBookings, maxRevenue);
+                        
+                        return (
+                          <>
+                            {/* Y axis labels */}
+                            <text x="38" y="35" fontSize="11" fill="#6b7280">{Math.ceil(maxValue * 0.8)}</text>
+                            <text x="38" y="65" fontSize="11" fill="#6b7280">{Math.ceil(maxValue * 0.6)}</text>
+                            <text x="38" y="95" fontSize="11" fill="#6b7280">{Math.ceil(maxValue * 0.4)}</text>
+                            <text x="38" y="125" fontSize="11" fill="#6b7280">{Math.ceil(maxValue * 0.2)}</text>
+                            <text x="38" y="155" fontSize="11" fill="#6b7280">0</text>
+                            
+                            {/* Bars: Dynamic bars based on real data */}
+                            <g>
+                              {analyticsData.platformGrowth.map((data, index) => {
+                                const x = 50 + (index * 50);
+                                const bookingHeight = (data.bookings / maxValue) * 120;
+                                const revenueHeight = (data.revenue / maxValue) * 120;
+                                const bookingY = 150 - bookingHeight;
+                                const revenueY = 150 - revenueHeight;
+                                const date = new Date(data.date);
+                                const dateLabel = date.toLocaleDateString('en-US', { 
+                                  weekday: 'short', 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                });
+                                
+                                return (
+                                  <g key={index}>
+                                    {/* Booking bar with tooltip */}
+                                    <rect 
+                                      x={x} 
+                                      y={bookingY} 
+                                      width="14" 
+                                      height={bookingHeight} 
+                                      fill="#2563eb" 
+                                      rx="3"
+                                      style={{ cursor: 'pointer' }}
+                                      onMouseEnter={(e) => {
+                                        const rect = e.target.getBoundingClientRect();
+                                        showTooltip(
+                                          `<strong>${dateLabel}</strong><br/>
+                                           <span style="color: #2563eb;">📊 Bookings: ${data.bookings}</span><br/>
+                                           <span style="color: #10b981;">💰 Revenue: ₱${data.revenue.toLocaleString()}</span>`,
+                                          rect.left + rect.width / 2,
+                                          rect.top - 10
+                                        );
+                                      }}
+                                      onMouseLeave={hideTooltip}
+                                    />
+                                    {/* Revenue bar with tooltip */}
+                                    <rect 
+                                      x={x + 16} 
+                                      y={revenueY} 
+                                      width="14" 
+                                      height={revenueHeight} 
+                                      fill="#10b981" 
+                                      rx="3"
+                                      style={{ cursor: 'pointer' }}
+                                      onMouseEnter={(e) => {
+                                        const rect = e.target.getBoundingClientRect();
+                                        showTooltip(
+                                          `<strong>${dateLabel}</strong><br/>
+                                           <span style="color: #2563eb;">📊 Bookings: ${data.bookings}</span><br/>
+                                           <span style="color: #10b981;">💰 Revenue: ₱${data.revenue.toLocaleString()}</span>`,
+                                          rect.left + rect.width / 2,
+                                          rect.top - 10
+                                        );
+                                      }}
+                                      onMouseLeave={hideTooltip}
+                                    />
+                                  </g>
+                                );
+                              })}
+                            </g>
+                            
+                            {/* X axis labels */}
+                            {analyticsData.platformGrowth.map((data, index) => {
+                              const x = 50 + (index * 50);
+                              const date = new Date(data.date);
+                              const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                              
+                              return (
+                                <text key={index} x={x + 7} y="170" fontSize="10" fill="#6b7280">{label}</text>
+                              );
+                            })}
+                          </>
+                        );
+                      })()}
                     </svg>
+                    {/* Chart Legend */}
+                    <div className="chart-legend">
+                      <div className="legend-item">
+                        <div className="legend-color bookings"></div>
+                        <span>Bookings</span>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-color revenue"></div>
+                        <span>Revenue</span>
+                      </div>
+                    </div>
+                  </div>
                   ) : (
                     <div className="empty-chart-placeholder">No data available</div>
                   )}
@@ -593,14 +1224,64 @@ const AdminDashboard = () => {
                 <div className="service-distribution-card">
                   <div className="service-distribution-title">Service Distribution</div>
                   <div className="service-distribution-subtitle">Platform-wide service popularity</div>
-                  {/* Pie Chart: Only render pie if analyticsStats has data */}
-                  {analyticsStats.length > 0 ? (
+                  {/* Pie Chart: Dynamic chart based on real service distribution */}
+                  {isLoadingAnalytics ? (
+                    <div className="chart-loading-placeholder">Loading chart data...</div>
+                  ) : analyticsData.serviceDistribution.length > 0 ? (
                     <svg width="140" height="140" viewBox="0 0 140 140">
                       <circle r="60" cx="70" cy="70" fill="#f3f4f6" />
-                      <path d="M70 70 L70 10 A60 60 0 0 1 130 70 Z" fill="#2563eb" />
-                      <path d="M70 70 L130 70 A60 60 0 0 1 70 130 Z" fill="#10b981" />
-                      <path d="M70 70 L70 130 A60 60 0 0 1 10 70 Z" fill="#f59e42" />
-                      <path d="M70 70 L10 70 A60 60 0 0 1 70 10 Z" fill="#ef4444" />
+                      {(() => {
+                        const colors = ['#2563eb', '#10b981', '#f59e42', '#ef4444', '#8b5cf6', '#06b6d4'];
+                        let currentAngle = 0;
+                        
+                        return analyticsData.serviceDistribution.map((service, index) => {
+                          const percentage = service.percentage;
+                          const angle = (percentage / 100) * 360;
+                          const startAngle = currentAngle;
+                          const endAngle = currentAngle + angle;
+                          
+                          // Convert angles to radians
+                          const startRad = (startAngle - 90) * Math.PI / 180;
+                          const endRad = (endAngle - 90) * Math.PI / 180;
+                          
+                          // Calculate arc coordinates
+                          const x1 = 70 + 60 * Math.cos(startRad);
+                          const y1 = 70 + 60 * Math.sin(startRad);
+                          const x2 = 70 + 60 * Math.cos(endRad);
+                          const y2 = 70 + 60 * Math.sin(endRad);
+                          
+                          // Create arc path
+                          const largeArcFlag = angle > 180 ? 1 : 0;
+                          const path = [
+                            `M70 70`,
+                            `L${x1} ${y1}`,
+                            `A60 60 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                            'Z'
+                          ].join(' ');
+                          
+                          currentAngle += angle;
+                          
+                          return (
+                            <path 
+                              key={service.type} 
+                              d={path} 
+                              fill={colors[index % colors.length]}
+                              style={{ cursor: 'pointer' }}
+                              onMouseEnter={(e) => {
+                                const rect = e.target.getBoundingClientRect();
+                                showTooltip(
+                                  `<strong>${service.type}</strong><br/>
+                                   <span style="color: ${colors[index % colors.length]};">📊 Count: ${service.count}</span><br/>
+                                   <span style="color: ${colors[index % colors.length]};">📈 Percentage: ${service.percentage.toFixed(1)}%</span>`,
+                                  rect.left + rect.width / 2,
+                                  rect.top - 10
+                                );
+                              }}
+                              onMouseLeave={hideTooltip}
+                            />
+                          );
+                        });
+                      })()}
                     </svg>
                   ) : (
                     <div className="empty-chart-placeholder">No data available</div>
@@ -612,30 +1293,69 @@ const AdminDashboard = () => {
                   <div className="top-providers-title">Top Performing Providers</div>
                   <div className="top-providers-subtitle">Highest rated and most active service providers</div>
                   <div className="top-providers-list">
-                    {topProviders.map((prov, idx) => (
-                      <div key={prov.name} className="provider-item">
-                        <div className="provider-info-section">
-                          <div className="provider-rank">{idx + 1}</div>
-                          <div className="provider-details">
-                            <div className="provider-name">{prov.name}</div>
-                            <div className="provider-stats">
-                              {prov.bookings} bookings ·
-                              <svg width="16" height="16" viewBox="0 0 20 20" fill="#f59e42"><path d="M10 15.27L16.18 18l-1.64-7.03L19 7.24l-7.19-.61L10 0 8.19 6.63 1 7.24l5.46 3.73L4.82 18z"/></svg>
-                              {prov.rating}
+                    {isLoadingAnalytics ? (
+                      // Loading skeleton
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <div key={index} className="provider-item">
+                          <div className="provider-info-section">
+                            <div className="provider-rank-skeleton"></div>
+                            <div className="provider-details">
+                              <div className="provider-name-skeleton"></div>
+                              <div className="provider-stats-skeleton"></div>
                             </div>
                           </div>
+                          <div className="provider-revenue-section">
+                            <div className="provider-revenue-skeleton"></div>
+                            <div className="provider-revenue-label-skeleton"></div>
+                          </div>
                         </div>
-                        <div className="provider-revenue-section">
-                          <div className="provider-revenue">${prov.revenue.toLocaleString()}</div>
-                          <div className="provider-revenue-label">revenue</div>
+                      ))
+                    ) : topProviders.length > 0 ? (
+                      topProviders.map((prov, idx) => (
+                        <div key={prov.name} className="provider-item">
+                          <div className="provider-info-section">
+                            <div className="provider-rank">{idx + 1}</div>
+                            <div className="provider-details">
+                              <div className="provider-name">{prov.name}</div>
+                              <div className="provider-stats">
+                                {prov.bookings} bookings ·
+                                <svg width="16" height="16" viewBox="0 0 20 20" fill="#f59e42"><path d="M10 15.27L16.18 18l-1.64-7.03L19 7.24l-7.19-.61L10 0 8.19 6.63 1 7.24l5.46 3.73L4.82 18z"/></svg>
+                                {prov.rating}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="provider-revenue-section">
+                            <div className="provider-revenue">₱{prov.revenue.toLocaleString()}</div>
+                            <div className="provider-revenue-label">revenue</div>
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="no-providers-message">
+                        <p>No provider data available for the selected period.</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {/* Chart Tooltip */}
+        {tooltip.show && (
+          <div 
+            className="chart-tooltip"
+            style={{
+              position: 'fixed',
+              left: tooltip.x,
+              top: tooltip.y,
+              transform: 'translateX(-50%) translateY(-100%)',
+              zIndex: 1000,
+              pointerEvents: 'none'
+            }}
+            dangerouslySetInnerHTML={{ __html: tooltip.content }}
+          />
         )}
       </div>
 
@@ -755,17 +1475,7 @@ const getMissingDocuments = (provider) => {
   return requiredDocuments.filter(req => !uploadedTypes.includes(req));
 };
 
-// Dummy analytics stats (replace with real data if you have it)
-const analyticsStats = [
-  { label: 'Bookings', value: 120, change: '+10%', desc: 'vs last month', icon: 'bookings.svg' },
-  { label: 'Revenue', value: '$5,200', change: '+5%', desc: 'vs last month', icon: 'revenue.svg' },
-];
-
-// Dummy top providers (replace with real data if you have it)
-const topProviders = [
-  { name: 'Jane Doe', bookings: 32, rating: 4.9, revenue: 1200 },
-  { name: 'John Smith', bookings: 28, rating: 4.8, revenue: 1100 },
-];
+// Analytics data is now fetched from the database
 
 function sortList(list, sortType) {
   const sorted = [...list];
