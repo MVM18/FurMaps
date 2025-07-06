@@ -100,10 +100,11 @@ const WPetOwnerDB = () => {
 		const serviceEndTime = booking.service_end_datetime ? new Date(booking.service_end_datetime) : null;
 		const isServiceCompleted = booking.status === 'confirmed' && serviceEndTime && now > serviceEndTime;
 		const isCompletedByProvider = booking.status === 'completed';
-		return booking.status === 'cancelled' || isServiceCompleted || isCompletedByProvider;
+		// Only count as completed if not cancelled
+		return (isServiceCompleted || isCompletedByProvider) && booking.status !== 'cancelled';
 	});
 
-	// Calculate total spent from completed bookings
+	// Calculate total spent from completed bookings (not cancelled)
 	const totalSpent = completedBookings.reduce((total, booking) => {
 		return total + (parseFloat(booking.total_price) || 0);
 	}, 0);
@@ -557,12 +558,15 @@ const handleMessage = async (service) => {
 
 			setToastMessage('Booking cancelled successfully!');
 			setShowToast(true);
-		} catch (error) {
-			console.error('Error cancelling booking:', error);
-			setToastMessage('Failed to cancel booking. Please try again.');
-			setShowToast(true);
-		}
-	};
+
+        // Fetch latest bookings from the database to ensure UI is in sync
+        await fetchBookings();
+	} catch (error) {
+		console.error('Error cancelling booking:', error);
+		setToastMessage('Failed to cancel booking. Please try again.');
+		setShowToast(true);
+	}
+};
 
 	// Add message provider function for bookings
 	const handleMessageProvider = (booking) => {

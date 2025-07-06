@@ -16,6 +16,7 @@
   backdrop-filter: blur(4px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid #d1fae5;
+  margin-bottom: 0; /* Remove bottom margin to bring tabNav flush to top */
 }
 
 .logoContainer {
@@ -513,8 +514,9 @@
 /* Tab Navigation */
 .tabNav {
   display: flex;
-  gap: 0.5rem;
-  margin: 2rem 0 1.5rem 0;
+  gap: 1rem;
+  margin-top: 0; /* Remove top margin for flush alignment */
+  margin-bottom: 1.5rem;
   border-bottom: 1.5px solid #e5e7eb;
   background: transparent;
 }

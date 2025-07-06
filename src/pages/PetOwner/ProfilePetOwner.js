@@ -352,7 +352,7 @@ console.log('User ID for update:', user.id);
         </nav>
       </header>
 
-      {/* Tabs */}
+      {/* Tabs - directly below header, right under FurMaps */}
       <div className={styles.tabNav}>
         <button
           className={`${styles.tabButton} ${activeTab === 'profile' ? styles.activeTab : ''}`}
