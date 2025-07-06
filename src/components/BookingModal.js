@@ -82,12 +82,24 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
       // Fetch the profile using the user's ID
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('phone, address')
+        .select('phone, address, status, role')
         .eq('user_id', user.id)
         .single();
 
       if (profileError || !profile) {
         setError('Unable to fetch profile information.');
+        return;
+      }
+
+      // Check if user is suspended
+      if (profile.status === 'Suspended') {
+        setError('Your account has been suspended. You cannot book services at this time. Please contact support for assistance.');
+        return;
+      }
+
+      // Check if user is a pet owner (should be able to book)
+      if (profile.role !== 'owner') {
+        setError('Only pet owners can book services.');
         return;
       }
 

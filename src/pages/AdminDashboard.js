@@ -46,24 +46,48 @@ const AdminDashboard = () => {
       return;
     }
     // Map data to expected format
-    const mappedUsers = data.map(profile => ({
-      user_id: profile.user_id,
-      name: `${profile.first_name} ${profile.last_name}`,
-      email: profile.email, // or profile.user_id if you use email as user_id
-      role: profile.role,
-      status: profile.status || 'Active',
-      joined: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
-      bookings: 0,
-      initials: `${profile.first_name[0] || ''}${profile.last_name[0] || ''}`.toUpperCase(),
-      services: profile.services_offered || '',
-      location: profile.address || '',
-      submitted: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
-      documents: [
-        ...(profile.certificate ? [{ type: 'Certificate', filename: profile.certificate, color: 'blue', icon: 'certificate.svg' }] : []),
-        ...(profile.valid_id ? [{ type: 'Valid ID', filename: profile.valid_id, color: 'green', icon: 'id-card.svg' }] : []),
-        ...(profile.proof_of_address ? [{ type: 'Proof of Address', filename: profile.proof_of_address, color: 'yellow', icon: 'address.svg' }] : []),
-      ],
-    }));
+    const mappedUsers = data.map(profile => {
+      const firstName = profile.first_name || '';
+      const lastName = profile.last_name || '';
+      const name = `${firstName} ${lastName}`.trim() || 'Unknown User';
+      
+      return {
+        user_id: profile.user_id,
+        name: name,
+        email: profile.email || profile.user_id || 'No email',
+        role: profile.role || 'owner',
+        status: profile.status || 'Active',
+        joined: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
+        bookings: 0,
+        initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || 'U',
+        services: profile.services_offered || '',
+        location: profile.address || '',
+        submitted: profile.created_at ? new Date(profile.created_at).toLocaleDateString() : '',
+        documents: [
+          ...(profile.certificate ? [{ 
+            type: 'Certificate', 
+            filename: profile.certificate.split('/').pop() || 'certificate.pdf', 
+            url: profile.certificate,
+            color: 'blue', 
+            icon: 'certificate.svg' 
+          }] : []),
+          ...(profile.valid_id ? [{ 
+            type: 'Valid ID', 
+            filename: profile.valid_id.split('/').pop() || 'valid-id.pdf', 
+            url: profile.valid_id,
+            color: 'green', 
+            icon: 'id-card.svg' 
+          }] : []),
+          ...(profile.proof_of_address ? [{ 
+            type: 'Proof of Address', 
+            filename: profile.proof_of_address.split('/').pop() || 'proof-of-address.pdf', 
+            url: profile.proof_of_address,
+            color: 'yellow', 
+            icon: 'address.svg' 
+          }] : []),
+        ],
+      };
+    });
 
     setUsersList(mappedUsers.filter(profile => profile.role === 'owner' || profile.role === 'provider'));
     setProvidersList(mappedUsers.filter(profile => profile.role === 'provider'));
@@ -111,8 +135,13 @@ const AdminDashboard = () => {
   };
 
   const handleViewDocument = (provider, doc) => {
-    setViewedDocument({ provider, doc });
-    console.log(`Viewing document: ${doc.filename} for ${provider.name}`);
+    if (doc.url) {
+      // Open document in new tab
+      window.open(doc.url, '_blank');
+    } else {
+      setViewedDocument({ provider, doc });
+      console.log(`Viewing document: ${doc.filename} for ${provider.name}`);
+    }
   };
 
   const handleCloseDocument = () => {
@@ -204,16 +233,16 @@ const AdminDashboard = () => {
     usersList.filter(
       (u) =>
         (userTypeFilter === 'All' || u.role === userTypeFilter) &&
-        (u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        ((u.name && u.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+         (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase())))
     ),
     userSort
   );
 
   const filteredProviders = sortList(
     providersList.filter(provider => {
-      const matchesSearch = provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           provider.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (provider.name && provider.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           (provider.email && provider.email.toLowerCase().includes(searchTerm.toLowerCase()));
       if (providerStatusFilter === 'All' || providerStatusFilter === 'Pending') {
         return provider.status === 'Pending' && matchesSearch;
       } else {
@@ -223,10 +252,7 @@ const AdminDashboard = () => {
     providerSort
   );
 
-  console.log('usersList:', usersList);
-  console.log('providersList:', providersList);
-  console.log('filteredUsers:', filteredUsers);
-  console.log('filteredProviders:', filteredProviders);
+
 
   return (
     <div className="dashboard-bg">
@@ -303,51 +329,53 @@ const AdminDashboard = () => {
                 onChange={e => setSearchTerm(e.target.value)}
                 className="search-bar-input"
               />
-              <div className="user-filter-box">
-                <button className="user-filter-btn" onClick={() => setProviderFilterOpen(open => !open)}>
-                  {providerStatusFilter === 'All' ? 'Filter by type' : providerStatusFilter}
-                  <img src="/Images/filter.svg" alt="dropdown" />
-                </button>
-                {providerFilterOpen && (
-                  <div className="user-filter-dropdown">
-                    <div className={`user-filter-dropdown-item ${providerStatusFilter === 'All' ? 'active' : ''}`}
-                      onClick={() => { setProviderStatusFilter('All'); setProviderFilterOpen(false); }}>All</div>
-                    <div className={`user-filter-dropdown-item ${providerStatusFilter === 'Pending' ? 'active' : ''}`}
-                      onClick={() => { setProviderStatusFilter('Pending'); setProviderFilterOpen(false); }}>Pending</div>
-                    <div className={`user-filter-dropdown-item ${providerStatusFilter === 'Approved' ? 'active' : ''}`}
-                      onClick={() => { setProviderStatusFilter('Approved'); setProviderFilterOpen(false); }}>Approved</div>
-                    <div className={`user-filter-dropdown-item ${providerStatusFilter === 'Rejected' ? 'active' : ''}`}
-                      onClick={() => { setProviderStatusFilter('Rejected'); setProviderFilterOpen(false); }}>Rejected</div>
-                  </div>
-                )}
-              </div>
-              <div className="user-filter-box">
-                <button className="user-filter-btn" onClick={() => setProviderSortOpen(open => !open)}>
-                  {providerSort === 'A-Z' ? 'Sort: Name (A-Z)' :
-                    providerSort === 'Z-A' ? 'Sort: Name (Z-A)' :
-                    providerSort === 'Oldest' ? 'Sort: Oldest Joined' :
-                    'Sort: Latest Joined'}
-                  <img src="/Images/filter.svg" alt="dropdown" />
-                </button>
-                {providerSortOpen && (
-                  <div className="user-filter-dropdown">
-                    <div className={`user-filter-dropdown-item ${providerSort === 'A-Z' ? 'active' : ''}`}
-                      onClick={() => { setProviderSort('A-Z'); setProviderSortOpen(false); }}>Name (A-Z)</div>
-                    <div className={`user-filter-dropdown-item ${providerSort === 'Z-A' ? 'active' : ''}`}
-                      onClick={() => { setProviderSort('Z-A'); setProviderSortOpen(false); }}>Name (Z-A)</div>
-                    <div className={`user-filter-dropdown-item ${providerSort === 'Oldest' ? 'active' : ''}`}
-                      onClick={() => { setProviderSort('Oldest'); setProviderSortOpen(false); }}>Oldest Joined</div>
-                    <div className={`user-filter-dropdown-item ${providerSort === 'Latest' ? 'active' : ''}`}
-                      onClick={() => { setProviderSort('Latest'); setProviderSortOpen(false); }}>Latest Joined</div>
-                  </div>
-                )}
+              <div className="filter-controls">
+                <div className="user-filter-box">
+                  <button className="user-filter-btn" onClick={() => setProviderFilterOpen(open => !open)}>
+                    {providerStatusFilter === 'All' ? 'Filter by type' : providerStatusFilter}
+                    <img src="/Images/filter.svg" alt="dropdown" />
+                  </button>
+                  {providerFilterOpen && (
+                    <div className="user-filter-dropdown">
+                      <div key="filter-all" className={`user-filter-dropdown-item ${providerStatusFilter === 'All' ? 'active' : ''}`}
+                        onClick={() => { setProviderStatusFilter('All'); setProviderFilterOpen(false); }}>All</div>
+                      <div key="filter-pending" className={`user-filter-dropdown-item ${providerStatusFilter === 'Pending' ? 'active' : ''}`}
+                        onClick={() => { setProviderStatusFilter('Pending'); setProviderFilterOpen(false); }}>Pending</div>
+                      <div key="filter-approved" className={`user-filter-dropdown-item ${providerStatusFilter === 'Approved' ? 'active' : ''}`}
+                        onClick={() => { setProviderStatusFilter('Approved'); setProviderFilterOpen(false); }}>Approved</div>
+                      <div key="filter-rejected" className={`user-filter-dropdown-item ${providerStatusFilter === 'Rejected' ? 'active' : ''}`}
+                        onClick={() => { setProviderStatusFilter('Rejected'); setProviderFilterOpen(false); }}>Rejected</div>
+                    </div>
+                  )}
+                </div>
+                <div className="user-filter-box">
+                  <button className="user-filter-btn" onClick={() => setProviderSortOpen(open => !open)}>
+                    {providerSort === 'A-Z' ? 'Sort: Name (A-Z)' :
+                      providerSort === 'Z-A' ? 'Sort: Name (Z-A)' :
+                      providerSort === 'Oldest' ? 'Sort: Oldest Joined' :
+                      'Sort: Latest Joined'}
+                    <img src="/Images/filter.svg" alt="dropdown" />
+                  </button>
+                  {providerSortOpen && (
+                    <div className="user-filter-dropdown">
+                      <div key="sort-a-z" className={`user-filter-dropdown-item ${providerSort === 'A-Z' ? 'active' : ''}`}
+                        onClick={() => { setProviderSort('A-Z'); setProviderSortOpen(false); }}>Name (A-Z)</div>
+                      <div key="sort-z-a" className={`user-filter-dropdown-item ${providerSort === 'Z-A' ? 'active' : ''}`}
+                        onClick={() => { setProviderSort('Z-A'); setProviderSortOpen(false); }}>Name (Z-A)</div>
+                      <div key="sort-oldest" className={`user-filter-dropdown-item ${providerSort === 'Oldest' ? 'active' : ''}`}
+                        onClick={() => { setProviderSort('Oldest'); setProviderSortOpen(false); }}>Oldest Joined</div>
+                      <div key="sort-latest" className={`user-filter-dropdown-item ${providerSort === 'Latest' ? 'active' : ''}`}
+                        onClick={() => { setProviderSort('Latest'); setProviderSortOpen(false); }}>Latest Joined</div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             {filteredProviders.map((provider) => {
               const missingDocs = getMissingDocuments(provider);
               const allDocsUploaded = missingDocs.length === 0;
               return (
-                <div className="provider-approval" key={provider.email}>
+                <div className="provider-approval" key={provider.user_id}>
                   <div className="provider-header">
                     <div className="provider-avatar">{provider.initials}</div>
                     <div className="provider-details">
@@ -371,7 +399,7 @@ const AdminDashboard = () => {
                   <div className="submitted-documents-title">Submitted Documents:</div>
                   <div className="documents-row">
                     {provider.documents.map((doc) => (
-                      <div className={`document-card ${doc.color}`} key={doc.filename}>
+                      <div className={`document-card ${doc.color}`} key={`${provider.user_id}-${doc.type}`}>
                         <div className="document-header">
                           <img src={doc.icon.startsWith('/') ? doc.icon : `/Images/${doc.icon.replace(/^.*[\\/]/, '')}`} alt="doc" />
                           <div className={`document-title${doc.color !== 'blue' ? ' ' + doc.color : ''}`}>{doc.type}</div>
@@ -395,56 +423,57 @@ const AdminDashboard = () => {
           <div className="card">
             <div className="card-title">User Management</div>
             <div className="card-desc">Manage all platform users</div>
-            <div className="user-management-bar">
-              <div className="user-search-box">
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="user-filter-box">
-                <button className="user-filter-btn" onClick={handleUserFilterClick}>
-                  {userTypeFilter === 'All' ? 'Filter by type' : userTypeFilter}
-                  <img src="/Images/filter.svg" alt="dropdown" />
-                </button>
-                {userFilterOpen && (
-                  <div className="user-filter-dropdown">
-                    <div className={`user-filter-dropdown-item ${userTypeFilter === 'All' ? 'active' : ''}`}
-                      onClick={() => { setUserTypeFilter('All'); setUserFilterOpen(false); }}>All</div>
-                    <div className={`user-filter-dropdown-item ${userTypeFilter === 'owner' ? 'active' : ''}`}
-                      onClick={() => { setUserTypeFilter('owner'); setUserFilterOpen(false); }}>Pet Owner</div>
-                    <div className={`user-filter-dropdown-item ${userTypeFilter === 'provider' ? 'active' : ''}`}
-                      onClick={() => { setUserTypeFilter('provider'); setUserFilterOpen(false); }}>Service Provider</div>
-                  </div>
-                )}
-              </div>
-              <div className="user-filter-box">
-                <button className="user-filter-btn" onClick={() => setUserSortOpen(open => !open)}>
-                  {userSort === 'A-Z' ? 'Sort: Name (A-Z)' :
-                    userSort === 'Z-A' ? 'Sort: Name (Z-A)' :
-                    userSort === 'Oldest' ? 'Sort: Oldest Joined' :
-                    'Sort: Latest Joined'}
-                  <img src="/Images/filter.svg" alt="dropdown" />
-                </button>
-                {userSortOpen && (
-                  <div className="user-filter-dropdown">
-                    <div className={`user-filter-dropdown-item ${userSort === 'A-Z' ? 'active' : ''}`}
-                      onClick={() => { setUserSort('A-Z'); setUserSortOpen(false); }}>Name (A-Z)</div>
-                    <div className={`user-filter-dropdown-item ${userSort === 'Z-A' ? 'active' : ''}`}
-                      onClick={() => { setUserSort('Z-A'); setUserSortOpen(false); }}>Name (Z-A)</div>
-                    <div className={`user-filter-dropdown-item ${userSort === 'Oldest' ? 'active' : ''}`}
-                      onClick={() => { setUserSort('Oldest'); setUserSortOpen(false); }}>Oldest Joined</div>
-                    <div className={`user-filter-dropdown-item ${userSort === 'Latest' ? 'active' : ''}`}
-                      onClick={() => { setUserSort('Latest'); setUserSortOpen(false); }}>Latest Joined</div>
-                  </div>
-                )}
+            <div className="search-filter-bar">
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="search-bar-input"
+              />
+              <div className="filter-controls">
+                <div className="user-filter-box">
+                  <button className="user-filter-btn" onClick={handleUserFilterClick}>
+                    {userTypeFilter === 'All' ? 'Filter by type' : userTypeFilter}
+                    <img src="/Images/filter.svg" alt="dropdown" />
+                  </button>
+                  {userFilterOpen && (
+                    <div className="user-filter-dropdown">
+                      <div key="user-filter-all" className={`user-filter-dropdown-item ${userTypeFilter === 'All' ? 'active' : ''}`}
+                        onClick={() => { setUserTypeFilter('All'); setUserFilterOpen(false); }}>All</div>
+                      <div key="user-filter-owner" className={`user-filter-dropdown-item ${userTypeFilter === 'owner' ? 'active' : ''}`}
+                        onClick={() => { setUserTypeFilter('owner'); setUserFilterOpen(false); }}>Pet Owner</div>
+                      <div key="user-filter-provider" className={`user-filter-dropdown-item ${userTypeFilter === 'provider' ? 'active' : ''}`}
+                        onClick={() => { setUserTypeFilter('provider'); setUserFilterOpen(false); }}>Service Provider</div>
+                    </div>
+                  )}
+                </div>
+                <div className="user-filter-box">
+                  <button className="user-filter-btn" onClick={() => setUserSortOpen(open => !open)}>
+                    {userSort === 'A-Z' ? 'Sort: Name (A-Z)' :
+                      userSort === 'Z-A' ? 'Sort: Name (Z-A)' :
+                      userSort === 'Oldest' ? 'Sort: Oldest Joined' :
+                      'Sort: Latest Joined'}
+                    <img src="/Images/filter.svg" alt="dropdown" />
+                  </button>
+                  {userSortOpen && (
+                    <div className="user-filter-dropdown">
+                      <div key="user-sort-a-z" className={`user-filter-dropdown-item ${userSort === 'A-Z' ? 'active' : ''}`}
+                        onClick={() => { setUserSort('A-Z'); setUserSortOpen(false); }}>Name (A-Z)</div>
+                      <div key="user-sort-z-a" className={`user-filter-dropdown-item ${userSort === 'Z-A' ? 'active' : ''}`}
+                        onClick={() => { setUserSort('Z-A'); setUserSortOpen(false); }}>Name (Z-A)</div>
+                      <div key="user-sort-oldest" className={`user-filter-dropdown-item ${userSort === 'Oldest' ? 'active' : ''}`}
+                        onClick={() => { setUserSort('Oldest'); setUserSortOpen(false); }}>Oldest Joined</div>
+                      <div key="user-sort-latest" className={`user-filter-dropdown-item ${userSort === 'Latest' ? 'active' : ''}`}
+                        onClick={() => { setUserSort('Latest'); setUserSortOpen(false); }}>Latest Joined</div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="user-list">
               {filteredUsers.map(user => (
-                <div className="user-row" key={user.email}>
+                <div className="user-row" key={user.user_id}>
                   <div className="user-avatar">{user.initials}</div>
                   <div className="user-info">
                     <div className="user-name">{user.name}</div>
@@ -635,6 +664,39 @@ const AdminDashboard = () => {
             <div className="modal-field">
               <strong>Provider:</strong> {viewedDocument.provider.name}
             </div>
+            {viewedDocument.doc.url && (
+              <div className="modal-field">
+                <strong>Document:</strong>
+                <div style={{ marginTop: '10px' }}>
+                  {viewedDocument.doc.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    <img 
+                      src={viewedDocument.doc.url} 
+                      alt={viewedDocument.doc.filename}
+                      style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                    />
+                  ) : (
+                    <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px', textAlign: 'center' }}>
+                      <p>📄 {viewedDocument.doc.filename}</p>
+                      <p style={{ fontSize: '14px', color: '#666' }}>This is a document file</p>
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => window.open(viewedDocument.doc.url, '_blank')}
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px 16px',
+                      backgroundColor: '#2563eb',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Open Document
+                  </button>
+                </div>
+              </div>
+            )}
             <button onClick={handleCloseDocument} className="modal-close-btn">Close</button>
           </div>
         </div>

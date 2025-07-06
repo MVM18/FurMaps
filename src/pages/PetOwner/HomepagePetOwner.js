@@ -48,6 +48,8 @@ const WPetOwnerDB = () => {
 	const [highlightedBookingId, setHighlightedBookingId] = useState(null);
 	const prevNewIdsRef = useRef([]);
 	const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+	const [userStatus, setUserStatus] = useState(null);
+	const [userRole, setUserRole] = useState(null);
 
 	// Helper to get/set last seen notifs in localStorage
 	function getLastSeenNotifs() {
@@ -60,6 +62,29 @@ const WPetOwnerDB = () => {
 	const [showReviewModal, setShowReviewModal] = useState(false);
 	const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
 	const [reviews, setReviews] = useState([]);
+
+	// Check user status and role
+	const checkUserStatus = async () => {
+		const { data: { user }, error: userError } = await supabase.auth.getUser();
+		if (userError || !user) {
+			console.error('User fetch error:', userError);
+			return;
+		}
+
+		const { data: profile, error: profileError } = await supabase
+			.from('profiles')
+			.select('status, role')
+			.eq('user_id', user.id)
+			.single();
+
+		if (profileError) {
+			console.error('Profile fetch error:', profileError);
+			return;
+		}
+
+		setUserStatus(profile.status);
+		setUserRole(profile.role);
+	};
 
 	// Calculate stats based on booking status and completion
 	const activeBookings = bookings.filter(booking => {
@@ -88,6 +113,7 @@ const WPetOwnerDB = () => {
 
 	// Fetch services from database
 	useEffect(() => {
+		checkUserStatus();
 		fetchServices();
 		fetchBookings();
 		fetchReviews();
@@ -382,6 +408,20 @@ const WPetOwnerDB = () => {
 	};
 
 	const handleBookNow = (service) => {
+		// Check if user is suspended
+		if (userStatus === 'Suspended') {
+			setToastMessage('Your account has been suspended. You cannot book services at this time. Please contact support for assistance.');
+			setShowToast(true);
+			return;
+		}
+
+		// Check if user is a pet owner
+		if (userRole !== 'owner') {
+			setToastMessage('Only pet owners can book services.');
+			setShowToast(true);
+			return;
+		}
+
 		setSelectedService(service);
 		setShowBookingModal(true);
 	};
@@ -535,6 +575,15 @@ const handleMessage = async (service) => {
 		<div className={styles.dashboard}>
 			{/* Toast Notification */}
 			<Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
+			
+			{/* Status Message Banner */}
+			{userStatus === 'Suspended' && (
+				<div className={styles.statusBanner}>
+					<div className={styles.statusMessage}>
+						<p>🚫 Your account has been suspended. You cannot book services at this time. Please contact support for assistance.</p>
+					</div>
+				</div>
+			)}
 
 			{/* Header */}
 			<header className={styles.dashboardHeader}>

@@ -47,9 +47,30 @@ const RegisterUser = () => {
   };
 
   const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setToastMsg('Please upload a PDF or image file (JPG, PNG, GIF, WEBP)');
+      setShowToast(true);
+      e.target.value = ''; // Clear the input
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+      setToastMsg('File size must be less than 10MB');
+      setShowToast(true);
+      e.target.value = ''; // Clear the input
+      return;
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.files[0]
+      [e.target.name]: file
     });
   };
 
@@ -99,9 +120,6 @@ const handleSubmit = async (e) => {
     phone: formData.phone,
     address: formData.address,
     services_offered: formData.role === 'provider' ? formData.services_offered : null,
-    certificate: formData.role === 'provider' ? formData.certificate?.name : null,
-    valid_id: formData.role === 'provider' ? formData.valid_id?.name : null,
-    proof_of_address: formData.role === 'provider' ? formData.proof_of_address?.name : null,
   }
 });
 
@@ -118,6 +136,78 @@ const handleSubmit = async (e) => {
   return;
 }
 
+    // Upload provider documents if registering as provider
+    let certificateUrl = null;
+    let validIdUrl = null;
+    let proofOfAddressUrl = null;
+
+    if (formData.role === 'provider') {
+      console.log("📤 Uploading provider documents...");
+      
+      // Upload certificate
+      if (formData.certificate) {
+        const certificatePath = `provider-documents/${userId}/certificate-${Date.now()}-${formData.certificate.name}`;
+        const { error: certError } = await supabase.storage
+          .from('provider-documents')
+          .upload(certificatePath, formData.certificate);
+        
+        if (certError) {
+          console.error("❌ Certificate upload failed:", certError);
+          setToastMsg("Failed to upload certificate");
+          setShowToast(true);
+          return;
+        }
+        
+        const { data: certUrlData } = supabase.storage
+          .from('provider-documents')
+          .getPublicUrl(certificatePath);
+        certificateUrl = certUrlData.publicUrl;
+        console.log("✅ Certificate uploaded:", certificateUrl);
+      }
+
+      // Upload valid ID
+      if (formData.valid_id) {
+        const validIdPath = `provider-documents/${userId}/valid-id-${Date.now()}-${formData.valid_id.name}`;
+        const { error: idError } = await supabase.storage
+          .from('provider-documents')
+          .upload(validIdPath, formData.valid_id);
+        
+        if (idError) {
+          console.error("❌ Valid ID upload failed:", idError);
+          setToastMsg("Failed to upload valid ID");
+          setShowToast(true);
+          return;
+        }
+        
+        const { data: idUrlData } = supabase.storage
+          .from('provider-documents')
+          .getPublicUrl(validIdPath);
+        validIdUrl = idUrlData.publicUrl;
+        console.log("✅ Valid ID uploaded:", validIdUrl);
+      }
+
+      // Upload proof of address
+      if (formData.proof_of_address) {
+        const proofPath = `provider-documents/${userId}/proof-of-address-${Date.now()}-${formData.proof_of_address.name}`;
+        const { error: proofError } = await supabase.storage
+          .from('provider-documents')
+          .upload(proofPath, formData.proof_of_address);
+        
+        if (proofError) {
+          console.error("❌ Proof of address upload failed:", proofError);
+          setToastMsg("Failed to upload proof of address");
+          setShowToast(true);
+          return;
+        }
+        
+        const { data: proofUrlData } = supabase.storage
+          .from('provider-documents')
+          .getPublicUrl(proofPath);
+        proofOfAddressUrl = proofUrlData.publicUrl;
+        console.log("✅ Proof of address uploaded:", proofOfAddressUrl);
+      }
+}
+
 if (userId) {
   const profileData = {
     user_id: userId,
@@ -127,9 +217,9 @@ if (userId) {
     phone: formData.phone,
     address: formData.address,
     services_offered: formData.role === 'provider' ? formData.services_offered : null,
-    certificate: formData.role === 'provider' ? formData.certificate?.name : null,
-    valid_id: formData.role === 'provider' ? formData.valid_id?.name : null,
-    proof_of_address: formData.role === 'provider' ? formData.proof_of_address?.name : null,
+    certificate: certificateUrl,
+    valid_id: validIdUrl,
+    proof_of_address: proofOfAddressUrl,
     status: formData.role === 'provider' ? 'Pending' : 'Approved', // <-- Always "Pending" for providers
   };
 
@@ -359,11 +449,16 @@ if (userId) {
                   <input
                     type="file"
                     name="certificate"
-                    accept="application/pdf,image/*"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
                     onChange={handleFileChange}
                     className={styles.fileInput}
                   />
-                  {formData.certificate && <span className={styles.fileName}>{formData.certificate.name}</span>}
+                  {formData.certificate && (
+                    <div className={styles.fileInfo}>
+                      <span className={styles.fileName}>📄 {formData.certificate.name}</span>
+                      <span className={styles.fileSize}>({(formData.certificate.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                  )}
                   {formErrors.certificate && <span className={styles.errorMsg}>{formErrors.certificate}</span>}
                 </div>
                 <div className={styles.requirementsSection}>
@@ -375,11 +470,16 @@ if (userId) {
                   <input
                     type="file"
                     name="valid_id"
-                    accept="application/pdf,image/*"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
                     onChange={handleFileChange}
                     className={styles.fileInput}
                   />
-                  {formData.valid_id && <span className={styles.fileName}>{formData.valid_id.name}</span>}
+                  {formData.valid_id && (
+                    <div className={styles.fileInfo}>
+                      <span className={styles.fileName}>📄 {formData.valid_id.name}</span>
+                      <span className={styles.fileSize}>({(formData.valid_id.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                  )}
                   {formErrors.valid_id && <span className={styles.errorMsg}>{formErrors.valid_id}</span>}
                 </div>
                 <div className={styles.requirementsSection}>
@@ -391,11 +491,16 @@ if (userId) {
                   <input
                     type="file"
                     name="proof_of_address"
-                    accept="application/pdf,image/*"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
                     onChange={handleFileChange}
                     className={styles.fileInput}
                   />
-                  {formData.proof_of_address && <span className={styles.fileName}>{formData.proof_of_address.name}</span>}
+                  {formData.proof_of_address && (
+                    <div className={styles.fileInfo}>
+                      <span className={styles.fileName}>📄 {formData.proof_of_address.name}</span>
+                      <span className={styles.fileSize}>({(formData.proof_of_address.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                  )}
                   {formErrors.proof_of_address && <span className={styles.errorMsg}>{formErrors.proof_of_address}</span>}
                 </div>
                 <div className={styles.requirementsNote}>

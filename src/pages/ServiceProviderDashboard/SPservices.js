@@ -11,6 +11,8 @@ const ServiceOffered = () => {
   const [inactiveServices, setInactiveServices] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [showInactiveServices, setShowInactiveServices] = useState(false);
+  const [userStatus, setUserStatus] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     location: '',
@@ -29,8 +31,41 @@ const ServiceOffered = () => {
     }));
   };
 
+  // Check user status and role
+  const checkUserStatus = async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('User fetch error:', userError);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('status, role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      return;
+    }
+
+    setUserStatus(profile.status);
+    setUserRole(profile.role);
+  };
+
+  useEffect(() => {
+    checkUserStatus();
+  }, []);
+
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  // Check if user is approved
+  if (userStatus !== 'Approved' && userStatus !== 'Active') {
+    alert("You cannot add services while your account is pending approval or suspended.");
+    return;
+  }
 
   const { name, location, serviceType, contactNumber, price, latitude, longitude, id } = formData;
 
@@ -290,6 +325,26 @@ const handleReactivate = async (id) => {
       <div className="services-header">
         <h3>Services Offered</h3>
         <p>Manage your pet care services and offerings</p>
+        
+        {/* Status-based messaging */}
+        {userStatus === 'Pending' && (
+          <div className="status-message pending">
+            <p>⏳ Your account is pending approval. You cannot add services until your account is approved by an admin.</p>
+          </div>
+        )}
+        
+        {userStatus === 'Suspended' && (
+          <div className="status-message suspended">
+            <p>🚫 Your account has been suspended. Please contact support for assistance.</p>
+          </div>
+        )}
+        
+        {userStatus === 'Rejected' && (
+          <div className="status-message rejected">
+            <p>❌ Your application has been rejected. Please contact support for more information.</p>
+          </div>
+        )}
+        
         <div className="services-controls">
           <button 
             className={`toggle-btn ${!showInactiveServices ? 'active' : ''}`}
@@ -304,8 +359,14 @@ const handleReactivate = async (id) => {
             Inactive Services ({inactiveServices.length})
           </button>
           <button 
-            className="add-service-btn"
+            className={`add-service-btn ${(userStatus !== 'Approved' && userStatus !== 'Active') ? 'disabled' : ''}`}
             onClick={async () => {
+              // Check status before allowing service addition
+              if (userStatus !== 'Approved' && userStatus !== 'Active') {
+                alert("You cannot add services while your account is pending approval or suspended.");
+                return;
+              }
+
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     console.error("User fetch failed:", userError);
@@ -335,6 +396,7 @@ const handleReactivate = async (id) => {
 
   setShowForm(true);
 }}
+            disabled={userStatus !== 'Approved' && userStatus !== 'Active'}
           >
             <img src="Icons/check.svg" alt="Add" />
             Add New Service
@@ -513,6 +575,32 @@ const handleReactivate = async (id) => {
           services.length === 0 ? (
             <div className="empty-state">
               <img src="Images/dog-cat.png" alt="No services" />
+              {userStatus === 'Pending' ? (
+                <>
+                  <h4>Account Pending Approval</h4>
+                  <p>You cannot add services until your account is approved by an admin.</p>
+                  <div className="status-info">
+                    <p>⏳ Please wait for admin approval to start offering services.</p>
+                  </div>
+                </>
+              ) : userStatus === 'Suspended' ? (
+                <>
+                  <h4>Account Suspended</h4>
+                  <p>Your account has been suspended. Please contact support for assistance.</p>
+                  <div className="status-info">
+                    <p>🚫 You cannot add or manage services while suspended.</p>
+                  </div>
+                </>
+              ) : userStatus === 'Rejected' ? (
+                <>
+                  <h4>Application Rejected</h4>
+                  <p>Your service provider application has been rejected.</p>
+                  <div className="status-info">
+                    <p>❌ Please contact support for more information about the rejection.</p>
+                  </div>
+                </>
+              ) : (
+                <>
               <h4>No active services</h4>
               <p>Start by adding your first service offering</p>
               <button 
@@ -545,10 +633,11 @@ const handleReactivate = async (id) => {
 
   setShowForm(true);
 }}
-
               >
                 Add Your First Service
               </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="services-grid">

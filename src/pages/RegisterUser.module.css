@@ -83,6 +83,7 @@ html, body {
   text-shadow: 0 2px 8px rgba(44,156,255,0.10), 0 1px 0 #fff;
   background: linear-gradient(90deg, #10b981 30%, #2d8cff 70%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -392,10 +393,32 @@ html, body {
   margin-bottom: 0.1rem;
 }
 .fileName {
-  font-size: 0.95rem;
   color: #2563eb;
-  margin-top: 0.1rem;
-  margin-bottom: 0.1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  display: block;
+}
+.fileInfo {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.fileInfo .fileName {
+  color: #0369a1;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.fileSize {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 400;
 }
 .requirementsNote {
   background: #fffbe6;
