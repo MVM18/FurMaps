@@ -103,12 +103,27 @@ const WPetOwnerDB = () => {
 		return booking.status === 'cancelled' || isServiceCompleted || isCompletedByProvider;
 	});
 
-	// Sample data for pet owner dashboard
+	// Calculate total spent from completed bookings
+	const totalSpent = completedBookings.reduce((total, booking) => {
+		return total + (parseFloat(booking.total_price) || 0);
+	}, 0);
+
+	// Format total spent with proper currency formatting
+	const formatCurrency = (amount) => {
+		return new Intl.NumberFormat('en-PH', {
+			style: 'currency',
+			currency: 'PHP',
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0
+		}).format(amount);
+	};
+
+	// Real data for pet owner dashboard
 	const stats = [
 		{ title: "Total Bookings", value: bookings.length.toString(), icon: "bookings.svg", color: "#059669" },
-		{ title: "Ongoing Bookings", value: "8", icon: "ongoing.svg", color: "#2563eb" },
-		{ title: "Total Spent", value: "₱2,450", icon: "pesos.svg", color: "#d97706" },
-		{ title: "Completed Bookings", value: activeBookings.length.toString(), icon: "done.svg", color: "#16a34a" }
+		{ title: "Ongoing Bookings", value: activeBookings.length.toString(), icon: "ongoing.svg", color: "#2563eb" },
+		{ title: "Total Spent", value: formatCurrency(totalSpent), icon: "pesos.svg", color: "#d97706" },
+		{ title: "Completed Bookings", value: completedBookings.length.toString(), icon: "done.svg", color: "#16a34a" }
 	];
 
 	// Fetch services from database
