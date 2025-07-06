@@ -673,9 +673,6 @@ const MessagesModal = ({ onClose, receiverId}) => {
                     <img src={currentConversation?.avatar} alt={currentConversation?.name} />
                     <div className="chat-user-details">
                       <span className="chat-user-name">{currentConversation?.name || 'Messages'}</span>
-                      <span className="chat-user-status">
-                        {currentConversation?.online ? 'Online' : 'Offline'}
-                      </span>
                     </div>
                   </div>
                 </div>
