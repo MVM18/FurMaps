@@ -12,6 +12,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AboutPage from './pages/AboutPage';
 import ProviderProfile from './pages/PetOwner/ProviderProfile';
 
+
+
 // Custom hook to handle route changes
 const useRouteChange = () => {
   const location = useLocation();
@@ -33,21 +35,18 @@ const AppContent = () => {
   const isLoading = useRouteChange();
 
   return (
+    
     <Routes>
       <Route path="/" element={
         <PageTransition isLoading={isLoading}>
           <Home />
         </PageTransition>
       } />
-      <Route path="/RegisterUser" element={
-        <PageTransition isLoading={isLoading}>
-          <RegisterUser />
-        </PageTransition>
+      <Route path="/RegisterUser" element={          
+          <RegisterUser />        
       } /> 
-      <Route path="/LoginUser" element={
-        <PageTransition isLoading={isLoading}>
+      <Route path="/LoginUser" element={   
           <LoginUser />
-        </PageTransition>
       } />
       <Route path="/HomepagePetOwner" element={
         <PageTransition isLoading={isLoading}>
@@ -71,7 +70,7 @@ const AppContent = () => {
         </PageTransition>
       } />
 
-                  <Route path="/AboutPage" element={
+        <Route path="/AboutPage" element={
         <PageTransition isLoading={isLoading}>
           <AboutPage />
         </PageTransition>
@@ -82,6 +81,7 @@ const AppContent = () => {
           <ProviderProfile />
         </PageTransition>
       } />
+
     </Routes>
   );
 };

@@ -6,7 +6,7 @@ const LoadingScreen = () => {
     <div className="loading-overlay">
       <div className="loading-container">
         <div className="loading-logo">
-          <img src="/Images/paw-logo.png" alt="FurMaps Logo" />
+          <img src="/Images/gps.png" alt="FurMaps Logo" />
           <span className="logo-text">FurMaps</span>
         </div>
         {/* Spinner removed as requested */}

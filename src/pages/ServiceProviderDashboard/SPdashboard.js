@@ -264,8 +264,8 @@ const ProviderDashboard = () => {
       {/* Header */}
       <header className="dashboard-header">
         <div className="logo-container">
-          <img className="logo-icon" src="Images/gps.png" alt="Logo" />
-          <h1 className="logo-text">FurMaps</h1>
+          <img className="logo-Icon" src="Images/gps.png" alt="Logo" />
+          <h1 className="logo-Text">FurMaps</h1>
         </div>
         
         <nav className="nav-menu">
@@ -365,30 +365,7 @@ const ProviderDashboard = () => {
               <h2>Provider Dashboard</h2>
               <p>Manage your services and bookings</p>
             </div>
-            <button 
-              onClick={() => providerId && fetchStats(providerId)}
-              disabled={isLoadingStats}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.5rem 1rem',
-                background: 'linear-gradient(90deg, #10b981, #3b82f6)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                opacity: isLoadingStats ? 0.6 : 1,
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
-              </svg>
-              {isLoadingStats ? 'Refreshing...' : 'Refresh Stats'}
-            </button>
+         
           </div>
         </div>
 

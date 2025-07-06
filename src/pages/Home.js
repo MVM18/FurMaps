@@ -32,9 +32,8 @@ const Homepage = () => {
         <div className={styles.brandLogo}>
           
         </div>
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '5rem', alignItems: 'center' }}>
           <div className={styles.navItem}>About Us</div>
-          <div className={styles.navItem}>Services</div>
           <div className={styles.navItem} onClick={handleLogin} style={{cursor:'pointer'}}>Log in</div>
         </div>
       </nav>
@@ -88,8 +87,6 @@ const Homepage = () => {
 
       {/* CTA Buttons */}
       <section className={styles.ctaSection}>
-        <button className={styles.browseServicesBtn}>Browse Services</button>
-        <button className={styles.beAServiceBtn}>Be a Service Provider</button>
       </section>
 
       {/* Info/Features Section */}
