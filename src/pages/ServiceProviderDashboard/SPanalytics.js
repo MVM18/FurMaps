@@ -266,9 +266,7 @@ const SPAnalytics = () => {
           <div className="stat-content">
             <div className="stat-header">
               <h3 className="stat-title">Revenue</h3>
-              <svg className="stat-icon" viewBox="0 0 24 24">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-              </svg>
+              <img className="stat-icon" src="Icons/peso-sign.svg" alt="Revenue Icon" />
             </div>
             <div className="stat-value">{formatCurrency(analyticsData.revenue.value)}</div>
             <div className="stat-change">
@@ -332,10 +330,6 @@ const SPAnalytics = () => {
         <div className="chart-card main-chart">
           <div className="chart-header">
             <h3 className="chart-title">Revenue & Bookings Trend</h3>
-            <div className="chart-controls">
-              <button className="chart-control active">Revenue</button>
-              <button className="chart-control">Bookings</button>
-            </div>
           </div>
           <div className="chart-content">
             <div className="chart-container">
