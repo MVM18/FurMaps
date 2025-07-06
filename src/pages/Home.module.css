@@ -577,6 +577,246 @@ Responsive breakpoints:
     gap: 0.5rem;
     margin-bottom: 0.5rem;
   }
+  .navMenu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.5rem;
+    position: static;
+  }
+  .navMenu > div {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: flex-start !important;
+  }
+  .navItem {
+    font-size: 0.95rem;
+    padding: 0.3rem 0;
+  }
+  .furmapsHeader {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    text-align: left !important;
+  }
+  .highlightsSection, .infoSection {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 1rem !important;
+    padding: 1.2rem 0.3rem !important;
+    border-radius: 1rem !important;
+  }
+  .highlightCard, .infoCard {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 0.95rem !important;
+    padding: 1rem 0.3rem !important;
+    margin-bottom: 0.7rem !important;
+  }
+  .footer {
+    padding: 1rem 0.3rem !important;
+    gap: 0.7rem !important;
+  }
+  .footerLinks, .footerBrand, .footerContact, .footerCopyright {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
+    width: 100% !important;
+  }
+  .footerLinks a {
+    font-size: 0.95rem !important;
+  }
+  .navMenu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.5rem 0 0.5rem;
+    position: static;
+  }
+  .navMenu > div {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: flex-start !important;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .navItem {
+    font-size: 0.95rem;
+    padding: 0.3rem 0;
+    margin-bottom: 0.2rem;
+  }
+  .furmapsHeader {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    text-align: left !important;
+    margin-bottom: 1.2rem;
+  }
+  .heroSection {
+    padding: 1.2rem 0.3rem 0.5rem 0.3rem !important;
+    align-items: center !important;
+  }
+  .heroContentWrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 0 0.5rem !important;
+    width: 100% !important;
+  }
+  .heroTextBlock {
+    min-width: 0;
+    width: 100%;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .getStartedBtn {
+    display: block;
+    margin: 1.2rem auto 0 auto !important;
+    width: 80%;
+    max-width: 260px;
+  }
+  .heroImageWrapper {
+    min-width: 80px;
+    max-width: 120px;
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    margin: 1.5rem 0 0.5rem 0 !important;
+  }
+  .heroImage {
+    max-width: 100px;
+    margin: 0 auto !important;
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  .navMenu {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem 0.5rem 0.5rem 0.5rem;
+    position: static;
+    width: 100%;
+  }
+  .navMenu > div {
+    flex-direction: row !important;
+    gap: 2rem !important;
+    align-items: center !important;
+    margin: 0;
+    width: 100%;
+    justify-content: center !important;
+  }
+  .navItem {
+    font-size: 1rem;
+    padding: 0.3rem 0.7rem;
+    margin-bottom: 0;
+    text-align: center;
+  }
+  .furmapsHeader {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
+    margin-bottom: 1.2rem;
+    width: 100%;
+  }
+  .furmaps, .yourPetsComfort {
+    text-align: center !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+  .heroSection {
+    padding: 1.2rem 0.3rem 0.5rem 0.3rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  .heroContentWrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1.2rem !important;
+    padding: 0 0.5rem !important;
+    width: 100% !important;
+  }
+  .heroTextBlock {
+    min-width: 0;
+    width: 100%;
+    align-items: center !important;
+    text-align: center !important;
+    margin-bottom: 0.7rem;
+  }
+  .heroTitle {
+    font-size: 2rem !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0.7rem !important;
+    word-break: break-word;
+  }
+  .heroSubtitle {
+    font-size: 1rem !important;
+    margin-bottom: 1.2rem !important;
+  }
+  .getStartedBtn {
+    display: block;
+    margin: 0 auto 1.5rem auto !important;
+    width: 90%;
+    max-width: 260px;
+  }
+  .heroImageWrapper {
+    min-width: 80px;
+    max-width: 120px;
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    margin: 0 0 1.5rem 0 !important;
+  }
+  .heroImage {
+    max-width: 100px;
+    margin: 0 auto !important;
+    display: block;
+  }
+  .highlightsSection, .infoSection {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 1rem !important;
+    padding: 1.2rem 0.3rem !important;
+    border-radius: 1rem !important;
+    align-items: center !important;
+  }
+  .highlightCard, .infoCard {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 0.95rem !important;
+    padding: 1rem 0.3rem !important;
+    margin-bottom: 1rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .footer {
+    padding: 1rem 0.3rem !important;
+    gap: 0.7rem !important;
+  }
+  .footerLinks, .footerBrand, .footerContact, .footerCopyright {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
+    width: 100% !important;
+  }
+  .footerLinks a {
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .heroSubtitle {
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: block;
+  }
 }
 
 .homepageChild {
@@ -2253,6 +2493,284 @@ Responsive breakpoints:
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
+  }
+  .navMenu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.5rem;
+    position: static;
+  }
+  .navMenu > div {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: flex-start !important;
+  }
+  .navItem {
+    font-size: 0.95rem;
+    padding: 0.3rem 0;
+  }
+  .furmapsHeader {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    text-align: left !important;
+  }
+  .highlightsSection, .infoSection {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 1rem !important;
+    padding: 1.2rem 0.3rem !important;
+    border-radius: 1rem !important;
+  }
+  .highlightCard, .infoCard {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 0.95rem !important;
+    padding: 1rem 0.3rem !important;
+    margin-bottom: 0.7rem !important;
+  }
+  .footer {
+    padding: 1rem 0.3rem !important;
+    gap: 0.7rem !important;
+  }
+  .footerLinks, .footerBrand, .footerContact, .footerCopyright {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
+    width: 100% !important;
+  }
+  .footerLinks a {
+    font-size: 0.95rem !important;
+  }
+  .navMenu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.7rem 0.5rem 0 0.5rem;
+    position: static;
+  }
+  .navMenu > div {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: flex-start !important;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .navItem {
+    font-size: 0.95rem;
+    padding: 0.3rem 0;
+    margin-bottom: 0.2rem;
+  }
+  .furmapsHeader {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    text-align: left !important;
+    margin-bottom: 1.2rem;
+  }
+  .heroSection {
+    padding: 1.2rem 0.3rem 0.5rem 0.3rem !important;
+    align-items: center !important;
+  }
+  .heroContentWrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 0 0.5rem !important;
+    width: 100% !important;
+  }
+  .heroTextBlock {
+    min-width: 0;
+    width: 100%;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .getStartedBtn {
+    display: block;
+    margin: 1.2rem auto 0 auto !important;
+    width: 80%;
+    max-width: 260px;
+  }
+  .heroImageWrapper {
+    min-width: 80px;
+    max-width: 120px;
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    margin: 1.5rem 0 0.5rem 0 !important;
+  }
+  .heroImage {
+    max-width: 100px;
+    margin: 0 auto !important;
+    display: block;
+  }
+}
+
+@media (max-width: 600px) {
+  .navMenu {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem 0.5rem 0.5rem 0.5rem;
+    position: static;
+    width: 100%;
+  }
+  .navMenu > div {
+    flex-direction: row !important;
+    gap: 2rem !important;
+    align-items: center !important;
+    margin: 0;
+    width: 100%;
+    justify-content: center !important;
+  }
+  .navItem {
+    font-size: 1rem;
+    padding: 0.3rem 0.7rem;
+    margin-bottom: 0;
+    text-align: center;
+  }
+  .furmapsHeader {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
+    margin-bottom: 1.2rem;
+    width: 100%;
+  }
+  .furmaps, .yourPetsComfort {
+    text-align: center !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+  .heroSection {
+    padding: 1.2rem 0.3rem 0.5rem 0.3rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  .heroContentWrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1.2rem !important;
+    padding: 0 0.5rem !important;
+    width: 100% !important;
+  }
+  .heroTextBlock {
+    min-width: 0;
+    width: 100%;
+    align-items: center !important;
+    text-align: center !important;
+    margin-bottom: 0.7rem;
+  }
+  .heroTitle {
+    font-size: 2rem !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0.7rem !important;
+    word-break: break-word;
+  }
+  .heroSubtitle {
+    font-size: 1rem !important;
+    margin-bottom: 1.2rem !important;
+  }
+  .getStartedBtn {
+    display: block;
+    margin: 0 auto 1.5rem auto !important;
+    width: 90%;
+    max-width: 260px;
+  }
+  .heroImageWrapper {
+    min-width: 80px;
+    max-width: 120px;
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    margin: 0 0 1.5rem 0 !important;
+  }
+  .heroImage {
+    max-width: 100px;
+    margin: 0 auto !important;
+    display: block;
+  }
+  .highlightsSection, .infoSection {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 1rem !important;
+    padding: 1.2rem 0.3rem !important;
+    border-radius: 1rem !important;
+    align-items: center !important;
+  }
+  .highlightCard, .infoCard {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 0.95rem !important;
+    padding: 1rem 0.3rem !important;
+    margin-bottom: 1rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  .footer {
+    padding: 1rem 0.3rem !important;
+    gap: 0.7rem !important;
+  }
+  .footerLinks, .footerBrand, .footerContact, .footerCopyright {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
+    width: 100% !important;
+  }
+  .footerLinks a {
+    font-size: 0.95rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .heroSubtitle {
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    display: block;
+  }
+}
+
+.mobileTopBranding {
+  display: block;
+  text-align: center;
+  margin-top: 1rem;
+}
+.mobileNavMenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+.mobileLargeHeroImage {
+  /* default: no effect, only for mobile */
+}
+@media (max-width: 600px) {
+  .mobileTopBranding {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  .mobileNavMenu {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    margin-bottom: 1.2rem !important;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .mobileLargeHeroImage {
+    max-width: 180px !important;
+    width: 70vw !important;
+    height: auto !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 1.5rem !important;
+    display: block;
   }
 }
 
