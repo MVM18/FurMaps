@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './BookingModal.css';
+import ProviderReviews from './ProviderReviews';
+import ProviderProfile from '../pages/PetOwner/ProviderProfile';
 
 const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   const [bookingData, setBookingData] = useState({
@@ -250,34 +252,7 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                   <div className="loading-spinner"></div>
                   <p>Loading provider information...</p>
                 </div>
-              ) : provider && (
-                <div className="provider-section">
-                  <div className="provider-header">
-                    <h4>About the Provider</h4>
-                  </div>
-                  <div className="provider-profile">
-                    <div className="provider-avatar">
-                      <img 
-                        src={provider.profile_picture || '/images/user.png'} 
-                        alt={`${provider.first_name} ${provider.last_name}`}
-                        onError={(e) => {
-                          e.target.src = '/images/user.png';
-                        }}
-                      />
-                    </div>
-                    <div className="provider-info">
-                      <h5>{provider.first_name} {provider.last_name}</h5>
-                      <div className="provider-rating">
-                        <span className="stars">★★★★★</span>
-                        <span className="rating-text">4.9 (89 reviews)</span>
-                      </div>
-                      {provider.bio && (
-                        <p className="provider-bio">{provider.bio}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              ) : null}
 
               {/* Gallery Section */}
               {galleryImages.length > 0 && (
