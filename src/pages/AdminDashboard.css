@@ -805,22 +805,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 12px;
-  background: linear-gradient(135deg, #10b981 0%, #2563eb 100%);
-  margin-right: 10px;
 }
 .furmapsAdminLogoText {
-  font-weight: 700;
-  font-size: 1.4rem;
-  letter-spacing: 0.5px;
-  background: linear-gradient(90deg, #10b981 0%, #2563eb 100%);
+  font-size: 1.5rem;
+  font-family: 'Fredoka One', sans-serif;
+  background: linear-gradient(90deg, #059669, #2563eb);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
-  color: transparent;
-  line-height: 1;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
 }
 .header-actions {
   display: flex;

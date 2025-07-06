@@ -260,14 +260,9 @@ const AdminDashboard = () => {
       <div className="dashboard-header">
         <div className="header-content">
           <div className="logo">
-            <span className="logo-icon">
-              {/* Inline SVG heart icon */}
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 19s-7-4.35-7-9.5A4.5 4.5 0 0 1 11 5.5a4.5 4.5 0 0 1 7 4.01C18 14.65 11 19 11 19z" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
+             <img className="logo-icon" src="Images/gps.png" alt="Logo" />
             <span className="furmapsAdminLogoText">
-              FurMaps Admin
+              FurMaps
             </span>
           </div>
           <div className="header-actions">
@@ -387,21 +382,13 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   {/* Document completeness badge */}
-                  <div className="provider-doc-status">
-                    {allDocsUploaded ? (
-                      <span className="doc-status-badge complete">All required documents uploaded</span>
-                    ) : (
-                      <span className="doc-status-badge incomplete">
-                        Missing: {missingDocs.join(', ')}
-                      </span>
-                    )}
-                  </div>
+                 
                   <div className="submitted-documents-title">Submitted Documents:</div>
                   <div className="documents-row">
                     {provider.documents.map((doc) => (
                       <div className={`document-card ${doc.color}`} key={`${provider.user_id}-${doc.type}`}>
                         <div className="document-header">
-                          <img src={doc.icon.startsWith('/') ? doc.icon : `/Images/${doc.icon.replace(/^.*[\\/]/, '')}`} alt="doc" />
+                         
                           <div className={`document-title${doc.color !== 'blue' ? ' ' + doc.color : ''}`}>{doc.type}</div>
                         </div>
                         <div className="document-filename">{doc.filename}</div>
