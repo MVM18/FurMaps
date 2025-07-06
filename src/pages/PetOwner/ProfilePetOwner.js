@@ -322,9 +322,7 @@ console.log('User ID for update:', user.id);
 
   return (
     <div className={styles.profileWrapper}>
-      {/* Loading Screen */}
-      {isLoading && <LoadingScreen />}
-
+     
       {/* Toast Notification */}
       {showToast && (
         <Toast
@@ -336,7 +334,7 @@ console.log('User ID for update:', user.id);
       {/* Header */}
       <header className={styles.profileHeader}>
         <div className={styles.logoContainer}>
-          <img className={styles.logoIcon} src="/images/paw-logo.png" alt="Logo" />
+          <img className={styles.logoIcon} src="/images/gps.png" alt="Logo" />
           <h1 className={styles.logoText}>FurMaps</h1>
         </div>
         
@@ -352,21 +350,7 @@ console.log('User ID for update:', user.id);
         </nav>
       </header>
 
-      {/* Tabs - directly below header, right under FurMaps */}
-      <div className={styles.tabNav}>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'profile' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('profile')}
-        >
-          <span role="img" aria-label="Profile">👤</span> Profile
-        </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'pets' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('pets')}
-        >
-          <span role="img" aria-label="My Pets">🐾</span> My Pets ({pets.length})
-        </button>
-      </div>
+    
 
       {/* Main Content */}
       <main className={styles.profileContent}>
@@ -545,81 +529,10 @@ console.log('User ID for update:', user.id);
               </div>
             </div>
 
-            {/* Account Stats */}
-            <div className={styles.statsSection}>
-              <h3>Account Statistics</h3>
-              <div className={styles.statsGrid}>
-                <div className={styles.statCard}>
-                  <div className={styles.statInfo}>
-                    <p className={styles.statTitle}>Total Bookings</p>
-                    <h4 className={styles.statValue}>15</h4>
-                  </div>
-                  <img src="/Icons/bookings.svg" alt="Bookings" className={styles.statIcon} />
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statInfo}>
-                    <p className={styles.statTitle}>Favorite Providers</p>
-                    <h4 className={styles.statValue}>8</h4>
-                  </div>
-                  <img src="/Icons/star.svg" alt="Favorites" className={styles.statIcon} />
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statInfo}>
-                    <p className={styles.statTitle}>This Month</p>
-                    <h4 className={styles.statValue}>₱2,450</h4>
-                  </div>
-                  <img src="/Icons/pesos.svg" alt="Spending" className={styles.statIcon} />
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statInfo}>
-                    <p className={styles.statTitle}>Active Services</p>
-                    <h4 className={styles.statValue}>3</h4>
-                  </div>
-                  <img src="/Icons/user.svg" alt="Services" className={styles.statIcon} />
-                </div>
-              </div>
-            </div>
+           
           </>
         )}
-        {activeTab === 'pets' && (
-          <div className={styles.petsTabWrapper}>
-            <div className={styles.petsHeader}>
-              <h2>My Pets</h2>
-              <p>Manage your pet information for service providers</p>
-              <button className={styles.addPetButton} onClick={handleAddPet}>
-                <span>+ Add Pet</span>
-              </button>
-            </div>
-            <div className={styles.petsGrid}>
-              {pets.map((pet) => (
-                <div key={pet.id} className={styles.petCard}>
-                  <div className={styles.petCardHeader}>
-                    <div className={styles.petAvatar}>
-                      <img src={pet.image || '/images/user.png'} alt={pet.name} />
-                    </div>
-                    <div className={styles.petInfoMain}>
-                      <div className={styles.petName}>{pet.name}</div>
-                      <div className={styles.petBreed}>{pet.breed}</div>
-                      <div className={styles.petDetails}>{pet.age} years • {pet.weight} lbs</div>
-                    </div>
-                    <button className={styles.deletePetButton} onClick={() => handleDeletePet(pet.id)} title="Delete">
-                      <span style={{fontSize: '1.25rem', color: '#ef4444'}}>×</span>
-                    </button>
-                  </div>
-                  <div className={styles.petCardBody}>
-                    <div className={styles.petSection}><strong>Temperament</strong><br />{pet.temperament}</div>
-                    <div className={styles.petSection}><strong>Medical Notes</strong><br />{pet.medicalNotes}</div>
-                  </div>
-                  <div className={styles.petCardFooter}>
-                    <button className={styles.editPetButton} onClick={() => handleEditPet(pet)}>
-                      <span role="img" aria-label="Edit">✏️</span> Edit Pet Info
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      
       </main>
     </div>
   );
