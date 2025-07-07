@@ -28,6 +28,8 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
   const [reviewCount, setReviewCount] = useState(0);
   const [providerServices, setProviderServices] = useState([]);
   const [showReviews, setShowReviews] = useState(false);
+  const [imageModalUrl, setImageModalUrl] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -238,13 +240,89 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
           <div><span className={styles['info-label']}>Services:</span> <span className={styles['info-value']}>{provider.services_offered}</span></div>
         )}
         {provider.certificate && (
-          <div><span className={styles['info-label']}>Certificate:</span> <span className={styles['info-value']}>{provider.certificate}</span></div>
+          <div style={{ marginBottom: 12 }}>
+            <span className={styles['info-label']}>Certificate:</span>
+            {isImageUrl(provider.certificate) ? (
+              <button
+                onClick={() => { setImageModalUrl(provider.certificate); setModalVisible(true); }}
+                style={{
+                  marginLeft: 12,
+                  background: '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 8px rgba(37,99,235,0.2)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#1d4ed8';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,246,0.3)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#2563eb';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(37,99,235,0.2)';
+                }}
+              >
+                <span style={{ fontSize: 16 }}>📷</span>
+                View Certificate
+              </button>
+            ) : (
+              <span className={styles['info-value']}>{provider.certificate}</span>
+            )}
+          </div>
         )}
-        {provider.valid_id && (
+        {/*provider.valid_id && (
           <div><span className={styles['info-label']}>Valid ID:</span> <span className={styles['info-value']}>{provider.valid_id}</span></div>
-        )}
+        )*/}
         {provider.proof_of_address && (
-          <div><span className={styles['info-label']}>Proof of Address:</span> <span className={styles['info-value']}>{provider.proof_of_address}</span></div>
+          <div style={{ marginBottom: 12 }}>
+            <span className={styles['info-label']}>Proof of Address:</span>
+            {isImageUrl(provider.proof_of_address) ? (
+              <button
+                onClick={() => { setImageModalUrl(provider.proof_of_address); setModalVisible(true); }}
+                style={{
+                  marginLeft: 12,
+                  background: '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 8px rgba(37,99,235,0.2)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#1d4ed8';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,246,0.3)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#2563eb';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(37,99,235,0.2)';
+                }}
+              >
+                <span style={{ fontSize: 16 }}>📷</span>
+                View Proof
+              </button>
+            ) : (
+              <span className={styles['info-value']}>{provider.proof_of_address}</span>
+            )}
+          </div>
         )}
       </div>
       <div className={styles['bio']}>
@@ -277,8 +355,25 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
           </div>
         )}
       </div>
+      {imageModalUrl && modalVisible && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(30,41,59,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeInBg 0.25s' }} onClick={() => { setModalVisible(false); setTimeout(() => setImageModalUrl(null), 200); }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 18, maxWidth: '92vw', maxHeight: '92vh', boxShadow: '0 8px 32px rgba(37,99,235,0.18)', position: 'relative', animation: 'fadeInImg 0.32s' }} onClick={e => e.stopPropagation()}>
+            <button style={{ position: 'absolute', top: 10, right: 16, fontSize: 32, background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', zIndex: 2, borderRadius: 8, transition: 'background 0.18s' }} onMouseEnter={e => e.currentTarget.style.background = '#e0e7ef'} onMouseLeave={e => e.currentTarget.style.background = 'none'} onClick={() => { setModalVisible(false); setTimeout(() => setImageModalUrl(null), 200); }}>&times;</button>
+            <img src={imageModalUrl} alt="Preview" style={{ maxWidth: '80vw', maxHeight: '80vh', borderRadius: 12, display: 'block', margin: '0 auto', boxShadow: '0 2px 12px #2563eb22', animation: 'fadeInImg 0.32s' }} />
+          </div>
+                     <style>{`
+             @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
+             @keyframes fadeInImg { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+           `}</style>
+        </div>
+      )}
     </div>
   );
 };
+
+// Helper function to check if a string is an image URL
+function isImageUrl(url) {
+  return typeof url === 'string' && url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i);
+}
 
 export default ProviderProfile; 

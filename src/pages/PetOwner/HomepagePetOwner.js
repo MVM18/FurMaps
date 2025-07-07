@@ -22,6 +22,70 @@ function timeAgo(date) {
 	return then.toLocaleDateString();
 }
 
+// Helper function to format dates and times properly for display
+function formatBookingDateTime(dateTimeString) {
+	if (!dateTimeString) return { date: '-', time: '' };
+	
+	// Parse the datetime string - treat it as local time since it's likely stored in user's timezone
+	const date = new Date(dateTimeString);
+	
+	// Check if the date is valid
+	if (isNaN(date.getTime())) {
+		return { date: '-', time: '' };
+	}
+	
+	// Format date (e.g., "7/9/2025")
+	const dateStr = date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric'
+	});
+	
+	// Format time (e.g., "5:00 AM")
+	const timeStr = date.toLocaleTimeString('en-US', {
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: true
+	});
+	
+	return { date: dateStr, time: timeStr };
+}
+
+// Function that treats the time as local time (removes timezone offset)
+function formatBookingDateTimeUTC(dateTimeString) {
+	if (!dateTimeString) return { date: '-', time: '' };
+	
+	// Remove the timezone offset if present and treat as local time
+	let cleanDateTime = dateTimeString;
+	if (dateTimeString.includes('+')) {
+		cleanDateTime = dateTimeString.split('+')[0];
+	}
+	
+	// Create date object treating the time as local time (no timezone conversion)
+	const date = new Date(cleanDateTime);
+	
+	// Check if the date is valid
+	if (isNaN(date.getTime())) {
+		return { date: '-', time: '' };
+	}
+	
+	// Format date (e.g., "7/9/2025")
+	const dateStr = date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric'
+	});
+	
+	// Format time (e.g., "5:00 AM")
+	const timeStr = date.toLocaleTimeString('en-US', {
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: true
+	});
+	
+	return { date: dateStr, time: timeStr };
+}
+
 
 const WPetOwnerDB = () => {
 	const navigate = useNavigate();
@@ -942,11 +1006,9 @@ const handleMessage = async (service) => {
 										
 										let statusLabel = actualStatus;
 										if (statusLabel) statusLabel = statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1);
-										// Format dates/times
-										const startDate = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleDateString() : '-';
-										const startTime = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-										const endDate = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleDateString() : '-';
-										const endTime = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+										// Format dates/times using the UTC helper function
+										const startDateTime = formatBookingDateTimeUTC(booking.service_start_datetime);
+										const endDateTime = formatBookingDateTimeUTC(booking.service_end_datetime);
 										return (
 											<div
 												key={booking.id}
@@ -1006,7 +1068,7 @@ const handleMessage = async (service) => {
 														<div className={styles.detailRow}>
 															<span className={styles.detailLabel}>📅 Date:</span>
 															<span className={styles.detailValue}>
-																{startDate} {startTime} - {endTime}
+																{startDateTime.date} {startDateTime.time} - {endDateTime.time}
 															</span>
 														</div>
 														{booking.special_instructions && (
@@ -1108,11 +1170,9 @@ const handleMessage = async (service) => {
 											}
 										}
 										
-										// Format dates and times
-										const startDate = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleDateString() : '-';
-										const startTime = booking.service_start_datetime ? new Date(booking.service_start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-										const endDate = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleDateString() : '-';
-										const endTime = booking.service_end_datetime ? new Date(booking.service_end_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+										// Format dates and times using the UTC helper function
+										const startDateTime = formatBookingDateTimeUTC(booking.service_start_datetime);
+										const endDateTime = formatBookingDateTimeUTC(booking.service_end_datetime);
 										
 										return (
 											<div 
@@ -1150,11 +1210,11 @@ const handleMessage = async (service) => {
 													</div>
 													<div className={styles.detailRow}>
 														<span className={styles.detailLabel}>📅 Date:</span>
-														<span className={styles.detailValue}>{startDate}</span>
+														<span className={styles.detailValue}>{startDateTime.date}</span>
 													</div>
 													<div className={styles.detailRow}>
 														<span className={styles.detailLabel}>⏰ Time:</span>
-														<span className={styles.detailValue}>{startTime} - {endTime}</span>
+														<span className={styles.detailValue}>{startDateTime.time} - {endDateTime.time}</span>
 													</div>
 													<div className={styles.detailRow}>
 														<span className={styles.detailLabel}>💰 Price:</span>
@@ -1321,9 +1381,15 @@ const handleMessage = async (service) => {
 								<div style={{ fontWeight: 600, color: '#374151' }}>Status:</div>
 								<div style={{ textTransform: 'capitalize' }}>{selectedBookingDetail.status}</div>
 								<div style={{ fontWeight: 600, color: '#374151' }}>Start:</div>
-								<div>{selectedBookingDetail.service_start_datetime && new Date(selectedBookingDetail.service_start_datetime).toLocaleString()}</div>
+								<div>{selectedBookingDetail.service_start_datetime && (() => {
+									const startDateTime = formatBookingDateTimeUTC(selectedBookingDetail.service_start_datetime);
+									return `${startDateTime.date} ${startDateTime.time}`;
+								})()}</div>
 								<div style={{ fontWeight: 600, color: '#374151' }}>End:</div>
-								<div>{selectedBookingDetail.service_end_datetime && new Date(selectedBookingDetail.service_end_datetime).toLocaleString()}</div>
+								<div>{selectedBookingDetail.service_end_datetime && (() => {
+									const endDateTime = formatBookingDateTimeUTC(selectedBookingDetail.service_end_datetime);
+									return `${endDateTime.date} ${endDateTime.time}`;
+								})()}</div>
 								<div style={{ fontWeight: 600, color: '#374151' }}>Contact:</div>
 								<div>{selectedBookingDetail.contact_number}</div>
 								<div style={{ fontWeight: 600, color: '#374151' }}>Location:</div>
