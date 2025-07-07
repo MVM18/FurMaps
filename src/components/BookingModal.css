@@ -514,6 +514,13 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+   background: #9ca3af;
+}
+ 
+.confirm-btn:disabled:hover {
+  box-shadow: none;
+  transform: none;
+ 
 }
 
 .loading-spinner-small {
@@ -540,6 +547,47 @@
   font-weight: 500;
   color: #1B2B49;
   margin-bottom: 0;
+}
+
+ 
+/* Availability Message Styles */
+.availability-message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid;
+}
+ 
+.availability-message.available {
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+ 
+.availability-message.unavailable {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+ 
+.availability-message.checking {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fed7aa;
+}
+ 
+.availability-message .loading-spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(217, 119, 6, 0.3);
+  border-top: 2px solid #d97706;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .gcash-modal {

@@ -61,12 +61,110 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
     fetchProviderAndGallery();
   }, [service?.provider_id]);
 
+  const [availabilityMessage, setAvailabilityMessage] = useState('');
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setBookingData(prev => ({
       ...prev,
       [name]: value
     }));
+    // Clear availability message when user changes dates
+    if (name === 'serviceStartDatetime' || name === 'serviceEndDatetime') {
+      setAvailabilityMessage('');
+    }
+  };
+
+  // Check availability when both start and end times are set
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!bookingData.serviceStartDatetime || !bookingData.serviceEndDatetime || !service?.id) {
+        setAvailabilityMessage('');
+        return;
+      }
+
+      const startDate = new Date(bookingData.serviceStartDatetime);
+      const endDate = new Date(bookingData.serviceEndDatetime);
+
+      // Don't check if end time is before start time
+      if (endDate <= startDate) {
+        setAvailabilityMessage('');
+        return;
+      }
+
+      setIsCheckingAvailability(true);
+      setAvailabilityMessage('Checking availability...');
+
+      try {
+        const conflictCheck = await checkBookingConflicts(
+          service.id,
+          bookingData.serviceStartDatetime,
+          bookingData.serviceEndDatetime
+        );
+
+        if (conflictCheck.error) {
+          setAvailabilityMessage('Unable to check availability');
+        } else if (conflictCheck.hasConflict) {
+          const conflictingBooking = conflictCheck.conflictingBookings[0];
+          const conflictStart = new Date(conflictingBooking.service_start_datetime).toLocaleString();
+          const conflictEnd = new Date(conflictingBooking.service_end_datetime).toLocaleString();
+          
+          setAvailabilityMessage(`⚠️ Time slot unavailable. There's a ${conflictingBooking.status} booking from ${conflictStart} to ${conflictEnd}.`);
+        } else {
+          setAvailabilityMessage('✅ Time slot available!');
+        }
+      } catch (error) {
+        setAvailabilityMessage('Unable to check availability');
+      } finally {
+        setIsCheckingAvailability(false);
+      }
+    };
+
+    // Debounce the availability check
+    const timeoutId = setTimeout(checkAvailability, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [bookingData.serviceStartDatetime, bookingData.serviceEndDatetime, service?.id]);
+
+  // Function to check for booking conflicts
+  const checkBookingConflicts = async (serviceId, startDateTime, endDateTime) => {
+    try {
+      // Check for existing bookings that overlap with the requested time slot
+      // We need to check for bookings that:
+      // 1. Are for the same service
+      // 2. Have a status that indicates they're active (pending, confirmed, ongoing)
+      // 3. Overlap with the requested time slot
+      const { data: conflictingBookings, error } = await supabase
+        .from('bookings')
+        .select('id, service_start_datetime, service_end_datetime, status, pet_name')
+        .eq('service_id', serviceId)
+        .in('status', ['pending', 'confirmed', 'ongoing']);
+
+      if (error) {
+        console.error('Error checking booking conflicts:', error);
+        return { hasConflict: false, error: 'Failed to check availability' };
+      }
+
+      // Filter for overlapping bookings manually
+      const overlappingBookings = (conflictingBookings || []).filter(booking => {
+        const bookingStart = new Date(booking.service_start_datetime);
+        const bookingEnd = new Date(booking.service_end_datetime);
+        const requestedStart = new Date(startDateTime);
+        const requestedEnd = new Date(endDateTime);
+
+        // Check if the time ranges overlap
+        // Two time ranges overlap if: start1 < end2 AND start2 < end1
+        return bookingStart < requestedEnd && requestedStart < bookingEnd;
+      });
+
+      return { 
+        hasConflict: overlappingBookings.length > 0,
+        conflictingBookings: overlappingBookings
+      };
+    } catch (err) {
+      console.error('Error in checkBookingConflicts:', err);
+      return { hasConflict: false, error: 'Failed to check availability' };
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -106,6 +204,7 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
       }
 
       const selectedDate = new Date(bookingData.serviceStartDatetime);
+      const selectedEndDate = new Date(bookingData.serviceEndDatetime);
       const nowPlusOneDay = new Date();
       nowPlusOneDay.setDate(nowPlusOneDay.getDate() + 1);
 
@@ -114,6 +213,31 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
         return;
       }
 
+      if (selectedEndDate <= selectedDate) {
+        setError('Service end time must be after start time.');
+        return;
+      }
+
+      // Check for booking conflicts before creating the booking
+      const conflictCheck = await checkBookingConflicts(
+        service.id,
+        bookingData.serviceStartDatetime,
+        bookingData.serviceEndDatetime
+      );
+
+      if (conflictCheck.error) {
+        setError(conflictCheck.error);
+        return;
+      }
+
+      if (conflictCheck.hasConflict) {
+        const conflictingBooking = conflictCheck.conflictingBookings[0];
+        const conflictStart = new Date(conflictingBooking.service_start_datetime).toLocaleString();
+        const conflictEnd = new Date(conflictingBooking.service_end_datetime).toLocaleString();
+
+        setError(`This time slot is already booked. There's a ${conflictingBooking.status} booking from ${conflictStart} to ${conflictEnd}. Please choose a different time.`);
+      }
+      
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert([{
@@ -328,9 +452,15 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                         min={bookingData.serviceStartDatetime}
                       />
                     </div>
-                  </div>
                 </div>
-
+                {/* Availability Check Message */}
+                  {availabilityMessage && (
+                    <div className={`availability-message ${availabilityMessage.includes('✅') ? 'available' : availabilityMessage.includes('⚠️') ? 'unavailable' : 'checking'}`}>
+                      {isCheckingAvailability && <span className="loading-spinner-small"></span>}
+                      {availabilityMessage}
+                    </div>
+                  )}
+                </div>
                 <div className="form-section">
                   <h4>Pet Information</h4>
                   <div className="form-row">
@@ -379,7 +509,6 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                     />
                   </div>
                 </div>
-
                 <div className="form-section">
                   <h4>Payment Method</h4>
                   <div className="form-row">
@@ -418,13 +547,19 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                 <div className="booking-actions">
                   <button type="button" className="cancel-btn" onClick={onClose}>
                     Cancel
-                  </button>
-                  <button type="submit" className="confirm-btn" disabled={isLoading}>
+                  </button> <button
+                    type="submit"
+                    className="confirm-btn"
+                    disabled={isLoading || (availabilityMessage && availabilityMessage.includes('⚠️'))}
+                    title={availabilityMessage && availabilityMessage.includes('⚠️') ? 'Please choose a different time slot' : ''}
+                  >
                     {isLoading ? (
                       <>
                         <span className="loading-spinner-small"></span>
                         Booking...
                       </>
+                      ) : availabilityMessage && availabilityMessage.includes('⚠️') ? (
+                      'Time Slot Unavailable'
                     ) : (
                       'Confirm Booking'
                     )}

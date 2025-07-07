@@ -70,7 +70,8 @@ const Homepage = () => {
       <section className={styles.heroSection}>
         <div className={styles.heroContentWrapper}>
           <div className={styles.heroTextBlock}>
-            <div className={styles.heroTitle}>Find Pet Services<br />Near You</div>
+            <div className={styles.heroTitle}>Find Pet Services
+Near You</div>
             <div className={styles.heroSubtitle}>
               Easily locate trusted pet sitters, groomers, and boarding near your area.
             </div>
