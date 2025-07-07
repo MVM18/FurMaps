@@ -136,8 +136,11 @@ const Homepage = () => {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
-          <div className={styles.footerBrand}>           
-              <span className={styles.lower}>FurMaps</span>         
+          <div className={styles.footerBrand}>  
+              <div className={styles.footerLogoAlign}>
+               <img src="/Images/gps.png" alt="FurMaps Logo" className={styles.footerLogoImg} />         
+               <span className={styles.footerLogoText}>FurMaps</span>         
+            </div>        
             <p>© 2025 FurMaps. All rights reserved</p>
           </div>
           <div className={styles.footerLinks}>

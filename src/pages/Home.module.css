@@ -404,7 +404,9 @@
   .heroButtons {
     flex-direction: column;
   }
-  
+  .footerLogoAlign {
+    justify-content: center; /* Ensures logo+text are centered together */
+  }
   .primaryButton, .secondaryButton {
     width: 100%;
   }
@@ -419,5 +421,27 @@
   background: transparent;
   text-align: left;
 }
+/* Footer-specific logo alignment */
+.footerLogoAlign {
+  display: flex;
+  position: center;
+  align-items: relative;
+  gap: 8px;
+  margin-bottom: 8px;
+}
 
+.footerLogoImg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.footerLogoText {
+  font-size: 24px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #059669, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
 
