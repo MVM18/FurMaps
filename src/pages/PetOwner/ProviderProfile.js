@@ -3,11 +3,31 @@ import { supabase } from '../../lib/supabaseClient';
 import styles from './ProviderProfile.module.css';
 import ProviderReviews from '../../components/ProviderReviews';
 
-const ProviderProfile = ({ userId }) => {
+// Helper function to get service icon
+const getServiceIcon = (serviceType) => {
+  switch (serviceType?.toLowerCase()) {
+    case 'dog walking':
+      return '/images/dog-leash.png';
+    case 'pet grooming':
+      return '/images/dog-cat.png';
+    case 'pet sitting':
+      return '/images/dog-human.png';
+    case 'veterinary':
+      return '/images/dog-background.png';
+    default:
+      return '/images/dogies.png';
+  }
+};
+
+const ProviderProfile = ({ userId, onServiceClick }) => {
   const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
+  const [avgRating, setAvgRating] = useState(null);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [providerServices, setProviderServices] = useState([]);
+  const [showReviews, setShowReviews] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -42,6 +62,55 @@ const ProviderProfile = ({ userId }) => {
         if (!galleryError && galleryData) {
           setGalleryImages(galleryData);
         }
+
+        // Fetch average rating and review count
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select('rating')
+          .eq('service_provider_id', userId);
+
+        if (!reviewsError && reviewsData) {
+          const ratings = reviewsData.map(r => r.rating).filter(r => typeof r === 'number');
+          if (ratings.length > 0) {
+            const avg = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+            setAvgRating(avg.toFixed(1));
+            setReviewCount(ratings.length);
+          } else {
+            setAvgRating(null);
+            setReviewCount(0);
+          }
+        } else {
+          setAvgRating(null);
+          setReviewCount(0);
+        }
+
+        // Fetch provider's services
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('*')
+          .eq('provider_id', userId)
+          .eq('is_active', true);
+        if (!servicesError && servicesData) {
+          // Format services to match the expected structure for BookingModal
+          const formattedServices = servicesData.map(service => ({
+            id: service.id,
+            name: service.name,
+            location: service.location,
+            latitude: service.latitude,
+            longitude: service.longitude,
+            serviceType: service.service_type,
+            contactNumber: service.contact_number,
+            price: service.price,
+            provider_id: service.provider_id,
+            provider_user_id: service.provider_id, // Use provider_id as user_id for consistency
+            provider_name: `${provider?.first_name || ''} ${provider?.last_name || ''}`.trim(),
+            provider_role: 'provider',
+            createdAt: new Date(service.created_at).toLocaleDateString()
+          }));
+          setProviderServices(formattedServices);
+        } else {
+          setProviderServices([]);
+        }
       } catch (error) {
         console.error('Error fetching provider data:', error);
         setError('Failed to load provider information.');
@@ -58,6 +127,12 @@ const ProviderProfile = ({ userId }) => {
   if (error) return <div style={{ padding: 32, color: 'red' }}>{error}</div>;
   if (!provider) return null;
 
+  const handleServiceClick = (service) => {
+    if (onServiceClick) {
+      onServiceClick(service);
+    }
+  };
+
   return (
     <div className={styles['provider-profile-card']}>
       <div className={styles['profile-info-row']}>
@@ -73,13 +148,92 @@ const ProviderProfile = ({ userId }) => {
           <h2 className={styles['profile-name']}>
             {provider.first_name} {provider.last_name}
           </h2>
-          <div className={styles['rating']}>★★★★★ 4.9 (89 reviews)</div>
+          <div
+            className={styles['rating']}
+            id="providerProfile_rating_o1k94"
+            style={{ cursor: avgRating ? 'pointer' : 'default', userSelect: 'none' }}
+            onClick={() => { if (avgRating) setShowReviews(v => !v); }}
+            title={avgRating ? 'Click to view reviews' : ''}
+          >
+            {avgRating ? (
+              <>
+                <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.1em' }}>{avgRating}</span>
+                <span style={{ color: '#fbbf24', marginLeft: 4 }}>★</span>
+                <span style={{ color: '#555', marginLeft: 8, fontSize: '0.98em' }}>({reviewCount} review{reviewCount !== 1 ? 's' : ''})</span>
+              </>
+            ) : (
+              <span style={{ color: '#888' }}>No ratings yet</span>
+            )}
+          </div>
         </div>
       </div>
+      {/* Services Offered Section */}
+      {providerServices.length > 0 && (
+        <div style={{ margin: '18px 0 8px 0', padding: '12px 16px', background: '#f9fafb', borderRadius: 10 }}>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '1.08em', color: '#2563eb' }}>Other Services Offered</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {providerServices.map(service => (
+              <div 
+                key={service.id} 
+                style={{ 
+                  padding: '12px 16px', 
+                  background: '#fff', 
+                  borderRadius: '8px', 
+                  border: '1px solid #e5e7eb',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#f8fafc';
+                  e.target.style.borderColor = '#3b82f6';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(59,130,246,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#fff';
+                  e.target.style.borderColor = '#e5e7eb';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                }}
+                onClick={() => handleServiceClick(service)}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img 
+                      src={getServiceIcon(service.serviceType)} 
+                      alt={service.serviceType}
+                      style={{ width: '20px', height: '20px', objectFit: 'contain' }}
+                    />
+                    <strong style={{ fontSize: '1.05em', color: '#1f2937' }}>{service.name}</strong>
+                  </div>
+                  <span style={{ color: '#d97706', fontWeight: 600, fontSize: '1.1em' }}>₱{service.price}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#6b7280', fontSize: '0.95em' }}>{service.serviceType}</span>
+                  <span style={{ 
+                    color: '#3b82f6', 
+                    fontSize: '0.9em', 
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    Book Now
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className={styles['info-grid']}>
         <div><span className={styles['info-label']}>Phone:</span> <span className={styles['info-value']}>{provider.phone || 'N/A'}</span></div>
         <div><span className={styles['info-label']}>Address:</span> <span className={styles['info-value']}>{provider.address || 'N/A'}</span></div>
-        <div><span className={styles['info-label']}>Provider ID:</span> <span className={styles['info-value']}>{provider.user_id?.slice(0, 8) || 'N/A'}...</span></div>
+       {/* <div><span className={styles['info-label']}>Provider ID:</span> <span className={styles['info-value']}>{provider.user_id?.slice(0, 8) || 'N/A'}...</span></div>*/}
         {provider.services_offered && (
           <div><span className={styles['info-label']}>Services:</span> <span className={styles['info-value']}>{provider.services_offered}</span></div>
         )}
@@ -96,8 +250,8 @@ const ProviderProfile = ({ userId }) => {
       <div className={styles['bio']}>
         <span className={styles['info-label']}>Bio:</span> {provider.bio || 'No bio provided.'}
       </div>
-      {/* Customer Reviews Section - inserted here */}
-      <ProviderReviews providerId={provider.user_id} hideHeader />
+      {/* Customer Reviews Section - only show when rating is clicked */}
+      {showReviews && <ProviderReviews providerId={provider.user_id} hideHeader />}
       <div className={styles['gallery-section']}>
         <div className={styles['gallery-header']}>
           <h4>Service Gallery</h4>

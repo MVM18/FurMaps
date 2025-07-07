@@ -236,6 +236,7 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
         const conflictEnd = new Date(conflictingBooking.service_end_datetime).toLocaleString();
 
         setError(`This time slot is already booked. There's a ${conflictingBooking.status} booking from ${conflictStart} to ${conflictEnd}. Please choose a different time.`);
+        return;
       }
       
       const { data: booking, error: bookingError } = await supabase

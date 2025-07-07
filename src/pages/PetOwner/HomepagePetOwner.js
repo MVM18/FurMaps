@@ -1247,7 +1247,14 @@ const handleMessage = async (service) => {
 							&times;
 						</button>
 						<div style={{ padding: 0 }}>
-							<ProviderProfile userId={selectedProviderId} />
+							<ProviderProfile 
+								userId={selectedProviderId} 
+								onServiceClick={(service) => {
+									setSelectedService(service);
+									setShowProviderProfileModal(false);
+									setShowBookingModal(true);
+								}}
+							/>
 							{selectedService && (
 								<div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0 8px 0' }}>
 									<button
