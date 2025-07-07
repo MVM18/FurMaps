@@ -26,15 +26,27 @@ const Homepage = () => {
     <div className={styles.homepage}>
       {/* Loading Screen */}
       {isNavigating && <LoadingScreen />}
-      
+
       {/* Navigation Bar */}
       <nav className={styles.navMenu}>
         <div className={styles.brandLogo}>
-          
+
         </div>
         <div style={{ display: 'flex', gap: '5rem', alignItems: 'center' }}>
-          <div className={styles.navItem}>About Us</div>
-          <div className={styles.navItem} onClick={handleLogin} style={{cursor:'pointer'}}>Log in</div>
+          <div
+            className={styles.navItem}
+            onClick={() => window.location.href = '/AboutPage'}
+            style={{ cursor: 'pointer' }}
+          >
+            About Us
+          </div>
+          <div
+            className={styles.navItem}
+            onClick={handleLogin}
+            style={{ cursor: 'pointer' }}
+          >
+            Log in
+          </div>
         </div>
       </nav>
 
@@ -66,19 +78,19 @@ const Homepage = () => {
       {/* Highlights Section */}
       <section className={styles.highlightsSection}>
         <div className={`${styles.highlightCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <div className={styles.cardAccent} style={{ background: '#b6e24b' }} />
           <img src="images/dog-hug.png" alt="Pet Parent" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Better for Pet Parents</b>
           <div>Pets stay happy, comfortable, and well-cared for in a familiar and loving environment while you're away.</div>
         </div>
         <div className={`${styles.highlightCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
+          <div className={styles.cardAccent} style={{ background: '#fae6c3' }} />
           <img src="images/dog-cat.png" alt="Pets" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Better for Pets</b>
           <div>Pet parents enjoy peace of mind knowing your pet is in trusted hands, receiving quality care even when you're not around.</div>
         </div>
         <div className={`${styles.highlightCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#8fd400'}} />
+          <div className={styles.cardAccent} style={{ background: '#8fd400' }} />
           <img src="images/book.png" alt="Service Provider" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Better for Service Providers</b>
           <div>Service providers can grow their business with flexible opportunities, reliable bookings, and a trusted platform that connects them with pet owners who need their care.</div>
@@ -92,7 +104,7 @@ const Homepage = () => {
       {/* Info/Features Section */}
       <section className={styles.infoSection}>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
+          <div className={styles.cardAccent} style={{ background: '#fae6c3' }} />
           <b className={styles.cardTitle}>What pets do you have?</b>
           <div className={styles.petsType}>
             <img src="/Images/blck-dog.png" alt="Dog" className={styles.petIcon} />
@@ -102,7 +114,7 @@ const Homepage = () => {
           </div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <div className={styles.cardAccent} style={{ background: '#b6e24b' }} />
           <b className={styles.cardTitle}>How FurMaps work</b>
           <ol>
             <li>Enter your location and the type of service you need.</li>
@@ -111,31 +123,31 @@ const Homepage = () => {
           </ol>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#8fd400'}} />
+          <div className={styles.cardAccent} style={{ background: '#8fd400' }} />
           <img src="/Images/dog-hug.png" alt="Pet Sitters" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Connect with awesome pet sitters</b>
           <div>Easily find verified, reviewed sitters who will give your pets the care, companionship, and attention they deserve while you're away.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <div className={styles.cardAccent} style={{ background: '#b6e24b' }} />
           <img src="/Images/walk-dog.png" alt="Dog Walking" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Discover local dog walking services</b>
           <div>Quickly connect with nearby dog walkers who'll give your pup the exercise, fresh air, and attention they need.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#fae6c3'}} />
+          <div className={styles.cardAccent} style={{ background: '#fae6c3' }} />
           <img src="/Images/dogies.png" alt="Pet Hotels" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Book and locate trusted pet hotels</b>
           <div>Find verified, well-reviewed hosts who'll welcome your pet into a cozy home, offering round-the-clock care, comfort, and attention while you're away.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#8fd400'}} />
+          <div className={styles.cardAccent} style={{ background: '#8fd400' }} />
           <img src="/Images/locate.png" alt="Daycare" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Find nearby pet daycare centers</b>
           <div>Easily locate trusted pet daycare spots where your pet can stay active, social, and well-cared for throughout the day.</div>
         </div>
         <div className={`${styles.infoCard} ${styles.fadeIn}`}>
-          <div className={styles.cardAccent} style={{background:'#b6e24b'}} />
+          <div className={styles.cardAccent} style={{ background: '#b6e24b' }} />
           <img src="/Images/cat-fur.png" alt="Groomers" className={styles.cardIcon} />
           <b className={styles.cardTitle}>Explore pet pampering services</b>
           <div>Easily locate trusted groomers who'll keep your pet looking fresh, clean, and feeling their best.</div>
