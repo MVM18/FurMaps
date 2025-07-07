@@ -137,7 +137,7 @@ const Homepage = () => {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerBrand}>           
-              <span className={styles.loGo}>FurMaps</span>         
+              <span className={styles.lower}>FurMaps</span>         
             <p>© 2025 FurMaps. All rights reserved</p>
           </div>
           <div className={styles.footerLinks}>
