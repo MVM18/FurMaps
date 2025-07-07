@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import styles from './ProviderProfile.module.css';
+import ProviderReviews from '../../components/ProviderReviews';
 
 const ProviderProfile = ({ userId }) => {
   const [provider, setProvider] = useState(null);
@@ -95,6 +96,8 @@ const ProviderProfile = ({ userId }) => {
       <div className={styles['bio']}>
         <span className={styles['info-label']}>Bio:</span> {provider.bio || 'No bio provided.'}
       </div>
+      {/* Customer Reviews Section - inserted here */}
+      <ProviderReviews providerId={provider.user_id} hideHeader />
       <div className={styles['gallery-section']}>
         <div className={styles['gallery-header']}>
           <h4>Service Gallery</h4>

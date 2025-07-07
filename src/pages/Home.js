@@ -1,12 +1,19 @@
 //Home.js
 import styles from './Home.module.css';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LoadingScreen from '../components/LoadingScreen';
 
 const Homepage = () => {
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleGetStarted = () => {
     setIsNavigating(true);

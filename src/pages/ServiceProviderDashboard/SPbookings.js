@@ -239,7 +239,7 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
   // Filter bookings based on active filter
   useEffect(() => {
     let filtered = bookings;
-    
+    const now = new Date();
     switch (activeFilter) {
       case 'pending':
         filtered = bookings.filter(booking => booking.status === 'pending');
@@ -256,13 +256,21 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
       case 'completed':
         filtered = bookings.filter(booking => booking.status === 'completed');
         break;
+      case 'urgent':
+        filtered = bookings.filter(booking => {
+          if (booking.status !== 'pending') return false;
+          const startTime = new Date(booking.service_start_datetime);
+          const timeUntilStart = startTime - now;
+          const hoursUntilStart = timeUntilStart / (1000 * 60 * 60);
+          return hoursUntilStart <= 2 && hoursUntilStart > 0;
+        });
+        break;
       case 'dropdown-open':
         filtered = bookings; // Show all when dropdown is open
         break;
       default:
         filtered = bookings; // 'all' case
     }
-    
     setFilteredBookings(filtered);
   }, [bookings, activeFilter]);
   
@@ -348,6 +356,13 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
                 {activeFilter === 'ongoing' && `Ongoing (${bookings.filter(b => b.status === 'ongoing').length})`}
                 {activeFilter === 'cancelled' && `Cancelled (${bookings.filter(b => b.status === 'cancelled').length})`}
                 {activeFilter === 'completed' && `Completed (${bookings.filter(b => b.status === 'completed').length})`}
+                {activeFilter === 'urgent' && `Urgent (${bookings.filter(b => {
+                  if (b.status !== 'pending') return false;
+                  const startTime = new Date(b.service_start_datetime);
+                  const timeUntilStart = startTime - new Date();
+                  const hoursUntilStart = timeUntilStart / (1000 * 60 * 60);
+                  return hoursUntilStart <= 2 && hoursUntilStart > 0;
+                }).length})`}
               </span>
               <svg className="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M7 10l5 5 5-5z"/>
@@ -390,6 +405,18 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
                   onClick={() => setActiveFilter('completed')}
                 >
                   Completed ({bookings.filter(b => b.status === 'completed').length})
+                </button>
+                <button 
+                  className="filter-dropdown-item"
+                  onClick={() => setActiveFilter('urgent')}
+                >
+                  Urgent ({bookings.filter(b => {
+                    if (b.status !== 'pending') return false;
+                    const startTime = new Date(b.service_start_datetime);
+                    const timeUntilStart = startTime - new Date();
+                    const hoursUntilStart = timeUntilStart / (1000 * 60 * 60);
+                    return hoursUntilStart <= 2 && hoursUntilStart > 0;
+                  }).length})
                 </button>
               </div>
             )}

@@ -14,14 +14,35 @@ const MessagesModal = ({ onClose, receiverId}) => {
   const [lastMessageCheck, setLastMessageCheck] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showConversations, setShowConversations] = useState(window.innerWidth > 768);
 
   useEffect(() => {
     if (receiverId) {
       setSelectedConversation(receiverId);
+      if (window.innerWidth <= 768) {
+        setShowConversations(false);
+      }
     } else {
       setSelectedConversation(null);
+      if (window.innerWidth <= 768) {
+        setShowConversations(true);
+      }
     }
   }, [receiverId]);
+
+  // Handle window resize to update conversation visibility
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setShowConversations(true);
+      } else if (!selectedConversation) {
+        setShowConversations(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [selectedConversation]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -477,6 +498,14 @@ const MessagesModal = ({ onClose, receiverId}) => {
   const handleConversationSelect = (convId) => {
     setSelectedConversation(convId);
     markAsRead(convId);
+    // On mobile, hide conversations after selection
+    if (window.innerWidth <= 768) {
+      setShowConversations(false);
+    }
+  };
+
+  const toggleConversations = () => {
+    setShowConversations(!showConversations);
   };
 
   const handleKeyPress = (e) => {
@@ -572,7 +601,7 @@ const MessagesModal = ({ onClose, receiverId}) => {
         <div className="messages-modal" onClick={(e) => e.stopPropagation()}>
           <div className="messages-container">
             {/* Conversations List */}
-            <div className="conversations-panel">
+            <div className={`conversations-panel ${!showConversations ? 'hidden' : ''}`}>
               <div className="conversations-header">
                 <h3>Messages</h3>
               </div>
@@ -622,13 +651,29 @@ const MessagesModal = ({ onClose, receiverId}) => {
             <div className="chat-panel">
               {/* Chat Header */}
               <div className="chat-header">
-                <div className="chat-user-info">
-                  <img src={currentConversation?.avatar} alt={currentConversation?.name} />
-                  <div className="chat-user-details">
-                    <span className="chat-user-name">{currentConversation?.name}</span>
-                    <span className="chat-user-status">
-                      {currentConversation?.online ? 'Online' : 'Offline'}
-                    </span>
+                <div className="chat-header-left">
+                  {selectedConversation ? (
+                    <button 
+                      className="mobile-back-btn"
+                      onClick={toggleConversations}
+                      aria-label="Back to conversations"
+                    >
+                      <span className="back-icon">←</span>
+                    </button>
+                  ) : (
+                    <button 
+                      className="mobile-toggle-btn"
+                      onClick={toggleConversations}
+                      aria-label="Toggle conversations"
+                    >
+                      <span className="toggle-icon">☰</span>
+                    </button>
+                  )}
+                  <div className="chat-user-info">
+                    <img src={currentConversation?.avatar} alt={currentConversation?.name} />
+                    <div className="chat-user-details">
+                      <span className="chat-user-name">{currentConversation?.name || 'Messages'}</span>
+                    </div>
                   </div>
                 </div>
                 <button className="close-chat-btn" onClick={onClose}>

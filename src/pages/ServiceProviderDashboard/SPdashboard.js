@@ -385,9 +385,9 @@ const ProviderDashboard = () => {
                       {stat.title === "This Month" && stat.value === "₱0.00" ? "₱0" : stat.value}
                     </h3>
                   )}
-                  <img src={`Icons/${stat.icon}`} alt={stat.title} className="stat-icon" />
                 </div>
               </div>
+              <img src={`Icons/${stat.icon}`} alt={stat.title} className="stat-icon" />
             </div>
           ))}
         </div>
