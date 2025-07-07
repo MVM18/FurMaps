@@ -9,6 +9,7 @@ import Toast from '../../components/Toast';
 import MessagesModal from '../ServiceProviderDashboard/SPmessages';
 import ServiceMap from '../../components/ServiceMap';
 import ReviewModal from '../../components/ReviewModal';
+// import Modal from '../../components/Modal'; // Removed because Modal does not exist and is not needed
 
 // Place timeAgo function here so it's defined before use
 function timeAgo(date) {
@@ -50,6 +51,8 @@ const WPetOwnerDB = () => {
 	const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
 	const [userStatus, setUserStatus] = useState(null);
 	const [userRole, setUserRole] = useState(null);
+	const [selectedBookingDetail, setSelectedBookingDetail] = useState(null);
+	const [showBookingDetailModal, setShowBookingDetailModal] = useState(false);
 
 	// Helper to get/set last seen notifs in localStorage
 	function getLastSeenNotifs() {
@@ -956,6 +959,10 @@ const handleMessage = async (service) => {
 														border: '2px solid #f59e0b',
 													} : {})
 												}}
+												onClick={() => {
+													setSelectedBookingDetail(booking);
+													setShowBookingDetailModal(true);
+												}}
 											>
 												{/* Header Section */}
 												<div className={styles.bookingHeader}>
@@ -1299,6 +1306,60 @@ const handleMessage = async (service) => {
 					}}
 					onReviewSubmitted={handleReviewSubmitted}
 				/>
+			)}
+			{showBookingDetailModal && selectedBookingDetail && (
+				<div className="booking-modal-overlay" onClick={e => { if (e.target.classList.contains('booking-modal-overlay')) setShowBookingDetailModal(false); }}>
+					<div className="booking-modal" style={{ maxWidth: 480, margin: '40px auto', position: 'relative', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.08)', padding: 0 }}>
+						<button className="close-btn" style={{ position: 'absolute', top: 16, right: 16, zIndex: 2, fontSize: 24, background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowBookingDetailModal(false)}>×</button>
+						<div style={{ padding: 32 }}>
+							<h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 20 }}>Booking Details</h2>
+							<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Service:</div>
+								<div>{selectedBookingDetail.service_name}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Provider:</div>
+								<div>{selectedBookingDetail.provider_name}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Status:</div>
+								<div style={{ textTransform: 'capitalize' }}>{selectedBookingDetail.status}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Start:</div>
+								<div>{selectedBookingDetail.service_start_datetime && new Date(selectedBookingDetail.service_start_datetime).toLocaleString()}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>End:</div>
+								<div>{selectedBookingDetail.service_end_datetime && new Date(selectedBookingDetail.service_end_datetime).toLocaleString()}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Contact:</div>
+								<div>{selectedBookingDetail.contact_number}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Location:</div>
+								<div>{selectedBookingDetail.address}</div>
+								<div style={{ fontWeight: 600, color: '#374151' }}>Special Instructions:</div>
+								<div>{selectedBookingDetail.special_instructions || 'None'}</div>
+							</div>
+							<div style={{ borderTop: '1px solid #e5e7eb', margin: '24px 0 16px 0' }} />
+							<div style={{ fontWeight: 700, fontSize: 18, marginBottom: 12, color: '#2563eb' }}>Pet Information</div>
+							<div style={{ display: 'grid', gridTemplateColumns: selectedBookingDetail.pet_image ? '1fr 140px' : '1fr', gap: 12, marginBottom: 8, alignItems: 'start' }}>
+								<div>
+									<div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', rowGap: 8, columnGap: 8 }}>
+										<div style={{ fontWeight: 600, color: '#374151' }}>Name:</div>
+										<div>{selectedBookingDetail.pet_name}</div>
+										<div style={{ fontWeight: 600, color: '#374151' }}>Type:</div>
+										<div>{selectedBookingDetail.pet_type}</div>
+										<div style={{ fontWeight: 600, color: '#374151' }}>Age:</div>
+										<div>{selectedBookingDetail.age || 'N/A'}</div>
+										<div style={{ fontWeight: 600, color: '#374151' }}>Weight:</div>
+										<div>{selectedBookingDetail.weight || 'N/A'}</div>
+										<div style={{ fontWeight: 600, color: '#374151' }}>Breed:</div>
+										<div>{selectedBookingDetail.breed || 'N/A'}</div>
+									</div>
+								</div>
+								{selectedBookingDetail.pet_image && (
+									<div style={{ textAlign: 'center' }}>
+										<div style={{ fontWeight: 600, color: '#374151', marginBottom: 6 }}>Pet Photo:</div>
+										<img src={selectedBookingDetail.pet_image} alt="Pet" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 12, border: '1px solid #e5e7eb', objectFit: 'cover', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }} />
+									</div>
+								)}
+							</div>
+							<div style={{ borderTop: '1px solid #e5e7eb', margin: '24px 0 16px 0' }} />
+							<div style={{ fontWeight: 700, fontSize: 18, color: '#059669' }}>Total Price: ₱{selectedBookingDetail.total_price}</div>
+						</div>
+					</div>
+				</div>
 			)}
 		</div>
 	);

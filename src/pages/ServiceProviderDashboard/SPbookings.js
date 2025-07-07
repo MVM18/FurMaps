@@ -7,6 +7,8 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [activeFilter, setActiveFilter] = useState('all');
   const [pendingNotifications, setPendingNotifications] = useState([]);
+  const [selectedBookingDetail, setSelectedBookingDetail] = useState(null);
+  const [showBookingDetailModal, setShowBookingDetailModal] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,6 +40,10 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
     service_end_datetime,
     pet_name,
     pet_type,
+    age,
+    weight,
+    breed,
+    pet_image,
     special_instructions,
     contact_number,
     total_price,
@@ -93,20 +99,22 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
     initials: `${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`,
     service: b.services?.name || "Unknown",
     serviceType: b.services?.service_type || "Unknown",
-    pet: {
-      name: b.pet_name,
-      breed: b.pet_type,
-      age: '', // If you want to calculate based on DOB, you can add logic later
-      description: b.special_instructions
-    },
+    pet_name: b.pet_name,
+    pet_type: b.pet_type,
+    age: b.age,
+    weight: b.weight,
+    breed: b.breed,
+    pet_image: b.pet_image,
     date: formattedDate,
     time: formattedTime,
     service_start_datetime: b.service_start_datetime,
     service_end_datetime: b.service_end_datetime,
     location: profile?.address || 'No address provided',
-    price: `₱${b.total_price?.toFixed(2)}`,
-    specialRequests: b.special_instructions,
-    status: b.status
+    total_price: typeof b.total_price === 'number' ? b.total_price : Number(b.total_price) || 0,
+    special_instructions: b.special_instructions,
+    status: b.status,
+    contact_number: b.contact_number,
+    provider_name: '', // You can fill this if you fetch provider info
   };
 });
 
@@ -212,7 +220,7 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
         if ('Notification' in window && Notification.permission === 'granted') {
           urgentPendingBookings.forEach(booking => {
             new Notification('Urgent: Pending Booking', {
-              body: `Booking for ${booking.service} (${booking.pet.name}) starts in less than 2 hours. Please review and respond.`,
+              body: `Booking for ${booking.service} (${booking.pet_name}) starts in less than 2 hours. Please review and respond.`,
               icon: '/favicon.ico',
               tag: `pending-${booking.id}`
             });
@@ -222,7 +230,7 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
         // Show toast notification for urgent bookings
         if (onShowToast) {
           urgentPendingBookings.forEach(booking => {
-            onShowToast(`⚠️ URGENT: Booking for ${booking.service} (${booking.pet.name}) starts in less than 2 hours!`);
+            onShowToast(`⚠️ URGENT: Booking for ${booking.service} (${booking.pet_name}) starts in less than 2 hours!`);
           });
         }
         console.log('Urgent pending bookings:', urgentPendingBookings);
@@ -448,6 +456,10 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
                 borderRadius: highlightedBookingId === booking.id ? '8px' : '',
                 transition: 'all 0.3s ease'
               }}
+              onClick={() => {
+                setSelectedBookingDetail(booking);
+                setShowBookingDetailModal(true);
+              }}
             >
             <div className="booking-header">
               <div className="customer-avatar">{booking.initials}</div>
@@ -455,7 +467,7 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
                 <div className="customer-name">{booking.name}</div>
                 <div className="service-info">
                    <span className="service-name">{booking.service} ({booking.serviceType})</span>
-                  <span className="service-price">{booking.price}</span>
+                  <span className="service-price">{booking.total_price}</span>
                 </div>
               </div>
             </div>
@@ -556,14 +568,14 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
             <div className="divider"></div>
             
             <div className="pet-info">
-              <div className="pet-name">Pet: {booking.pet.name}</div>
-              <div className="pet-breed-age">{booking.pet.breed} • {booking.pet.age}</div>
-              <div className="pet-description">{booking.pet.description}</div>
+              <div className="pet-name">Pet: {booking.pet_name}</div>
+              <div className="pet-breed-age">{booking.breed} • {booking.age}</div>
+              <div className="pet-description">{booking.special_instructions}</div>
             </div>
             
             <div className="special-requests">
               <div className="requests-title">Special Requests:</div>
-              <div className="requests-content">{booking.specialRequests}</div>
+              <div className="requests-content">{booking.special_instructions}</div>
             </div>
             
             <div className="booking-footer">
@@ -581,6 +593,60 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
         ))
         )}
       </div>
+      {showBookingDetailModal && selectedBookingDetail && (
+  <div className="booking-modal-overlay" onClick={e => { if (e.target.classList.contains('booking-modal-overlay')) setShowBookingDetailModal(false); }}>
+    <div className="booking-modal" style={{ maxWidth: 480, margin: '40px auto', position: 'relative', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.08)', padding: 0 }}>
+      <button className="close-btn" style={{ position: 'absolute', top: 16, right: 16, zIndex: 2, fontSize: 24, background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowBookingDetailModal(false)}>×</button>
+      <div style={{ padding: 32 }}>
+        <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 20 }}>Booking Details</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Service:</div>
+          <div>{selectedBookingDetail.service || selectedBookingDetail.service_name}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Provider:</div>
+          <div>{selectedBookingDetail.provider_name || selectedBookingDetail.name}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Status:</div>
+          <div style={{ textTransform: 'capitalize' }}>{selectedBookingDetail.status}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Start:</div>
+          <div>{selectedBookingDetail.service_start_datetime && new Date(selectedBookingDetail.service_start_datetime).toLocaleString()}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>End:</div>
+          <div>{selectedBookingDetail.service_end_datetime && new Date(selectedBookingDetail.service_end_datetime).toLocaleString()}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Contact:</div>
+          <div>{selectedBookingDetail.contact_number}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Location:</div>
+          <div>{selectedBookingDetail.address || selectedBookingDetail.location}</div>
+          <div style={{ fontWeight: 600, color: '#374151' }}>Special Instructions:</div>
+          <div>{selectedBookingDetail.special_instructions || 'None'}</div>
+        </div>
+        <div style={{ borderTop: '1px solid #e5e7eb', margin: '24px 0 16px 0' }} />
+        <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 12, color: '#2563eb' }}>Pet Information</div>
+        <div style={{ display: 'grid', gridTemplateColumns: selectedBookingDetail.pet_image ? '1fr 140px' : '1fr', gap: 12, marginBottom: 8, alignItems: 'start' }}>
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', rowGap: 8, columnGap: 8 }}>
+              <div style={{ fontWeight: 600, color: '#374151' }}>Name:</div>
+              <div>{selectedBookingDetail.pet_name}</div>
+              <div style={{ fontWeight: 600, color: '#374151' }}>Type:</div>
+              <div>{selectedBookingDetail.pet_type}</div>
+              <div style={{ fontWeight: 600, color: '#374151' }}>Age:</div>
+              <div>{selectedBookingDetail.age || 'N/A'}</div>
+              <div style={{ fontWeight: 600, color: '#374151' }}>Weight:</div>
+              <div>{selectedBookingDetail.weight || 'N/A'}</div>
+              <div style={{ fontWeight: 600, color: '#374151' }}>Breed:</div>
+              <div>{selectedBookingDetail.breed || 'N/A'}</div>
+            </div>
+          </div>
+          {selectedBookingDetail.pet_image && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontWeight: 600, color: '#374151', marginBottom: 6 }}>Pet Photo:</div>
+              <img src={selectedBookingDetail.pet_image} alt="Pet" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 12, border: '1px solid #e5e7eb', objectFit: 'cover', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }} />
+            </div>
+          )}
+        </div>
+        <div style={{ borderTop: '1px solid #e5e7eb', margin: '24px 0 16px 0' }} />
+        <div style={{ fontWeight: 700, fontSize: 18, color: '#059669' }}>Total Price: ₱{selectedBookingDetail.total_price}</div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -10,6 +10,10 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
     serviceEndDatetime: '',
     petType: '',
     petName: '',
+    age: '',
+    weight: '',
+    breed: '',
+    petImage: null,
     specialInstructions: '',
     modeOfPayment: 'Cash', // Default to Cash
   });
@@ -65,10 +69,10 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, files } = e.target;
     setBookingData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'file' ? files[0] : value
     }));
     // Clear availability message when user changes dates
     if (name === 'serviceStartDatetime' || name === 'serviceEndDatetime') {
@@ -238,7 +242,36 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
         setError(`This time slot is already booked. There's a ${conflictingBooking.status} booking from ${conflictStart} to ${conflictEnd}. Please choose a different time.`);
         return;
       }
-      
+
+      // --- Pet Image Upload Logic ---
+      let petImageUrl = '';
+      if (bookingData.petImage) {
+        const file = bookingData.petImage;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `pet-images/${fileName}`;
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('pet-images')
+          .upload(filePath, file);
+        if (uploadError) {
+          setError('Failed to upload pet image.');
+          setIsLoading(false);
+          return;
+        }
+        // Get public URL
+        const { data: publicUrlData, error: urlError } = await supabase.storage
+          .from('pet-images')
+          .getPublicUrl(filePath);
+        if (urlError) {
+          setError('Failed to get pet image URL.');
+          setIsLoading(false);
+          return;
+        }
+        petImageUrl = publicUrlData.publicUrl;
+      }
+      // --- End Pet Image Upload Logic ---
+
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .insert([{
@@ -249,6 +282,10 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
           service_end_datetime: bookingData.serviceEndDatetime,
           pet_type: bookingData.petType,
           pet_name: bookingData.petName,
+          age: bookingData.age,
+          weight: bookingData.weight,
+          breed: bookingData.breed,
+          pet_image: petImageUrl,
           special_instructions: bookingData.specialInstructions,
           contact_number: profile.phone,
           address: profile.address,
@@ -497,7 +534,62 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                       />
                     </div>
                   </div>
-
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="age">Age</label>
+                      <input
+                        type="number"
+                        id="age"
+                        name="age"
+                        value={bookingData.age}
+                        onChange={handleInputChange}
+                        min="0"
+                        placeholder="Pet's age (years)"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="weight">Weight</label>
+                      <input
+                        type="number"
+                        id="weight"
+                        name="weight"
+                        value={bookingData.weight}
+                        onChange={handleInputChange}
+                        min="0"
+                        placeholder="Pet's weight (kg)"
+                      />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="breed">Breed</label>
+                      <input
+                        type="text"
+                        id="breed"
+                        name="breed"
+                        value={bookingData.breed}
+                        onChange={handleInputChange}
+                        placeholder="Pet's breed"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="petImage">Pet Image</label>
+                      <input
+                        type="file"
+                        id="petImage"
+                        name="petImage"
+                        accept="image/*"
+                        onChange={handleInputChange}
+                      />
+                      {bookingData.petImage && (
+                        <img
+                          src={URL.createObjectURL(bookingData.petImage)}
+                          alt="Pet Preview"
+                          style={{ marginTop: 8, maxWidth: 80, maxHeight: 80, borderRadius: 8, border: '1px solid #eee' }}
+                        />
+                      )}
+                    </div>
+                  </div>
                   <div className="form-group">
                     <label htmlFor="specialInstructions">Special Instructions</label>
                     <textarea
