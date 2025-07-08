@@ -6,6 +6,7 @@ const ProviderReviews = ({ providerId }) => {
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showAll, setShowAll] = useState(false); // Add state to control showing all reviews
 
   useEffect(() => {
     if (!providerId) return;
@@ -128,8 +129,9 @@ const ProviderReviews = ({ providerId }) => {
           <p>No reviews yet. Complete some bookings to start receiving reviews!</p>
         </div>
       ) : (
+        <>
         <div className="reviews-list">
-          {reviews.map((review) => (
+          {(showAll ? reviews : reviews.slice(0, 2)).map((review) => (
             <div key={review.id} className="review-card">
               <div className="reviewer-avatar">
                 <span>{getInitials(review.profiles?.first_name, review.profiles?.last_name)}</span>
@@ -155,6 +157,23 @@ const ProviderReviews = ({ providerId }) => {
             </div>
           ))}
         </div>
+        {/* Show 'View all Reviews' button if there are more than 2 reviews and not showing all */}
+        {!showAll && reviews.length > 2 && (
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <button className="view-all-reviews-btn" onClick={() => setShowAll(true)}>
+              View all Reviews
+            </button>
+          </div>
+        )}
+        {/* Show 'Hide' button when all reviews are shown */}
+        {showAll && reviews.length > 2 && (
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <button className="hide-reviews-btn" onClick={() => setShowAll(false)}>
+              Hide
+            </button>
+          </div>
+        )}
+        </>
       )}
     </div>
   );

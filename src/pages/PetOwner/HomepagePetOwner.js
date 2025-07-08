@@ -1256,18 +1256,20 @@ const handleMessage = async (service) => {
 						<div style={{ padding: 0 }}>
 							<ProviderProfile userId={selectedProviderId} />
 							{selectedService && (
-								<div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0 8px 0' }}>
-									<button
-										className="book-now-btn"
-										style={{ fontSize: '1rem', padding: '12px 32px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, boxShadow: '0 2px 8px rgba(59,130,246,0.08)' }}
-										onClick={() => {
-											setShowProviderProfileModal(false);
-											setShowBookingModal(true);
-										}}
-									>
-										Book Now
-									</button>
-								</div>
+								<>
+									<div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0 8px 0' }}>
+										<button
+											className="book-now-btn"
+											style={{ fontSize: '1rem', padding: '12px 32px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, boxShadow: '0 2px 8px rgba(59,130,246,0.08)' }}
+											onClick={() => {
+												setShowProviderProfileModal(false);
+												setShowBookingModal(true);
+											}}
+										>
+											Book Now
+										</button>
+									</div>
+								</>
 							)}
 						</div>
 					</div>

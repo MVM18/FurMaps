@@ -55,6 +55,24 @@ const AdminDashboard = () => {
     platformGrowth: []
   });
 
+  // Add state for provider reports
+  const [providerReports, setProviderReports] = useState([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(true);
+
+  // Add state for viewing a report
+  const [viewedReport, setViewedReport] = useState(null);
+
+  
+  // Add state for report sub-tab
+  const [reportSubTab, setReportSubTab] = useState('provider');
+
+  // Add state for pet owner reports
+  const [petOwnerReports, setPetOwnerReports] = useState([]);
+  const [isLoadingPetOwnerReports, setIsLoadingPetOwnerReports] = useState(true);
+
+  // Add state for viewing a pet owner report
+  const [viewedPetOwnerReport, setViewedPetOwnerReport] = useState(null);
+
   // Fetch profiles from Supabase on mount
   const fetchProfiles = async () => {
     try {
@@ -155,13 +173,16 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchProfiles();
-    const subscription = setupRealtimeSubscriptions();
+    const { profilesSubscription, reportsSubscription } = setupRealtimeSubscriptions();
     handleNotificationPermission();
     
     // Cleanup subscription on unmount
     return () => {
-      if (subscription) {
-        supabase.removeChannel(subscription);
+      if (profilesSubscription) {
+        supabase.removeChannel(profilesSubscription);
+      }
+      if (reportsSubscription) {
+        supabase.removeChannel(reportsSubscription);
       }
     };
   }, []);
@@ -197,7 +218,32 @@ const AdminDashboard = () => {
       )
       .subscribe();
 
-    return profilesSubscription;
+    // In setupRealtimeSubscriptions, add subscriptions for new provider and pet owner reports
+    const reportsSubscription = supabase
+      .channel('reports_changes')
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'provider_reports'
+        },
+        (payload) => {
+          handleNewReportNotification('provider', payload.new);
+        }
+      )
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pet_owner_reports'
+        },
+        (payload) => {
+          handleNewReportNotification('owner', payload.new);
+        }
+      )
+      .subscribe();
+
+    return { profilesSubscription, reportsSubscription };
   };
 
   // Handle new provider notification
@@ -755,7 +801,138 @@ const AdminDashboard = () => {
     providerSort
   );
 
+  // Fetch provider reports when Reports tab is active
+  useEffect(() => {
+    if (activeTab === 2) {
+      fetchProviderReports();
+    }
+  }, [activeTab]);
 
+  const fetchProviderReports = async () => {
+    setIsLoadingReports(true);
+    try {
+      // Step 1: Fetch all reports (no joins)
+      const { data: reports, error } = await supabase
+        .from('provider_reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error || !reports) {
+        setProviderReports([]);
+        setIsLoadingReports(false);
+        return;
+      }
+      // Step 2: Collect all unique provider and reporter IDs
+      const providerIds = [...new Set(reports.map(r => r.provider_id).filter(Boolean))];
+      const reporterIds = [...new Set(reports.map(r => r.reporter_id).filter(Boolean))];
+      const allProfileIds = Array.from(new Set([...providerIds, ...reporterIds]));
+      // Step 3: Fetch all relevant profiles
+      let profiles = [];
+      if (allProfileIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, email')
+          .in('user_id', allProfileIds);
+        if (!profilesError && profilesData) {
+          profiles = profilesData;
+        }
+      }
+      // Step 4: Merge profile info into reports
+      const profileMap = {};
+      profiles.forEach(p => { profileMap[p.user_id] = p; });
+      const mergedReports = reports.map(report => ({
+        ...report,
+        provider: profileMap[report.provider_id] || null,
+        reporter: profileMap[report.reporter_id] || null,
+      }));
+      setProviderReports(mergedReports);
+    } catch (err) {
+      setProviderReports([]);
+    } finally {
+      setIsLoadingReports(false);
+    }
+  };
+
+  // Fetch pet owner reports when Reports tab is active and sub-tab is 'owner'
+  useEffect(() => {
+    if (activeTab === 2 && reportSubTab === 'owner') {
+      fetchPetOwnerReports();
+    }
+  }, [activeTab, reportSubTab]);
+
+  const fetchPetOwnerReports = async () => {
+    setIsLoadingPetOwnerReports(true);
+    try {
+      // Step 1: Fetch all reports (no joins)
+      const { data: reports, error } = await supabase
+        .from('pet_owner_reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error || !reports) {
+        setPetOwnerReports([]);
+        setIsLoadingPetOwnerReports(false);
+        return;
+      }
+      // Step 2: Collect all unique pet owner and reporter IDs
+      const petOwnerIds = [...new Set(reports.map(r => r.pet_owner_id).filter(Boolean))];
+      const reporterIds = [...new Set(reports.map(r => r.reporter_id).filter(Boolean))];
+      const allProfileIds = Array.from(new Set([...petOwnerIds, ...reporterIds]));
+      // Step 3: Fetch all relevant profiles
+      let profiles = [];
+      if (allProfileIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, email')
+          .in('user_id', allProfileIds);
+        if (!profilesError && profilesData) {
+          profiles = profilesData;
+        }
+      }
+      // Step 4: Merge profile info into reports
+      const profileMap = {};
+      profiles.forEach(p => { profileMap[p.user_id] = p; });
+      const mergedReports = reports.map(report => ({
+        ...report,
+        pet_owner: profileMap[report.pet_owner_id] || null,
+        reporter: profileMap[report.reporter_id] || null,
+      }));
+      setPetOwnerReports(mergedReports);
+    } catch (err) {
+      setPetOwnerReports([]);
+    } finally {
+      setIsLoadingPetOwnerReports(false);
+    }
+  };
+
+  // Move handleNewReportNotification inside the AdminDashboard component
+  const handleNewReportNotification = (type, report) => {
+    let title = '';
+    let message = '';
+    if (type === 'provider') {
+      title = 'New Provider Report';
+      message = 'A new report has been submitted against a provider. Please review it.';
+    } else if (type === 'owner') {
+      title = 'New Pet Owner Report';
+      message = 'A new report has been submitted against a pet owner. Please review it.';
+    }
+    const newNotification = {
+      id: Date.now(),
+      type: type === 'provider' ? 'new_provider_report' : 'new_pet_owner_report',
+      title,
+      message,
+      timestamp: new Date().toISOString(),
+      read: false,
+      reportId: report.id
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+    setUnreadCount(prev => prev + 1);
+    // Show browser notification if permission granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body: message,
+        icon: '/Images/paw-logo.png'
+      });
+    }
+  };
 
   return (
     <div className="dashboard-bg">
@@ -1033,7 +1210,119 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Reports Tab */}
         {activeTab === 2 && (
+          <div className="card">
+            <div className="card-title">Reports</div>
+            <div className="card-desc">View submitted reports for providers and pet owners.</div>
+            {/* Sub-tabs for Reports */}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 18, marginTop: 8 }}>
+              <button
+                className={reportSubTab === 'provider' ? 'user-filter-btn active' : 'user-filter-btn'}
+                style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: reportSubTab === 'provider' ? '#2563eb' : '#f3f4f6', color: reportSubTab === 'provider' ? '#fff' : '#374151', fontWeight: 600, cursor: 'pointer' }}
+                onClick={() => setReportSubTab('provider')}
+              >
+                Reports for Provider
+              </button>
+              <button
+                className={reportSubTab === 'owner' ? 'user-filter-btn active' : 'user-filter-btn'}
+                style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: reportSubTab === 'owner' ? '#2563eb' : '#f3f4f6', color: reportSubTab === 'owner' ? '#fff' : '#374151', fontWeight: 600, cursor: 'pointer' }}
+                onClick={() => setReportSubTab('owner')}
+              >
+                Reports for Pet Owners
+              </button>
+            </div>
+            {/* Provider Reports Table */}
+            {reportSubTab === 'provider' && (
+              isLoadingReports ? (
+                <div style={{ padding: '32px', textAlign: 'center', color: '#888' }}>Loading reports...</div>
+              ) : providerReports.length === 0 ? (
+                <div style={{ padding: '32px', textAlign: 'center', color: '#888' }}>No reports submitted yet.</div>
+              ) : (
+                <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+                    <thead>
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Date</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Provider Reported</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Reporter</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Reason</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {providerReports.map(report => (
+                        <tr key={report.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '10px', fontSize: '0.97rem', color: '#374151' }}>{new Date(report.created_at).toLocaleString()}</td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem' }}>
+                            {report.provider ? `${report.provider.first_name || ''} ${report.provider.last_name || ''}` : 'Unknown'}
+                            <div style={{ color: '#6b7280', fontSize: '0.92rem' }}>{report.provider?.email || ''}</div>
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem' }}>
+                            {report.reporter ? `${report.reporter.first_name || ''} ${report.reporter.last_name || ''}` : 'Unknown'}
+                            <div style={{ color: '#6b7280', fontSize: '0.92rem' }}>{report.reporter?.email || ''}</div>
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem', color: '#ef4444', fontWeight: 500 }}>{report.reason}</td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem', cursor: 'pointer' }} onClick={() => setViewedReport(report)}>
+                            {report.details && report.details.length > 40
+                              ? report.details.slice(0, 40) + '...'
+                              : (report.details || <span style={{ color: '#888' }}>-</span>)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+            {/* Pet Owner Reports Placeholder */}
+            {reportSubTab === 'owner' && (
+              isLoadingPetOwnerReports ? (
+                <div style={{ padding: '32px', textAlign: 'center', color: '#888' }}>Loading reports...</div>
+              ) : petOwnerReports.length === 0 ? (
+                <div style={{ padding: '32px', textAlign: 'center', color: '#888' }}>No reports for pet owners yet.</div>
+              ) : (
+                <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+                    <thead>
+                      <tr style={{ background: '#f3f4f6' }}>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Date</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Pet Owner Reported</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Reporter</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Reason</th>
+                        <th style={{ padding: '10px', borderBottom: '1px solid #e5e7eb', textAlign: 'left' }}>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {petOwnerReports.map(report => (
+                        <tr key={report.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '10px', fontSize: '0.97rem', color: '#374151' }}>{new Date(report.created_at).toLocaleString()}</td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem' }}>
+                            {report.pet_owner ? `${report.pet_owner.first_name || ''} ${report.pet_owner.last_name || ''}` : 'Unknown'}
+                            <div style={{ color: '#6b7280', fontSize: '0.92rem' }}>{report.pet_owner?.email || ''}</div>
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem' }}>
+                            {report.reporter ? `${report.reporter.first_name || ''} ${report.reporter.last_name || ''}` : 'Unknown'}
+                            <div style={{ color: '#6b7280', fontSize: '0.92rem' }}>{report.reporter?.email || ''}</div>
+                          </td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem', color: '#ef4444', fontWeight: 500 }}>{report.reason}</td>
+                          <td style={{ padding: '10px', fontSize: '0.97rem', cursor: 'pointer' }} title={report.details} onClick={() => setViewedPetOwnerReport(report)}>
+                            {report.details && report.details.length > 40
+                              ? report.details.slice(0, 40) + '...'
+                              : (report.details || <span style={{ color: '#888' }}>-</span>)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+          </div>
+        )}
+
+        {/* Analytics Tab (now index 3) */}
+        {activeTab === 3 && (
           <div className="card analytics-card-transparent">
             <div className="analytics-container">
               <div className="analytics-header">
@@ -1456,6 +1745,35 @@ const AdminDashboard = () => {
           Exported!
         </div>
       )}
+
+      {/* Report Details Modal */}
+      {viewedReport && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-title">Report Details</div>
+            <div className="modal-field"><strong>Date:</strong> {new Date(viewedReport.created_at).toLocaleString()}</div>
+            <div className="modal-field"><strong>Provider Reported:</strong> {viewedReport.provider ? `${viewedReport.provider.first_name || ''} ${viewedReport.provider.last_name || ''}` : 'Unknown'} <span style={{ color: '#6b7280', fontSize: '0.92rem' }}>{viewedReport.provider?.email || ''}</span></div>
+            <div className="modal-field"><strong>Reporter:</strong> {viewedReport.reporter ? `${viewedReport.reporter.first_name || ''} ${viewedReport.reporter.last_name || ''}` : 'Unknown'} <span style={{ color: '#6b7280', fontSize: '0.92rem' }}>{viewedReport.reporter?.email || ''}</span></div>
+            <div className="modal-field"><strong>Reason:</strong> <span style={{ color: '#ef4444', fontWeight: 500 }}>{viewedReport.reason}</span></div>
+            <div className="modal-field" style={{ maxWidth: 500, wordBreak: 'break-word', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: 300 }}><strong>Details:</strong><br />{viewedReport.details || <span style={{ color: '#888' }}>-</span>}</div>
+            <button className="modal-close-btn" onClick={() => setViewedReport(null)} style={{ marginTop: 18 }}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {viewedPetOwnerReport && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-title">Report Details</div>
+            <div className="modal-field"><strong>Date:</strong> {new Date(viewedPetOwnerReport.created_at).toLocaleString()}</div>
+            <div className="modal-field"><strong>Pet Owner Reported:</strong> {viewedPetOwnerReport.pet_owner ? `${viewedPetOwnerReport.pet_owner.first_name || ''} ${viewedPetOwnerReport.pet_owner.last_name || ''}` : 'Unknown'} <span style={{ color: '#6b7280', fontSize: '0.92rem' }}>{viewedPetOwnerReport.pet_owner?.email || ''}</span></div>
+            <div className="modal-field"><strong>Reporter:</strong> {viewedPetOwnerReport.reporter ? `${viewedPetOwnerReport.reporter.first_name || ''} ${viewedPetOwnerReport.reporter.last_name || ''}` : 'Unknown'} <span style={{ color: '#6b7280', fontSize: '0.92rem' }}>{viewedPetOwnerReport.reporter?.email || ''}</span></div>
+            <div className="modal-field"><strong>Reason:</strong> <span style={{ color: '#ef4444', fontWeight: 500 }}>{viewedPetOwnerReport.reason}</span></div>
+            <div className="modal-field" style={{ maxWidth: 500, wordBreak: 'break-word', whiteSpace: 'pre-wrap', overflowY: 'auto', maxHeight: 300 }}><strong>Details:</strong><br />{viewedPetOwnerReport.details || <span style={{ color: '#888' }}>-</span>}</div>
+            <button className="modal-close-btn" onClick={() => setViewedPetOwnerReport(null)} style={{ marginTop: 18 }}>Close</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1463,6 +1781,7 @@ const AdminDashboard = () => {
 const tabs = [
   { label: 'Service Provider Approvals' },
   { label: 'All Users' },
+  { label: 'Reports' }, // Added Reports tab
   { label: 'Analytics' },
 ];
 
