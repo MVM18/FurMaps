@@ -45,8 +45,7 @@
   display: flex;
   gap: 1rem;
   align-items: center;
-  position: relative;
-  z-index: 10001;
+  
 }
 
 .navButton {
@@ -60,8 +59,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  font-size: 14px;
-  color: #1f2937;
+  
 }
 
 .navButton:hover {
@@ -161,8 +159,11 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(209, 250, 229, 0.5);
 }
 
 .tabButton {
@@ -173,7 +174,6 @@
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
-  color: #6b7280;
 }
 
 .tabButton:hover {
@@ -514,7 +514,7 @@
 .favoritesSection,
 .historySection {
   text-align: center;
-  padding: 2rem;
+
 }
 
 .bookingsSection h3,
@@ -1006,8 +1006,8 @@
   }
 
   .navMenu {
-    flex-wrap: wrap;
-    justify-content: center;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .dashboardContent {
@@ -1020,12 +1020,13 @@
   }
 
   .dashboardTabs {
-    flex-wrap: wrap;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
   }
 
   .tabButton {
-    flex: 1;
-    min-width: 120px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
   }
 
   .resultsHeader {
@@ -1037,7 +1038,9 @@
   .viewControls {
     width: 100%;
     justify-content: space-between;
+    align-items: center;
   }
+  
 
   .noResults {
     flex-direction: column;
@@ -2219,5 +2222,27 @@
   color: #991b1b;
   font-weight: 500;
   font-size: 0.95rem;
+}
+@media (max-width: 768px) {
+  .navMenu {
+    gap: 0.25rem; /* Reduce gap between items */
+  }
+  
+  .navButton {
+    flex-direction: row;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+  
+  .navButton img {
+    width: 1.25rem;
+    height: 1.25rem;
+    
+  }
+  
+  .naButton span {
+    display: block;
+  }
 }
 
