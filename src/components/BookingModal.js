@@ -485,7 +485,7 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                     <span className="service-type-badge">{service.serviceType}</span>
                   </div>
                   <div className="service-price">
-                    <span className="price-amount">₱{calculatedPrice}</span>
+                    <span className="price-amount">₱{service.price}</span>
                     <span className="price-label">/{service.pricingType === 'per_hour' ? 'hour' : 'service'}</span>
                     {service.pricingType === 'per_service' && service.serviceDuration && (
                       <span className="service-duration-info">• {service.serviceDuration} min</span>
