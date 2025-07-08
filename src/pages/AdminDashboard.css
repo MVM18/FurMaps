@@ -882,11 +882,19 @@ margin-left: 12px;
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+.tabs::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 .tab {
-  flex: 1 1 0;
+  flex: 0 0 auto;
+  min-width: 140px;
+  text-align: center;
   background: #f3f4f6;
   border: none;
   font-size: 1rem;
