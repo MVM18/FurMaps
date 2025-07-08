@@ -687,67 +687,44 @@ const handleMessage = async (service) => {
 							{unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
 						</button>
 						{showNotifPanel && (
-							<div style={{
-								position: 'absolute',
-								top: '48px',
-								left: '50%',
-								transform: 'translateX(-50%)',
-								width: '370px',
-								background: '#fff',
-								boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-								borderRadius: '18px',
-								zIndex: 9999,
-								padding: '0',
-								border: '1px solid #e5e7eb',
-							}}>
+							<div className="notif-panel">
 								{/* Triangle pointer */}
-								<div style={{
-									position: 'absolute',
-									top: '-14px',
-									left: '50%',
-									transform: 'translateX(-50%)',
-									width: 0,
-									height: 0,
-									borderLeft: '12px solid transparent',
-									borderRight: '12px solid transparent',
-									borderBottom: '14px solid #fff',
-									zIndex: 9999,
-								}} />
+								<div className="notif-panel-pointer" />
 								<div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'1rem 1.25rem 0.5rem 1.25rem'}}>
 									<h4 style={{margin: 0, fontWeight:700, fontSize:'1.15rem'}}>Notification</h4>
 									<button onClick={handleMarkAsRead} style={{background:'none', border:'none', color:'#2563eb', fontWeight:500, cursor:'pointer', fontSize:'0.98rem'}}>Mark as read</button>
 								</div>
 								<div style={{maxHeight:'340px', overflowY:'auto', padding:'0.5rem 0'}}>
-								{notifList.length === 0 ? (
-									<p style={{ color: '#888', fontSize: '0.95rem', textAlign:'center', margin:'2rem 0' }}>No notifications yet.</p>
-								) : (
-									<ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-										{notifList.map((n, idx) => (
-											<li key={n.id + n.status} 
-												onClick={() => handleNotificationItemClick(n.id)}
-												onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
-												onMouseLeave={(e) => e.target.style.background = '#fff'}
-												style={{
-													display:'flex', alignItems:'center', gap:14, padding:'1rem 1.25rem', borderBottom: idx!==notifList.length-1?'1px solid #f3f4f6':'none', background:'#fff', transition:'background 0.2s', cursor:'pointer'
-												}}>
-												{/* Avatar/Icon */}
-												<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='confirmed'?'#e0f7ef':n.status==='completed'?'#d1fae5':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
-													{n.status === 'confirmed' ? '✅' : n.status === 'completed' ? '🎉' : '❌'}
-												</div>
-												<div style={{flex:1, minWidth:0}}>
-													<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>
-														{n.status === 'confirmed' ? 'Booking Confirmed' : n.status === 'completed' ? 'Service Completed' : 'Booking Cancelled'}
+									{notifList.length === 0 ? (
+										<p style={{ color: '#888', fontSize: '0.95rem', textAlign:'center', margin:'2rem 0' }}>No notifications yet.</p>
+									) : (
+										<ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+											{notifList.map((n, idx) => (
+												<li key={n.id + n.status} 
+													onClick={() => handleNotificationItemClick(n.id)}
+													onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
+													onMouseLeave={(e) => e.target.style.background = '#fff'}
+													style={{
+														display:'flex', alignItems:'center', gap:14, padding:'1rem 1.25rem', borderBottom: idx!==notifList.length-1?'1px solid #f3f4f6':'none', background:'#fff', transition:'background 0.2s', cursor:'pointer'
+													}}>
+													{/* Avatar/Icon */}
+													<div style={{width:44, height:44, borderRadius:'50%', background:n.status==='confirmed'?'#e0f7ef':n.status==='completed'?'#d1fae5':'#ffeaea', display:'flex', alignItems:'center', justifyContent:'center', fontSize:26}}>
+														{n.status === 'confirmed' ? '✅' : n.status === 'completed' ? '🎉' : '❌'}
 													</div>
-													<div style={{fontSize:'0.97rem', color:'#555', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{n.serviceName} {n.petName ? `for ${n.petName}` : ''}</div>
-												</div>
-												<div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4}}>
-													<span style={{fontSize:'0.92rem', color:'#888'}}>{timeAgo(n.created_at)}</span>
-													{!notifRead && idx === 0 && <span style={{width:9, height:9, background:'#2563eb', borderRadius:'50%', display:'inline-block', marginTop:2}}></span>}
-												</div>
-											</li>
-										))}
-									</ul>
-								)}
+													<div style={{flex:1, minWidth:0}}>
+														<div style={{fontWeight:600, fontSize:'1.05rem', color:'#222', marginBottom:2}}>
+															{n.status === 'confirmed' ? 'Booking Confirmed' : n.status === 'completed' ? 'Service Completed' : 'Booking Cancelled'}
+														</div>
+														<div style={{fontSize:'0.97rem', color:'#555', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{n.serviceName} {n.petName ? `for ${n.petName}` : ''}</div>
+													</div>
+													<div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4}}>
+														<span style={{fontSize:'0.92rem', color:'#888'}}>{timeAgo(n.created_at)}</span>
+														{!notifRead && idx === 0 && <span style={{width:9, height:9, background:'#2563eb', borderRadius:'50%', display:'inline-block', marginTop:2}}></span>}
+													</div>
+												</li>
+											))}
+										</ul>
+									)}
 								</div>
 							</div>
 						)}

@@ -279,32 +279,9 @@ const ProviderDashboard = () => {
                {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
             </button>
             {showNotifPanel && (
-              <div style={{
-                position: 'absolute',
-                top: '48px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '370px',
-                background: '#fff',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                borderRadius: '18px',
-                zIndex: 9999,
-                padding: '0',
-                border: '1px solid #e5e7eb',
-              }}>
+              <div className="notif-panel">
                 {/* Triangle pointer */}
-                <div style={{
-                  position: 'absolute',
-                  top: '-14px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 0,
-                  height: 0,
-                  borderLeft: '12px solid transparent',
-                  borderRight: '12px solid transparent',
-                  borderBottom: '14px solid #fff',
-                  zIndex: 9999,
-                }} />
+                <div className="notif-panel-pointer" />
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'1rem 1.25rem 0.5rem 1.25rem'}}>
                   <h4 style={{margin: 0, fontWeight:700, fontSize:'1.15rem'}}>Notification</h4>
                   <button onClick={handleMarkAsRead} style={{background:'none', border:'none', color:'#2563eb', fontWeight:500, cursor:'pointer', fontSize:'0.98rem'}}>Mark as read</button>

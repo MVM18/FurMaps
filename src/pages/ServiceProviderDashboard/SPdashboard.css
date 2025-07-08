@@ -405,3 +405,63 @@ body {
     display: block;
   }
 }
+
+.notif-panel {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 370px;
+  background: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  border-radius: 18px;
+  z-index: 9999;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 500px) {
+  .notif-panel {
+    width: 100vw;
+    min-width: 0;
+    left: 0;
+    top: 44px;
+    transform: none;
+    border-radius: 8px;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    margin: 0;
+  }
+  .notif-panel-pointer {
+    left: 38px; /* Adjust this value to match the bell icon's position */
+    top: -12px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 12px solid #fff;
+    transform: none;
+  }
+}
+
+/* Triangle pointer responsive adjustment */
+.notif-panel-pointer {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 14px solid #fff;
+  z-index: 9999;
+}
+
+@media (max-width: 500px) {
+  .notif-panel-pointer {
+    left: 50%;
+    top: -12px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 12px solid #fff;
+  }
+}
