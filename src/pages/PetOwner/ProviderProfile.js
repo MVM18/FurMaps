@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import styles from './ProviderProfile.module.css';
 import ProviderReviews from '../../components/ProviderReviews';
+import BookingModal from '../../components/BookingModal';
 
 const REPORT_REASONS = [
   'Fraud or Scam',
@@ -43,6 +44,7 @@ const ProviderProfile = ({ userId }) => {
   const [showReviews, setShowReviews] = useState(false);
   const [imageModalUrl, setImageModalUrl] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState(null); // For booking modal
 
   useEffect(() => {
     if (!userId) return;
@@ -194,6 +196,12 @@ const ProviderProfile = ({ userId }) => {
     }
   };
 
+  // Handler for booking success
+  const handleBookingSuccess = (booking) => {
+    setSelectedService(null);
+    alert('Booking successful!');
+  };
+
   if (!userId) return null;
   if (loading) return <div style={{ padding: 32 }}>Loading provider profile...</div>;
   if (error) return <div style={{ padding: 32, color: 'red' }}>{error}</div>;
@@ -269,6 +277,7 @@ const ProviderProfile = ({ userId }) => {
                   transition: 'all 0.2s ease',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
                 }}
+                onClick={() => setSelectedService(service)}
                 onMouseEnter={(e) => {
                   e.target.style.background = '#f8fafc';
                   e.target.style.borderColor = '#3b82f6';
@@ -488,6 +497,24 @@ const ProviderProfile = ({ userId }) => {
             </form>
           </div>
         </div>
+      )}
+      {/* Image Modal for Certificate/Proof */}
+      {modalVisible && imageModalUrl && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, position: 'relative', maxWidth: '90vw', maxHeight: '90vh', boxShadow: '0 8px 32px rgba(0,0,0,0.25)' }}>
+            <button onClick={() => setModalVisible(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', fontSize: 24, cursor: 'pointer', color: '#ef4444' }}>×</button>
+            <img src={imageModalUrl} alt="Document" style={{ maxWidth: '80vw', maxHeight: '70vh', borderRadius: 8 }} />
+          </div>
+        </div>
+      )}
+      {/* Booking Modal Placeholder */}
+      {selectedService && (
+        <BookingModal
+          service={selectedService}
+          isOpen={!!selectedService}
+          onClose={() => setSelectedService(null)}
+          onBookingSuccess={handleBookingSuccess}
+        />
       )}
     </div>
   );
