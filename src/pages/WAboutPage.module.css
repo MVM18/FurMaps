@@ -113,6 +113,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-align: center;
 }
 
 .sectionDescription {
@@ -235,6 +236,7 @@
   color: var(--gray);
   max-width: 800px;
   margin: 0 auto 40px;
+  text-align: center;
 }
 
 .teamGrid {
