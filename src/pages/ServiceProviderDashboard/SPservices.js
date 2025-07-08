@@ -19,8 +19,10 @@ const ServiceOffered = () => {
     serviceType: '',
     contactNumber: '',
     price: '',
+    pricingType: 'per_service',
+    serviceDuration: 60,
     latitude: null,
-  longitude: null
+    longitude: null
   });
 
   const handleInputChange = (e) => {
@@ -67,10 +69,10 @@ const handleSubmit = async (e) => {
     return;
   }
 
-  const { name, location, serviceType, contactNumber, price, latitude, longitude, id } = formData;
+  const { name, location, serviceType, contactNumber, price, pricingType, serviceDuration, latitude, longitude, id } = formData;
 
   // Make sure all required fields are present
-  if (!name || !location || !latitude || !longitude || !serviceType || !contactNumber || !price) {
+  if (!name || !location || !latitude || !longitude || !serviceType || !contactNumber || !price || !pricingType || !serviceDuration) {
     alert("Please complete all fields and select a location on the map.");
     return;
   }
@@ -93,7 +95,9 @@ const handleSubmit = async (e) => {
         longitude,
         service_type: serviceType,
         contact_number: contactNumber,
-        price: parseFloat(price)
+        price: parseFloat(price),
+        pricing_type: pricingType,
+        service_duration: parseInt(serviceDuration)
       })
       .eq('id', id);
 
@@ -105,7 +109,7 @@ const handleSubmit = async (e) => {
     setServices(prev =>
       prev.map(service =>
         service.id === id
-          ? { ...service, name, location, latitude, longitude, serviceType, contactNumber, price }
+          ? { ...service, name, location, latitude, longitude, serviceType, contactNumber, price, pricingType, serviceDuration }
           : service
       )
     );
@@ -122,7 +126,9 @@ const handleSubmit = async (e) => {
         longitude,
         service_type: serviceType,
         contact_number: contactNumber,
-        price: parseFloat(price)
+        price: parseFloat(price),
+        pricing_type: pricingType,
+        service_duration: parseInt(serviceDuration)
       }])
       .select();
 
@@ -142,6 +148,8 @@ const handleSubmit = async (e) => {
         serviceType,
         contactNumber,
         price,
+        pricingType,
+        serviceDuration,
         createdAt: new Date(insertedService[0].created_at).toLocaleDateString()
       }
     ]);
@@ -156,7 +164,9 @@ const handleSubmit = async (e) => {
     longitude: null,
     serviceType: '',
     contactNumber: '',
-    price: ''
+    price: '',
+    pricingType: 'per_service',
+    serviceDuration: 60
   });
   setShowForm(false);
 };
@@ -197,6 +207,8 @@ useEffect(() => {
         serviceType: service.service_type,
         contactNumber: service.contact_number,
         price: service.price,
+        pricingType: service.pricing_type || 'per_service',
+        serviceDuration: service.service_duration || 60,
         latitude: service.latitude,
         longitude: service.longitude,
         createdAt: new Date(service.created_at).toLocaleDateString()
@@ -220,6 +232,8 @@ useEffect(() => {
         serviceType: service.service_type,
         contactNumber: service.contact_number,
         price: service.price,
+        pricingType: service.pricing_type || 'per_service',
+        serviceDuration: service.service_duration || 60,
         latitude: service.latitude,
         longitude: service.longitude,
         createdAt: new Date(service.created_at).toLocaleDateString()
@@ -314,6 +328,8 @@ const handleReactivate = async (id) => {
     serviceType: service.serviceType,
     contactNumber: service.contactNumber,
     price: service.price,
+    pricingType: service.pricingType || 'per_service',
+    serviceDuration: service.serviceDuration || 60,
     latitude: service.latitude ?? null,
     longitude: service.longitude ?? null
   });
@@ -391,7 +407,9 @@ const handleReactivate = async (id) => {
   setFormData(prev => ({
     ...prev,
     location: profile.address || '',
-    contactNumber: profile.phone || ''
+    contactNumber: profile.phone || '',
+    pricingType: 'per_service',
+    serviceDuration: 60
   }));
 
   setShowForm(true);
@@ -419,7 +437,9 @@ const handleReactivate = async (id) => {
                     location: '',
                     serviceType: '',
                     contactNumber: '',
-                    price: ''
+                    price: '',
+                    pricingType: 'per_service',
+                    serviceDuration: 60
                   });
                 }}
               >
@@ -542,6 +562,44 @@ const handleReactivate = async (id) => {
                 </div>
               </div>
 
+              <div className="form-group">
+                <label htmlFor="pricingType">Pricing Type *</label>
+                <select
+                  id="pricingType"
+                  name="pricingType"
+                  value={formData.pricingType}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="per_service">Per Service</option>
+                  <option value="per_hour">Per Hour</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="serviceDuration">
+                  {formData.pricingType === 'per_hour' ? 'Minimum Duration (minutes) *' : 'Service Duration (minutes) *'}
+                </label>
+                <input
+                  type="number"
+                  id="serviceDuration"
+                  name="serviceDuration"
+                  value={formData.serviceDuration}
+                  onChange={handleInputChange}
+                  min={formData.pricingType === 'per_hour' ? 60 : 15}
+                  max={1440} // 24 hours in minutes
+                  step="15"
+                  required
+                  placeholder={formData.pricingType === 'per_hour' ? '60' : '60'}
+                />
+                <small className="form-help">
+                  {formData.pricingType === 'per_hour' 
+                    ? 'Minimum duration for per-hour services (minimum 60 minutes)'
+                    : 'How long this service typically takes to complete'
+                  }
+                </small>
+              </div>
+
               <div className="form-actions">
                 <button 
                   type="button" 
@@ -553,7 +611,9 @@ const handleReactivate = async (id) => {
                       location: '',
                       serviceType: '',
                       contactNumber: '',
-                      price: ''
+                      price: '',
+                      pricingType: 'per_service',
+                      serviceDuration: 60
                     });
                   }}
                 >
@@ -628,7 +688,9 @@ const handleReactivate = async (id) => {
     location: profile.address || '',
     serviceType: '',
     contactNumber: profile.phone || '',
-    price: ''
+    price: '',
+    pricingType: 'per_service',
+    serviceDuration: 60
   });
 
   setShowForm(true);
@@ -681,6 +743,10 @@ const handleReactivate = async (id) => {
                     <div className="service-price">
                       <span className="price-label">Price:</span>
                       <span className="price-value">₱{parseFloat(service.price).toLocaleString()}</span>
+                      <span className="pricing-type">({service.pricingType === 'per_hour' ? 'per hour' : 'per service'})</span>
+                      {service.pricingType === 'per_service' && (
+                        <span className="service-duration">• {service.serviceDuration} min</span>
+                      )}
                     </div>
                     
                     <div className="service-date">
@@ -735,6 +801,10 @@ const handleReactivate = async (id) => {
                     <div className="service-price">
                       <span className="price-label">Price:</span>
                       <span className="price-value">₱{parseFloat(service.price).toLocaleString()}</span>
+                      <span className="pricing-type">({service.pricingType === 'per_hour' ? 'per hour' : 'per service'})</span>
+                      {service.pricingType === 'per_service' && (
+                        <span className="service-duration">• {service.serviceDuration} min</span>
+                      )}
                     </div>
                     
                     <div className="service-date">

@@ -299,6 +299,8 @@ const WPetOwnerDB = () => {
 						serviceType: service.service_type,
 						contactNumber: service.contact_number,
 						price: service.price,
+						pricingType: service.pricing_type || 'per_service',
+						serviceDuration: service.service_duration || 60,
 						provider_id: service.provider_id,
 						provider_user_id: provider.user_id,
 						provider_name: `${provider.first_name} ${provider.last_name}`.trim(),

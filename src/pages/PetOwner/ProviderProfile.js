@@ -103,6 +103,8 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
             serviceType: service.service_type,
             contactNumber: service.contact_number,
             price: service.price,
+            pricingType: service.pricing_type || 'per_service',
+            serviceDuration: service.service_duration || 60,
             provider_id: service.provider_id,
             provider_user_id: service.provider_id, // Use provider_id as user_id for consistency
             provider_name: `${provider?.first_name || ''} ${provider?.last_name || ''}`.trim(),
@@ -209,7 +211,15 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
                     />
                     <strong style={{ fontSize: '1.05em', color: '#1f2937' }}>{service.name}</strong>
                   </div>
-                  <span style={{ color: '#d97706', fontWeight: 600, fontSize: '1.1em' }}>₱{service.price}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                    <span style={{ color: '#d97706', fontWeight: 600, fontSize: '1.1em' }}>₱{service.price}</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                      /{service.pricingType === 'per_hour' ? 'hour' : 'service'}
+                      {service.pricingType === 'per_service' && service.serviceDuration && (
+                        <span style={{ color: '#059669', marginLeft: '4px' }}>• {service.serviceDuration} min</span>
+                      )}
+                    </span>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: '#6b7280', fontSize: '0.95em' }}>{service.serviceType}</span>

@@ -25,6 +25,32 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showGcashModal, setShowGcashModal] = useState(false);
   const [lastBookingProvider, setLastBookingProvider] = useState(null);
+  const [calculatedPrice, setCalculatedPrice] = useState(service?.price || 0);
+
+  // Calculate price based on service duration for per-hour services
+  const calculatePrice = (startDateTime, endDateTime) => {
+    if (!startDateTime || !endDateTime || !service?.price) {
+      return service?.price || 0;
+    }
+
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
+    const durationInHours = (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
+
+    if (service.pricingType === 'per_hour') {
+      return Math.ceil(durationInHours) * service.price; // Round up to the nearest hour
+    } else {
+      return service.price; // Fixed price for per-service
+    }
+  };
+
+  // Update calculated price when dates change
+  useEffect(() => {
+    if (bookingData.serviceStartDatetime && bookingData.serviceEndDatetime) {
+      const newPrice = calculatePrice(bookingData.serviceStartDatetime, bookingData.serviceEndDatetime);
+      setCalculatedPrice(newPrice);
+    }
+  }, [bookingData.serviceStartDatetime, bookingData.serviceEndDatetime, service?.price, service?.pricingType]);
 
   // Fetch provider details and gallery images
   useEffect(() => {
@@ -74,10 +100,67 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
       ...prev,
       [name]: type === 'file' ? files[0] : value
     }));
+    
+    // Auto-calculate end time for per-service bookings when start time changes
+    if (name === 'serviceStartDatetime' && service?.pricingType === 'per_service' && service?.serviceDuration) {
+      // Parse the datetime-local input value correctly
+      const [datePart, timePart] = value.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hour, minute] = timePart.split(':').map(Number);
+      
+      // Create date in local timezone
+      const startDate = new Date(year, month - 1, day, hour, minute);
+      const endDate = new Date(startDate.getTime() + (service.serviceDuration * 60 * 1000)); // Convert minutes to milliseconds
+      
+      // Format the end date back to datetime-local format
+      const endYear = endDate.getFullYear();
+      const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+      const endDay = String(endDate.getDate()).padStart(2, '0');
+      const endHour = String(endDate.getHours()).padStart(2, '0');
+      const endMinute = String(endDate.getMinutes()).padStart(2, '0');
+      const endDateTimeLocal = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
+      
+      setBookingData(prev => ({
+        ...prev,
+        serviceEndDatetime: endDateTimeLocal
+      }));
+    }
+    
     // Clear availability message when user changes dates
     if (name === 'serviceStartDatetime' || name === 'serviceEndDatetime') {
       setAvailabilityMessage('');
     }
+  };
+
+  // Validate end time is after start time
+  const validateEndTime = () => {
+    if (!bookingData.serviceStartDatetime || !bookingData.serviceEndDatetime) {
+      return true; // Allow empty values during input
+    }
+
+    const startDate = new Date(bookingData.serviceStartDatetime);
+    const endDate = new Date(bookingData.serviceEndDatetime);
+    
+    return endDate > startDate;
+  };
+
+  // Get minimum end time for the end datetime input
+  const getMinEndTime = () => {
+    if (!bookingData.serviceStartDatetime) {
+      return '';
+    }
+    
+    // Add 1 minute to start time to ensure end time is after start time
+    const startDate = new Date(bookingData.serviceStartDatetime);
+    const minEndDate = new Date(startDate.getTime() + (1 * 60 * 1000)); // Add 1 minute
+    
+    const year = minEndDate.getFullYear();
+    const month = String(minEndDate.getMonth() + 1).padStart(2, '0');
+    const day = String(minEndDate.getDate()).padStart(2, '0');
+    const hour = String(minEndDate.getHours()).padStart(2, '0');
+    const minute = String(minEndDate.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hour}:${minute}`;
   };
 
   // Check availability when both start and end times are set
@@ -222,6 +305,21 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
         return;
       }
 
+      // Additional validation for end time being after start time
+      if (!validateEndTime()) {
+        setError('Service end time must be after start time.');
+        return;
+      }
+
+      // Check minimum duration for per-hour services
+      if (service.pricingType === 'per_hour') {
+        const durationInMinutes = (selectedEndDate - selectedDate) / (1000 * 60);
+        if (durationInMinutes < 60) {
+          setError('Per-hour services must have a minimum duration of 60 minutes.');
+          return;
+        }
+      }
+
       // Check for booking conflicts before creating the booking
       const conflictCheck = await checkBookingConflicts(
         service.id,
@@ -290,7 +388,7 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
           contact_number: profile.phone,
           address: profile.address,
           status: 'pending',
-          total_price: service.price,
+          total_price: calculatedPrice,
           mode_of_payment: bookingData.modeOfPayment,
         }])
         .select();
@@ -387,8 +485,11 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                     <span className="service-type-badge">{service.serviceType}</span>
                   </div>
                   <div className="service-price">
-                    <span className="price-amount">₱{service.price}</span>
-                    <span className="price-label">/service</span>
+                    <span className="price-amount">₱{calculatedPrice}</span>
+                    <span className="price-label">/{service.pricingType === 'per_hour' ? 'hour' : 'service'}</span>
+                    {service.pricingType === 'per_service' && service.serviceDuration && (
+                      <span className="service-duration-info">• {service.serviceDuration} min</span>
+                    )}
                   </div>
                 </div>
                 
@@ -479,7 +580,12 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="serviceEndDatetime">Service End Date & Time *</label>
+                      <label htmlFor="serviceEndDatetime">
+                        Service End Date & Time *
+                        {service.pricingType === 'per_service' && (
+                          <span className="auto-calculated"> (Auto-calculated)</span>
+                        )}
+                      </label>
                       <input
                         type="datetime-local"
                         id="serviceEndDatetime"
@@ -487,8 +593,25 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                         value={bookingData.serviceEndDatetime}
                         onChange={handleInputChange}
                         required
-                        min={bookingData.serviceStartDatetime}
+                        min={getMinEndTime()}
+                        disabled={service.pricingType === 'per_service'}
+                        style={service.pricingType === 'per_service' ? { backgroundColor: '#f3f4f6', cursor: 'not-allowed' } : {}}
                       />
+                      {service.pricingType === 'per_service' && (
+                        <small className="form-help">
+                          End time is automatically calculated based on service duration ({service.serviceDuration} minutes)
+                        </small>
+                      )}
+                      {service.pricingType === 'per_hour' && (
+                        <small className="form-help">
+                          Minimum duration: 60 minutes
+                        </small>
+                      )}
+                      {!validateEndTime() && bookingData.serviceStartDatetime && bookingData.serviceEndDatetime && (
+                        <small className="form-error">
+                          End time must be after start time
+                        </small>
+                      )}
                     </div>
                 </div>
                 {/* Availability Check Message */}
@@ -643,8 +766,14 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                   </button> <button
                     type="submit"
                     className="confirm-btn"
-                    disabled={isLoading || (availabilityMessage && availabilityMessage.includes('⚠️'))}
-                    title={availabilityMessage && availabilityMessage.includes('⚠️') ? 'Please choose a different time slot' : ''}
+                    disabled={isLoading || (availabilityMessage && availabilityMessage.includes('⚠️')) || !validateEndTime()}
+                    title={
+                      availabilityMessage && availabilityMessage.includes('⚠️') 
+                        ? 'Please choose a different time slot' 
+                        : !validateEndTime() 
+                        ? 'End time must be after start time'
+                        : ''
+                    }
                   >
                     {isLoading ? (
                       <>
@@ -653,12 +782,40 @@ const BookingModal = ({ service, isOpen, onClose, onBookingSuccess }) => {
                       </>
                       ) : availabilityMessage && availabilityMessage.includes('⚠️') ? (
                       'Time Slot Unavailable'
+                    ) : !validateEndTime() ? (
+                      'Invalid Time Range'
                     ) : (
                       'Confirm Booking'
                     )}
                   </button>
                 </div>
               </form>
+
+              {/* Price Breakdown for Per-Hour Services */}
+              {service.pricingType === 'per_hour' && bookingData.serviceStartDatetime && bookingData.serviceEndDatetime && (
+                <div className="price-breakdown">
+                  <h4>Price Breakdown</h4>
+                  <div className="breakdown-details">
+                    <div className="breakdown-item">
+                      <span>Base Rate:</span>
+                      <span>₱{service.price} per hour</span>
+                    </div>
+                    <div className="breakdown-item">
+                      <span>Duration:</span>
+                      <span>{(() => {
+                        const start = new Date(bookingData.serviceStartDatetime);
+                        const end = new Date(bookingData.serviceEndDatetime);
+                        const hours = Math.ceil((end - start) / (1000 * 60 * 60));
+                        return `${hours} hour${hours > 1 ? 's' : ''}`;
+                      })()}</span>
+                    </div>
+                    <div className="breakdown-item total">
+                      <span>Total:</span>
+                      <span>₱{calculatedPrice}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
