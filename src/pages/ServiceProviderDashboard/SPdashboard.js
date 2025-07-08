@@ -209,16 +209,16 @@ const ProviderDashboard = () => {
       });
       const activeClients = activeClientIds.size;
 
-      // Calculate average rating from reviews
-      const { data: reviewsData, error: reviewsError } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('service_provider_id', userId);
+      // Calculate average rating from provider_ratings view
+      const { data: ratingData, error: ratingError } = await supabase
+        .from('provider_ratings')
+        .select('average_rating, total_reviews')
+        .eq('service_provider_id', userId)
+        .single();
 
       let averageRating = "0.0";
-      if (!reviewsError && reviewsData && reviewsData.length > 0) {
-        const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
-        averageRating = (totalRating / reviewsData.length).toFixed(1);
+      if (!ratingError && ratingData) {
+        averageRating = (ratingData.average_rating || 0).toFixed(1);
       }
 
       // Update stats with proper formatting
