@@ -270,10 +270,14 @@ const ProviderDashboard = () => {
         
         <nav className="nav-menu">
           <div style={{ position: 'relative', display: 'inline-block' }}>
-            <button className="nav-button" onClick={handleNotifClick} style={{ position: 'relative' }}>
-              <img src="Icons/notification.svg" alt="Notifications" />
-              {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-            </button>
+            <button 
+  className="nav-button notification-button" 
+  onClick={handleNotifClick} 
+  style={{ position: 'relative' }}
+>
+  <img src="Icons/notification.svg" alt="Notifications" />
+  {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+</button>
             {showNotifPanel && (
               <div style={{
                 position: 'absolute',
