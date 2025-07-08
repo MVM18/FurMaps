@@ -2,14 +2,13 @@ import React, { useEffect, useState } from 'react';
 import './SPbookings.css';
 import { supabase } from '../../lib/supabaseClient';
 
-<<<<<<< HEAD
 const REPORT_REASONS = [
   'Fraud or Scam',
   'Inappropriate Content',
   'Abusive Behavior',
   'Other',
 ];
-=======
+
 // Helper function to format dates and times properly for display
 function formatBookingDateTimeUTC(dateTimeString) {
 	if (!dateTimeString) return { date: '-', time: '' };
@@ -44,7 +43,6 @@ function formatBookingDateTimeUTC(dateTimeString) {
 	
 	return { date: dateStr, time: timeStr };
 }
->>>>>>> bc11f51130c697c3fd93882c180a4a2ff21d711d
 
 const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowToast }) => {
   const [bookings, setBookings] = useState([]);

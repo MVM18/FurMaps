@@ -3,7 +3,6 @@ import { supabase } from '../../lib/supabaseClient';
 import styles from './ProviderProfile.module.css';
 import ProviderReviews from '../../components/ProviderReviews';
 
-<<<<<<< HEAD
 const REPORT_REASONS = [
   'Fraud or Scam',
   'Inappropriate Content',
@@ -11,11 +10,8 @@ const REPORT_REASONS = [
   'Other',
 ];
 
-const ProviderProfile = ({ userId }) => {
-=======
-// Helper function to get service icon
-const getServiceIcon = (serviceType) => {
-  switch (serviceType?.toLowerCase()) {
+function getServiceIcon(serviceType) {
+  switch ((serviceType || '').toLowerCase()) {
     case 'dog walking':
       return '/images/dog-leash.png';
     case 'pet grooming':
@@ -27,15 +23,13 @@ const getServiceIcon = (serviceType) => {
     default:
       return '/images/dogies.png';
   }
-};
+}
 
-const ProviderProfile = ({ userId, onServiceClick }) => {
->>>>>>> bc11f51130c697c3fd93882c180a4a2ff21d711d
+const ProviderProfile = ({ userId }) => {
   const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [galleryImages, setGalleryImages] = useState([]);
-<<<<<<< HEAD
   // Report modal state
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
@@ -43,14 +37,12 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportSuccess, setReportSuccess] = useState('');
   const [reportError, setReportError] = useState('');
-=======
   const [avgRating, setAvgRating] = useState(null);
   const [reviewCount, setReviewCount] = useState(0);
   const [providerServices, setProviderServices] = useState([]);
   const [showReviews, setShowReviews] = useState(false);
   const [imageModalUrl, setImageModalUrl] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
->>>>>>> bc11f51130c697c3fd93882c180a4a2ff21d711d
 
   useEffect(() => {
     if (!userId) return;
@@ -207,12 +199,6 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
   if (error) return <div style={{ padding: 32, color: 'red' }}>{error}</div>;
   if (!provider) return null;
 
-  const handleServiceClick = (service) => {
-    if (onServiceClick) {
-      onServiceClick(service);
-    }
-  };
-
   return (
     <div className={styles['provider-profile-card']}>
       <div className={styles['profile-info-row']}>
@@ -295,7 +281,6 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
                   e.target.style.transform = 'translateY(0)';
                   e.target.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
                 }}
-                onClick={() => handleServiceClick(service)}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -460,7 +445,6 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
           </div>
         )}
       </div>
-<<<<<<< HEAD
       {/* Report Modal */}
       {showReportModal && (
         <div className="modal-overlay">
@@ -503,18 +487,6 @@ const ProviderProfile = ({ userId, onServiceClick }) => {
               </div>
             </form>
           </div>
-=======
-      {imageModalUrl && modalVisible && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(30,41,59,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeInBg 0.25s' }} onClick={() => { setModalVisible(false); setTimeout(() => setImageModalUrl(null), 200); }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 18, maxWidth: '92vw', maxHeight: '92vh', boxShadow: '0 8px 32px rgba(37,99,235,0.18)', position: 'relative', animation: 'fadeInImg 0.32s' }} onClick={e => e.stopPropagation()}>
-            <button style={{ position: 'absolute', top: 10, right: 16, fontSize: 32, background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', zIndex: 2, borderRadius: 8, transition: 'background 0.18s' }} onMouseEnter={e => e.currentTarget.style.background = '#e0e7ef'} onMouseLeave={e => e.currentTarget.style.background = 'none'} onClick={() => { setModalVisible(false); setTimeout(() => setImageModalUrl(null), 200); }}>&times;</button>
-            <img src={imageModalUrl} alt="Preview" style={{ maxWidth: '80vw', maxHeight: '80vh', borderRadius: 12, display: 'block', margin: '0 auto', boxShadow: '0 2px 12px #2563eb22', animation: 'fadeInImg 0.32s' }} />
-          </div>
-                     <style>{`
-             @keyframes fadeInBg { from { opacity: 0; } to { opacity: 1; } }
-             @keyframes fadeInImg { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-           `}</style>
->>>>>>> bc11f51130c697c3fd93882c180a4a2ff21d711d
         </div>
       )}
     </div>

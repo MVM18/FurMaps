@@ -1810,4 +1810,19 @@ function sortList(list, sortType) {
   return sorted;
 }
 
+function getServiceIcon(serviceType) {
+  switch ((serviceType || '').toLowerCase()) {
+    case 'dog walking':
+      return '/images/dog-leash.png';
+    case 'pet grooming':
+      return '/images/dog-cat.png';
+    case 'pet sitting':
+      return '/images/dog-human.png';
+    case 'veterinary':
+      return '/images/dog-background.png';
+    default:
+      return '/images/dogies.png';
+  }
+}
+
 export default AdminDashboard;
