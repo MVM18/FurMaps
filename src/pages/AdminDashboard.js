@@ -227,8 +227,8 @@ const AdminDashboard = () => {
           schema: 'public',
           table: 'provider_reports'
         },
-        (payload) => {
-          handleNewReportNotification('provider', payload.new);
+        async (payload) => {
+          await handleNewReportNotification('provider', payload.new);
         }
       )
       .on('postgres_changes',
@@ -237,8 +237,8 @@ const AdminDashboard = () => {
           schema: 'public',
           table: 'pet_owner_reports'
         },
-        (payload) => {
-          handleNewReportNotification('owner', payload.new);
+        async (payload) => {
+          await handleNewReportNotification('owner', payload.new);
         }
       )
       .subscribe();
@@ -689,10 +689,12 @@ const AdminDashboard = () => {
   const handleCloseUser = () => setViewedUser(null);
 
   const handleSuspendUser = async (userId) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .update({ status: 'Suspended' })
       .eq('user_id', userId);
+
+    console.log('Suspend response:', { data, error });
 
     if (error) {
       alert('Failed to suspend user: ' + error.message);
@@ -904,15 +906,30 @@ const AdminDashboard = () => {
   };
 
   // Move handleNewReportNotification inside the AdminDashboard component
-  const handleNewReportNotification = (type, report) => {
+  const handleNewReportNotification = async (type, report) => {
     let title = '';
     let message = '';
+    let reportedName = '';
+
+    // Fetch the reported user's profile from the database
+    let reportedId = type === 'provider' ? report.provider_id : report.pet_owner_id;
+    if (reportedId) {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('user_id', reportedId)
+        .single();
+      if (!error && profiles) {
+        reportedName = `${profiles.first_name || ''} ${profiles.last_name || ''}`.trim();
+      }
+    }
+
     if (type === 'provider') {
       title = 'New Provider Report';
-      message = 'A new report has been submitted against a provider. Please review it.';
+      message = `A new report has been submitted against provider${reportedName ? ' ' + reportedName : ''}. Please review it.`;
     } else if (type === 'owner') {
       title = 'New Pet Owner Report';
-      message = 'A new report has been submitted against a pet owner. Please review it.';
+      message = `A new report has been submitted against pet owner${reportedName ? ' ' + reportedName : ''}. Please review it.`;
     }
     const newNotification = {
       id: Date.now(),
