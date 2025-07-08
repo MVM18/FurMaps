@@ -47,11 +47,11 @@ const ServiceCard = ({ service, onBookNow, onMessage, onProviderClick }) => {
         </div>
       </div>
       <div className="service-card-price-block">
+        <div className="price-line"> 
         <span className="service-card-price">₱{service.price}</span>
         <span className="service-card-price-label">/{service.pricingType === 'per_hour' ? 'hour' : 'service'}</span>
-        {service.pricingType === 'per_service' && service.serviceDuration && (
-          <span className="service-duration">• {service.serviceDuration} min</span>
-        )}
+        </div>
+        
         <div className="service-card-actions">
           <button className="book-now-btn" onClick={e => { e.stopPropagation(); onBookNow(service); }}>
             Book Now
