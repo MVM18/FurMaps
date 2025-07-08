@@ -582,12 +582,14 @@
 }
  
 .availability-message .loading-spinner-small {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(217, 119, 6, 0.3);
-  border-top: 2px solid #d97706;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-right: 8px;
 }
 
 .gcash-modal {
@@ -653,6 +655,98 @@
 .gcash-modal .confirm-btn:hover {
   background: linear-gradient(90deg, #059669 0%, #10b981 100%);
   box-shadow: 0 4px 16px rgba(16,185,129,0.12);
+}
+
+/* Price Breakdown */
+.price-breakdown {
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin: 0 24px 24px 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.price-breakdown h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.breakdown-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.breakdown-item:last-child {
+  border-bottom: none;
+}
+
+.breakdown-item.total {
+  font-weight: 600;
+  color: #059669;
+  font-size: 16px;
+  padding-top: 12px;
+  border-top: 2px solid #e2e8f0;
+  margin-top: 8px;
+}
+
+.breakdown-item span:first-child {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.breakdown-item span:last-child {
+  color: #374151;
+  font-weight: 500;
+}
+
+.breakdown-item.total span:last-child {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Auto-calculated label */
+.auto-calculated {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+  font-weight: normal;
+}
+
+/* Service duration info */
+.service-duration-info {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+/* Form help text */
+.form-help {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Form error text */
+.form-error {
+  display: block;
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 /* Responsive Design */

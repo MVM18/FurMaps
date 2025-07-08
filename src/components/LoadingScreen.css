@@ -37,11 +37,15 @@
 }
 
 .logo-text {
-  color: #1B2B49;
   font-size: 48px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', sans-serif;
   font-weight: 400;
   animation: glow 2s ease-in-out infinite alternate;
+  background: linear-gradient(90deg, #059669, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
 }
 
 .loading-spinner {

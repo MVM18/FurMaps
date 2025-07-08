@@ -2,12 +2,49 @@ import React, { useEffect, useState } from 'react';
 import './SPbookings.css';
 import { supabase } from '../../lib/supabaseClient';
 
+<<<<<<< HEAD
 const REPORT_REASONS = [
   'Fraud or Scam',
   'Inappropriate Content',
   'Abusive Behavior',
   'Other',
 ];
+=======
+// Helper function to format dates and times properly for display
+function formatBookingDateTimeUTC(dateTimeString) {
+	if (!dateTimeString) return { date: '-', time: '' };
+	
+	// Remove the timezone offset if present and treat as local time
+	let cleanDateTime = dateTimeString;
+	if (dateTimeString.includes('+')) {
+		cleanDateTime = dateTimeString.split('+')[0];
+	}
+	
+	// Create date object treating the time as local time (no timezone conversion)
+	const date = new Date(cleanDateTime);
+	
+	// Check if the date is valid
+	if (isNaN(date.getTime())) {
+		return { date: '-', time: '' };
+	}
+	
+	// Format date (e.g., "7/9/2025")
+	const dateStr = date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric'
+	});
+	
+	// Format time (e.g., "5:00 AM")
+	const timeStr = date.toLocaleTimeString('en-US', {
+		hour: 'numeric',
+		minute: '2-digit',
+		hour12: true
+	});
+	
+	return { date: dateStr, time: timeStr };
+}
+>>>>>>> bc11f51130c697c3fd93882c180a4a2ff21d711d
 
 const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowToast }) => {
   const [bookings, setBookings] = useState([]);
@@ -94,16 +131,16 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
     }
 
     const formatted = data.map(b => {
-  // Format the datetime for display
-  const startDate = new Date(b.service_start_datetime);
-  const endDate = new Date(b.service_end_datetime);
+  // Format the datetime for display using the helper function
+  const startDateTime = formatBookingDateTimeUTC(b.service_start_datetime);
+  const endDateTime = formatBookingDateTimeUTC(b.service_end_datetime);
   
   // Get profile data for this booking
   const profile = profiles[b.pet_owner_id];
   
   // Format the date and time for display
-  const formattedDate = startDate.toLocaleDateString();
-  const formattedTime = `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  const formattedDate = startDateTime.date;
+  const formattedTime = `${startDateTime.time} - ${endDateTime.time}`;
 
   return {
     id: b.id,
@@ -643,9 +680,15 @@ const ServiceProviderBookings = ({ highlightedBookingId, onMessageClick, onShowT
           <div style={{ fontWeight: 600, color: '#374151' }}>Status:</div>
           <div style={{ textTransform: 'capitalize' }}>{selectedBookingDetail.status}</div>
           <div style={{ fontWeight: 600, color: '#374151' }}>Start:</div>
-          <div>{selectedBookingDetail.service_start_datetime && new Date(selectedBookingDetail.service_start_datetime).toLocaleString()}</div>
+          <div>{selectedBookingDetail.service_start_datetime && (() => {
+            const startDateTime = formatBookingDateTimeUTC(selectedBookingDetail.service_start_datetime);
+            return `${startDateTime.date} ${startDateTime.time}`;
+          })()}</div>
           <div style={{ fontWeight: 600, color: '#374151' }}>End:</div>
-          <div>{selectedBookingDetail.service_end_datetime && new Date(selectedBookingDetail.service_end_datetime).toLocaleString()}</div>
+          <div>{selectedBookingDetail.service_end_datetime && (() => {
+            const endDateTime = formatBookingDateTimeUTC(selectedBookingDetail.service_end_datetime);
+            return `${endDateTime.date} ${endDateTime.time}`;
+          })()}</div>
           <div style={{ fontWeight: 600, color: '#374151' }}>Contact:</div>
           <div>{selectedBookingDetail.contact_number}</div>
           <div style={{ fontWeight: 600, color: '#374151' }}>Location:</div>

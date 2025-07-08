@@ -2274,3 +2274,51 @@
   background: #10b981;
 }
 
+@media (max-width: 768px) {
+  .admin-dashboard-main,
+  .stats-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 4vw !important;
+    box-sizing: border-box;
+  }
+  .stats-row {
+    flex-direction: column !important;
+    gap: 16px !important;
+    align-items: stretch !important;
+  }
+  .stat-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 12px;
+    padding: 16px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    order: initial; /* Reset order by default */
+  }
+  /* Change order for mobile */
+  .stat-card.complete-bookings { order: 1; }
+  .stat-card.revenue { order: 2; }
+  .stat-card.average-revenue { order: 3; }
+  .stat-card.active-providers { order: 4; }
+  .stat-label {
+    font-size: 1rem;
+  }
+  .stat-value {
+    font-size: 1.25rem;
+  }
+  .analytics-charts-grid {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .service-distribution-card,
+  .platform-growth-card,
+  .top-providers-card {
+    min-width: 0;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+}
+

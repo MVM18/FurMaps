@@ -15,11 +15,21 @@ const ProfileModal = ({ onClose }) => {
     bio: '',
     gcashDetails: '',
     gcashQrUrl: '',
+    certificate: '',
+    validId: '',
+    proofOfAddress: '',
   });
 
   const [profilePhoto, setProfilePhoto] = useState('https://via.placeholder.com/120x120/e5e7eb/6b7280?text=Profile');
+  const [ratingData, setRatingData] = useState({
+    averageRating: 0,
+    totalReviews: 0
+  });
   const fileInputRef = useRef(null);
   const gcashQrInputRef = useRef(null);
+  const certificateInputRef = useRef(null);
+  const validIdInputRef = useRef(null);
+  const proofOfAddressInputRef = useRef(null);
 
   const [petSpecialties, setPetSpecialties] = useState({
     dogs: true,
@@ -55,9 +65,26 @@ const ProfileModal = ({ onClose }) => {
           bio: data.bio || '',
           gcashDetails: data.gcash_details || '',
           gcashQrUrl: data.gcash_qr_url || '',
+          certificate: data.certificate || '',
+          validId: data.valid_id || '',
+          proofOfAddress: data.proof_of_address || '',
         });
 
         if (data.profile_picture) setProfilePhoto(data.profile_picture);
+      }
+
+      // Fetch rating data from provider_ratings view
+      const { data: ratingData, error: ratingError } = await supabase
+        .from('provider_ratings')
+        .select('average_rating, total_reviews')
+        .eq('service_provider_id', user.id)
+        .single();
+
+      if (!ratingError && ratingData) {
+        setRatingData({
+          averageRating: ratingData.average_rating || 0,
+          totalReviews: ratingData.total_reviews || 0
+        });
       }
     };
 
@@ -79,6 +106,9 @@ const ProfileModal = ({ onClose }) => {
         profile_picture: profilePhoto,
         gcash_details: profileData.gcashDetails,
         gcash_qr_url: profileData.gcashQrUrl,
+        certificate: profileData.certificate,
+        valid_id: profileData.validId,
+        proof_of_address: profileData.proofOfAddress,
         // experience and certifications are NOT included here
       })
       .eq('user_id', user.id);
@@ -150,8 +180,59 @@ const ProfileModal = ({ onClose }) => {
     }
   };
 
+  const handleDocumentUpload = async (event, documentType) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) return console.error('User fetch error:', userError);
+
+    const fileExt = file.name.split('.').pop();
+    const filePath = `provider-documents/${user.id}/${documentType}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase
+      .storage
+      .from('provider-documents')
+      .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+    if (uploadError) return console.error('Upload error:', uploadError);
+
+    const { data: publicUrlData, error: urlError } = supabase
+      .storage
+      .from('provider-documents')
+      .getPublicUrl(filePath);
+
+    if (urlError) return console.error('URL error:', urlError);
+
+    if (publicUrlData?.publicUrl) {
+      setProfileData(prev => ({ ...prev, [documentType]: publicUrlData.publicUrl }));
+    }
+  };
+
+  const handleCertificateChange = () => certificateInputRef.current?.click();
+  const handleValidIdChange = () => validIdInputRef.current?.click();
+  const handleProofOfAddressChange = () => proofOfAddressInputRef.current?.click();
+
   const handlePetSpecialtyChange = (specialty) => {
     setPetSpecialties(prev => ({ ...prev, [specialty]: !prev[specialty] }));
+  };
+
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    return (
+      <>
+        {[...Array(fullStars)].map((_, i) => (
+          <span key={`full-${i}`} style={{ color: '#fbbf24' }}>★</span>
+        ))}
+        {hasHalfStar && <span style={{ color: '#fbbf24' }}>☆</span>}
+        {[...Array(emptyStars)].map((_, i) => (
+          <span key={`empty-${i}`} style={{ color: '#d1d5db' }}>☆</span>
+        ))}
+      </>
+    );
   };
 
   return (
@@ -184,38 +265,16 @@ const ProfileModal = ({ onClose }) => {
                 <h2>{profileData.firstName} {profileData.lastName}</h2>
               </div>
               <div className="rating">
-                <span className="stars">★★★★★</span>
-                <span className="rating-text">4.9 (89 reviews)</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="services-section">
-            <div className="pet-specialties">
-              <h4>Pet Specialties</h4>
-              <p>What types of pets do you specialize in?</p>
-              <div className="pet-checkboxes-grid">
-                {Object.keys(petSpecialties).map((key) => (
-                  <label key={key} className="pet-checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={petSpecialties[key]}
-                      onChange={() => handlePetSpecialtyChange(key)}
-                      disabled={!isEditing}
-                    />
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="service-area">
-              <h4>Service Area</h4>
-              <p>Areas You Serve</p>
-              <div className="areas-tags">
-                <span className="area-tag">Downtown</span>
-                <span className="area-tag">Westside</span>
-                <span className="area-tag">City Center</span>
+                {ratingData.totalReviews > 0 ? (
+                  <>
+                    <span className="stars">{renderStars(ratingData.averageRating)}</span>
+                    <span className="rating-text">
+                      {ratingData.averageRating.toFixed(1)} ({ratingData.totalReviews} reviews)
+                    </span>
+                  </>
+                ) : (
+                  <span className="rating-text">No reviews yet</span>
+                )}
               </div>
             </div>
           </div>
@@ -276,7 +335,7 @@ const ProfileModal = ({ onClose }) => {
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   disabled={!isEditing}
                 />
-              </div>
+              </div>{/*
               <div className="info-item">
                 <label>Years of Experience</label>
                 <input
@@ -293,7 +352,7 @@ const ProfileModal = ({ onClose }) => {
                   onChange={(e) => handleInputChange('certifications', e.target.value)}
                   disabled={!isEditing}
                 />
-              </div>
+              </div>*/}
               <div className="info-item full-width">
                 <label>Professional Bio</label>
                 <textarea
@@ -329,6 +388,97 @@ const ProfileModal = ({ onClose }) => {
                       ref={gcashQrInputRef}
                       onChange={handleGcashQrFileSelect}
                       accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Provider Documents Section */}
+          <div className="personal-info-section">
+            <div className="section-header">
+              <h3>Provider Documents</h3>
+              <button
+                className="edit-btn"
+                onClick={isEditing ? handleSave : handleEditToggle}
+              >
+                {isEditing ? 'Save' : 'Edit'}
+              </button>
+            </div>
+            <p>Manage your verification documents</p>
+
+            <div className="info-grid">
+              <div className="info-item full-width">
+                <label>Professional Certificate</label>
+                {profileData.certificate && (
+                  <div style={{ marginBottom: 8 }}>
+                    <a href={profileData.certificate} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+                      View Certificate
+                    </a>
+                  </div>
+                )}
+                {isEditing && (
+                  <>
+                    <button className="change-photo-btn" type="button" onClick={handleCertificateChange}>
+                      {profileData.certificate ? 'Change Certificate' : 'Upload Certificate'}
+                    </button>
+                    <input
+                      type="file"
+                      ref={certificateInputRef}
+                      onChange={(e) => handleDocumentUpload(e, 'certificate')}
+                      accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+                      style={{ display: 'none' }}
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="info-item full-width">
+                <label>Valid ID</label>
+                {profileData.validId && (
+                  <div style={{ marginBottom: 8 }}>
+                    <a href={profileData.validId} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+                      View Valid ID
+                    </a>
+                  </div>
+                )}
+                {isEditing && (
+                  <>
+                    <button className="change-photo-btn" type="button" onClick={handleValidIdChange}>
+                      {profileData.validId ? 'Change Valid ID' : 'Upload Valid ID'}
+                    </button>
+                    <input
+                      type="file"
+                      ref={validIdInputRef}
+                      onChange={(e) => handleDocumentUpload(e, 'validId')}
+                      accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+                      style={{ display: 'none' }}
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="info-item full-width">
+                <label>Proof of Address</label>
+                {profileData.proofOfAddress && (
+                  <div style={{ marginBottom: 8 }}>
+                    <a href={profileData.proofOfAddress} target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+                      View Proof of Address
+                    </a>
+                  </div>
+                )}
+                {isEditing && (
+                  <>
+                    <button className="change-photo-btn" type="button" onClick={handleProofOfAddressChange}>
+                      {profileData.proofOfAddress ? 'Change Proof of Address' : 'Upload Proof of Address'}
+                    </button>
+                    <input
+                      type="file"
+                      ref={proofOfAddressInputRef}
+                      onChange={(e) => handleDocumentUpload(e, 'proofOfAddress')}
+                      accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
                       style={{ display: 'none' }}
                     />
                   </>

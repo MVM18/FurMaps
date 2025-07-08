@@ -14,8 +14,22 @@ const SPAnalytics = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [providerId, setProviderId] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const timeRanges = ['Last 7 days', 'Last 30 days', 'Last 90 days', 'Last 6 months', 'Last year'];
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const getUserId = async () => {
@@ -236,6 +250,7 @@ const SPAnalytics = () => {
               <button 
                 className="dropdown-button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                aria-expanded={isDropdownOpen}
               >
                 <span>{timeRange}</span>
                 <svg className="dropdown-arrow" viewBox="0 0 16 16">

@@ -317,6 +317,11 @@
   background: #fff;
   min-width: 140px;
 }
+.price-line {
+  display: flex;
+  align-items: baseline; /* Aligns text by their baselines */
+  margin-bottom: 0.2rem;
+}
 .service-card-price {
   font-size: 1.5rem;
   font-weight: 700;
@@ -324,9 +329,15 @@
   margin-bottom: 0.2rem;
 }
 .service-card-price-label {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #6b7280;
-  margin-bottom: 1.2rem;
+  margin-left: 4px;
+}
+.service-duration {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 500;
+  margin-left: 8px;
 }
 .service-card-actions {
   display: flex;

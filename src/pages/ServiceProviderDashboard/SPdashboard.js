@@ -209,16 +209,16 @@ const ProviderDashboard = () => {
       });
       const activeClients = activeClientIds.size;
 
-      // Calculate average rating from reviews
-      const { data: reviewsData, error: reviewsError } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('service_provider_id', userId);
+      // Calculate average rating from provider_ratings view
+      const { data: ratingData, error: ratingError } = await supabase
+        .from('provider_ratings')
+        .select('average_rating, total_reviews')
+        .eq('service_provider_id', userId)
+        .single();
 
       let averageRating = "0.0";
-      if (!reviewsError && reviewsData && reviewsData.length > 0) {
-        const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
-        averageRating = (totalRating / reviewsData.length).toFixed(1);
+      if (!ratingError && ratingData) {
+        averageRating = (ratingData.average_rating || 0).toFixed(1);
       }
 
       // Update stats with proper formatting
@@ -270,10 +270,14 @@ const ProviderDashboard = () => {
         
         <nav className="nav-menu">
           <div style={{ position: 'relative', display: 'inline-block' }}>
-            <button className="nav-button" onClick={handleNotifClick} style={{ position: 'relative' }}>
-              <img src="Icons/notification.svg" alt="Notifications" />
-              {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-            </button>
+            <button 
+  className="nav-button notification-button" 
+  onClick={handleNotifClick} 
+  style={{ position: 'relative' }}
+>
+  <img src="Icons/notification.svg" alt="Notifications" />
+  {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+</button>
             {showNotifPanel && (
               <div style={{
                 position: 'absolute',
